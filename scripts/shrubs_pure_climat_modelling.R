@@ -52,6 +52,7 @@ sp.name <- as.character(args[1])
 ## sp.name <- "Alnus_incana"
 ## sp.name <- "Artemisia_comata"
 ## sp.name <- "Betula_pubescens"
+## sp.name <- "18"
 
 ## definig the machine where the script will run ----------------------------------------
 host = "idiv_cluster"
@@ -107,7 +108,8 @@ setwd(out.dir)
 
 ## require libraries -----------------------------------------------------------
 require(biomod2)
-
+require(rgdal)
+# require(biomod2, lib.loc="/gpfs0/home/georges/R/old_biomod2")
 
 ## load climatique variables ---------------------------------------------------
 
@@ -227,7 +229,7 @@ bm.opt <- BIOMOD_ModelingOptions(
 
 bm.mod <- BIOMOD_Modeling(
   bm.dat,
-  models = c('GAM', 'MAXENT', 'GBM', 'RF', 'MARS', 'CTA'),
+  models = c('MAXENT', 'GAM', 'GBM', 'RF', 'MARS', 'CTA'),
   models.options = bm.opt,
   NbRunEval = 10,
   DataSplit = 80,
