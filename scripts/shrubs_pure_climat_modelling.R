@@ -21,7 +21,9 @@
 ##'   A piece of code to generate parameters is available at the end of this script.
 ##'   A piece of code to generate serie of batch files is also available at the end of this script.
 ##' 
-##' @log 
+##' @log
+##'   - 09/09/2015: update the script to fit with idiv cluster
+##' 
 ##' 
 ##' @licencing GPL
 ##'     Copyright (C) 2015  Damien G.
@@ -51,11 +53,11 @@ sp.name <- as.character(args[1])
 ## sp.name <- "Artemisia_comata"
 ## sp.name <- "Betula_pubescens"
 
-## definig the user that run the script ----------------------------------------
-user = "Anne"
+## definig the machine where the script will run ----------------------------------------
+host = "idiv_cluster"
 
-## input/output directories depending on the user ------------------------------
-if(user == "damien"){
+## input/output directories depending on the host ------------------------------
+if(host == "pinea"){
   # presences-absences tables
   in.spp <- "~/Work/SHRUBS/WORKDIR/SDM/Damien_ModellingData"
   # worldclim layers
@@ -66,7 +68,7 @@ if(user == "damien"){
   out.dir <- "~/Work/SHRUBS/WORKDIR/SDM/Biomod_pure_climate"
   # path to maxent.jar file
   path_to_maxent.jar <- "~/Work/SHRUBS/WORKDIR/SDM"
-} else{
+} else if(host == "brisca_cluster"){
   # presences-absences tables
   ##in.spp <- "I:\\C_Write\\Signe\\aa_BRISCA\\SDM_sessions\\Presence-PseudoAbsence_thinned\\Data_output\\gbif_biosc_hult_thined_10000" #or gbif_biosc_hult_random for the random datasets (10,000 PA)
   ## temp for devel
@@ -80,6 +82,23 @@ if(user == "damien"){
   out.dir <- "J:\\People\\Anne\\workdir\\Biomod_pure_climate"
   # path to maxent.jar file  
   path_to_maxent.jar <- "I:\\C_Write\\Signe\\aa_BRISCA\\SDM_sessions\\Maxent"
+} else if (host == "idiv_cluster"){
+  # presences-absences tables
+  in.spp <- "/data/idiv_sdiv/brisca/SDM_sessions/Presence-PseudoAbsence_thinned/Data_output/gbif_biosc_hult_thined_10000" 
+  # worldclim layers
+  in.clim <- "/data/idiv_sdiv/brisca/Data/Climate/Macroclimate/Current/Processed/Projected/bio"
+  # GDD layer
+  in.gdd <- "/data/idiv_sdiv/brisca/Data/Climate/Macroclimate/Current/Processed/Projected/tave10_esri"
+  # output directory (= workking directory)
+  out.dir <- "/work/georges/BRISCA/Biomod_pure_climate"
+  # path to maxent.jar file  
+  path_to_maxent.jar <- "/data/idiv_sdiv/brisca/SDM_sessions/Maxent"
+  ##' @note beacause of the the job manager installed in this cluster (qsub)
+  ##'   the input argument is the species ID not the species name so we need 
+  ##'   to recover species name manually
+  sp.id <- as.numeric(sp.name)
+  sp.tab <- read.table("/work/georges/BRISCA/grid_params/params_pcm.txt", header = FALSE, sep = " ")
+  sp.name <- as.character(sp.tab[sp.id, 2])
 }
 
 ## create the output directory and change the working directory ----------------
@@ -258,17 +277,19 @@ quit("no")
 
 # ## create the parameter files for the grid -------------------------------------
 # 
+# out.dir <- "/work/georges/BRISCA/grid_params"
+# dir.create(out.dir, showWarnings = FALSE, recursive = TRUE)
 # ## get all species names
 # ## get all .csv files
-# pres.thin.files <- list.files(in.spp, pattern = "^pres_and_PA_thin_.*.csv$", full.names = TRUE)
+# pres.thin.files <- list.files(in.spp, pattern = "^pres_and_10000_PA_thin_.*.csv$", full.names = TRUE)
 # ## decuce the species names from list of thin files
-# sp.list <- sub("^pres_and_PA_thin_", "", file_path_sans_ext(basename(pres.thin.files)))
+# sp.list <- sub("^pres_and_10000_PA_thin_", "", tools::file_path_sans_ext(basename(pres.thin.files)))
 # 
 # params <- data.frame(sp.name = sp.list)
 # 
-# write.table(params, file = "params_pcm.txt", sep = " ", 
+# write.table(params, file = file.path(out.dir, "params_pcm.txt"), sep = " ", 
 #             quote = FALSE, append = FALSE, row.names = TRUE, col.names = FALSE)
-
+# 
 
 # ## create a set of batch files for parallel computing over our Win machine -----
 # 

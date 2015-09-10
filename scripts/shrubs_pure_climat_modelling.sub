@@ -1,0 +1,48 @@
+#!/bin/bash
+
+# ----------------------------------------------------------------------
+# qsub arguments
+# ----------------------------------------------------------------------
+
+#$  -N  shrub_oure_climat_modelling
+#$  -S  /bin/bash
+#$  -l  h_vmem=10G
+#$  -l  h_rt=48:00:00
+#$  -t  1-146
+#$  -pe smp 1
+## #$  -pe smp 1 ## this script seems not to work properly in parallel
+
+# ---------------------------------------------------------------------- 
+# output files
+#
+# Explanation:
+#
+#   USER          well, that is your user name
+#   JOB_NAME      reference to the name of the job
+#   JOB_ID        the unique ID of the job
+#   TASK_ID       the task ID of the current task
+# ----------------------------------------------------------------------
+
+#$ -o /work/$USER/logfiles/$JOB_NAME-$JOB_ID-$TASK_ID.log
+#$ -j y
+
+# ----------------------------------------------------------------------
+# actual processing
+# ----------------------------------------------------------------------
+
+paramsFile="none"
+params=${SGE_TASK_ID}
+
+module load java
+module load gdal
+module load R
+
+echo
+echo "task id: " ${SGE_TASK_ID}
+echo "params file:" ${paramsFile}
+echo "params: " ${params} 
+echo
+echo
+
+## R CMD BATCH --no-restore --vanilla "--args ${params}" ~/SHRUBS/ShrubHub/scripts/users/dgeorges/ndvi_growth_chronologies_cor/cor_mcd43a4_growth_chrono.R /dev/out
+Rscript --no-restore --vanilla ~/BRISCA/briscahub/scripts/shrubs_pure_climat_modelling.R  ${params}
