@@ -4,9 +4,11 @@
 # qsub arguments
 # ----------------------------------------------------------------------
 
-#$  -N  shrub_pure_climat_projections
+## #$  -N  shrub_pure_climat_projections
+#$  -N  shrub_pure_climat_projections_20G
 #$  -S  /bin/bash
-#$  -l  h_vmem=9999M
+## #$  -l  h_vmem=9999M
+#$  -l  h_vmem=20G,highmem
 #$  -l  h_rt=24:00:00
 #$  -t  1-4975
 #$  -binding linear:1 ## core binding
