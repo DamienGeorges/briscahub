@@ -10,7 +10,7 @@
 ##'   via the script "shrub_pure_climat_modelling.R".
 ##'   
 ##'   We will consider :
-##'     - ~ 150 shrubs and tree species
+##'     - ~ 200 shrubs and tree species
 ##'     - current conditions
 ##'     - future conditions forecasted in 2080 in the 5th ipcc/giec repport for 
 ##'       4 RCP x 6 GCM
@@ -52,83 +52,116 @@ job.id <- as.numeric(args[1])
 
 
 ## definig the machine where the script will run -------------------------------
-host = "pinea"
+host = "idiv_cluster"
 
 ## input/output directories depending on the host ------------------------------
 if(host == "pinea"){
-  # path to biomod2 model output directory (= working directory)
-  in.mod <- "/media/georgeda/DamienPersonalDrive/Aarhus/aa_BRISCA/SDM_sessions/Biomod_pure_climate"
-  # worldclim layers
-  in.clim <- file.path("/media/georgeda/DamienPersonalDrive/Aarhus/aa_BRISCA/Data/Climate/Macroclimate/",
-  )
-  # GDD layer
-  in.gdd <- "~/Work/SHRUBS/WORKDIR/SDM/Damien_ModellingData"
-  # output directory (= workking directory)
-  out.dir <- "~/Work/SHRUBS/WORKDIR/SDM/Biomod_pure_climate"
-  # path to maxent.jar file
-  path_to_maxent.jar <- "~/Work/SHRUBS/WORKDIR/SDM"
+  ## TODO (Damien)
 } else if(host == "brisca_cluster"){
   ## TODO (Damien)
 } else if (host == "idiv_cluster"){
-  # presences-absences tables
-  in.spp <- "/data/idiv_sdiv/brisca/SDM_sessions/Presence-PseudoAbsence_thinned/Data_output/gbif_biosc_hult_thined_10000" 
-  # worldclim layers
-  in.clim <- "/data/idiv_sdiv/brisca/Data/Climate/Macroclimate/Current/Processed/Projected/bio"
-  # GDD layer
-  in.gdd <- "/data/idiv_sdiv/brisca/Data/Climate/Macroclimate/Current/Processed/Projected/tave10_esri"
-  # output directory (= workking directory)
-  out.dir <- "/work/georges/BRISCA/Biomod_pure_climate"
-  # path to maxent.jar file  
-  path_to_maxent.jar <- "/data/idiv_sdiv/brisca/SDM_sessions/Maxent"
-  ##' @note beacause of the the job manager installed in this cluster (qsub)
-  ##'   the input argument is the species ID not the species name so we need 
-  ##'   to recover species name manually
-  sp.id <- as.numeric(sp.name)
-  sp.tab <- read.table("/work/georges/BRISCA/grid_params/params_pcm.txt", header = FALSE, sep = " ")
-  sp.name <- as.character(sp.tab[sp.id, 2])
+  # path to the directory where models have been computed
+#   in.mod <- "/work/georges/BRISCA/Biomod_pure_climate"
+  in.mod <- "/work/georges/BRISCA/Biomod_pure_climate_wm"
+  # path to parameter table
+  param.file <- "/work/georges/BRISCA/grid_params/params_spcp.txt"
 }
 
 ## create the output directory and change the working directory ----------------
-dir.create(out.dir, showWarnings = FALSE, recursive = TRUE)
-setwd(out.dir)
+setwd(in.mod)
+
+## get the job parameters ------------------------------------------------------
+param.tab <- read.table(param.file, header = FALSE, sep = " ")
+sp.name <- as.character(param.tab[job.id, 2])
+path.to.expl.var <- as.character(param.tab[job.id, 3])
+
+
 
 ## require libraries -----------------------------------------------------------
-require(biomod2)
+require(biomod2, lib.loc='~/R/debug') ## version 1.3-73-00 (= the same than 1.3.73 with a trick not to save rasters in tmp dir)
+
+## load models outputs and explanatory variables -------------------------------
+## load models
+mod.name <- load(file.path(in.mod, sp.name, paste0(sp.name, ".pure_climat.models.out")))
+bm.mod <- get(mod.name)
+rm(list = mod.name)
+
+## load ensemble models
+ensmod.name <- load(file.path(in.mod, sp.name, paste0(sp.name, ".pure_climatensemble.models.out")))
+bm.ensmod <- get(ensmod.name)
+rm(list = ensmod.name)
+
+## load explanatory variables
+## define the projection system
+proj <- CRS("+proj=laea +lat_0=90.0 +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs") 
+
+## bioclimatic variables
+bio <- stack(file.path(path.to.expl.var, "bio", ifelse(grepl("Current", path.to.expl.var), "bioproj.grd", "bioproj_multi.grd")))
+## degree day
+ddeg <- raster(file.path(path.to.expl.var, "tave10_esri", "ddeg"), crs = proj)
+## merge all cliimatic variables
+expl.stk <- stack(ddeg, subset(bio, c(6, 10, 18, 19)))
+
+## do projections --------------------------------------------------------------
+##define the projection name
+if(grepl("Current", path.to.expl.var)){
+  bm.proj.name <- "pure_climat_current"
+} else{
+  bm.proj.name <- paste0("pure_climat_", sub("/", "_", sub("^.*Full_arctic_30_north/", "", path.to.expl.var))) 
+}
+
+## do single models projections
+bm.mod.proj <- BIOMOD_Projection(modeling.output = bm.mod,
+                                 new.env = expl.stk,
+                                 proj.name = bm.proj.name,
+#                                  binary.meth = c('TSS'), ## no needd to produce binary here
+                                 build.clamping.mask = FALSE,
+                                 compress = TRUE,
+                                 do.stack = FALSE,
+                                 keep.in.memory = TRUE)
+
+## do ensemble models projections
+bm.ensmod.proj <- BIOMOD_EnsembleForecasting(EM.output = bm.ensmod,
+                                             projection.output = bm.mod.proj,
+                                             binary.meth = c('TSS'),
+                                             compress = TRUE)
+
 
 quit('no')
 
 ## end of script ---------------------------------------------------------------
 
-## create the parameter files for the grid -------------------------------------
-
-# out.dir <- "/work/georges/BRISCA/grid_params"
-## on pinea
-out.dir <- "~/Work/BRISCA/grid_params"
-in.spp <- "/media/georgeda/DamienPersonalDrive/Aarhus/aa_BRISCA/SDM_sessions/Presence-PseudoAbsence_thinned/Data_output/gbif_biosc_hult_thined_10000"
-
-dir.create(out.dir, showWarnings = FALSE, recursive = TRUE)
-
-## get all species names from input presence absences input data
-pres.thin.files <- list.files(in.spp, 
-                              pattern = "^pres_and_10000_PA_thin_.*.csv$", full.names = TRUE)
-## decuce the species names from list of thin files
-sp.list <- sub("^pres_and_10000_PA_thin_", "", 
-               tools::file_path_sans_ext(basename(pres.thin.files)))
-## convert the name to fit with biomod2 species name format
-sp.list <- gsub("_", ".", sp.list, fixed = TRUE)
-
-## define the gcm and rcp we want to consider
-rcp.list <- c("RCP_2.6_2080", "RCP_4.5_2080", "RCP_6.0_2080", "RCP_8.5_2080")
-gcm.list <- c("cesm1_cam5", "gfdl_esm2m", "miroc_miroc5", "mri_cgcm3", "ncar_ccsm4",
-              "nimr_hadgem2ao")
-rcp.gcm.comb <- expand.grid(rcp.list = rcp.list,
-                            gcm.list = gcm.list)
-path.to.rep.var <- paste("")
-
-params <- expand.grid(sp.list = sp.list,
-                      rcp.list = rcp.list,
-                      gcm.list = gcm.list)
-
-
-write.table(params, file = file.path(out.dir, "params_spcp.txt"), sep = " ", 
-            quote = FALSE, append = FALSE, row.names = TRUE, col.names = FALSE)
+# ## create the parameter files for the grid -------------------------------------
+# 
+# ## on idiv_cluster
+# out.dir <- "/work/georges/BRISCA/grid_params/"
+# in.spp <- "/data/idiv_sdiv/brisca/SDM_sessions/Presence-PseudoAbsence_thinned/Data_output/gbif_biosc_hult_thined_10000" 
+# 
+# dir.create(out.dir, showWarnings = FALSE, recursive = TRUE)
+# 
+# ## get all species names from input presence absences input data
+# pres.thin.files <- list.files(in.spp, 
+#                               pattern = "^pres_and_10000_PA_thin_.*.csv$", full.names = TRUE)
+# ## decuce the species names from list of thin files
+# sp.list <- sub("^pres_and_10000_PA_thin_", "", 
+#                tools::file_path_sans_ext(basename(pres.thin.files)))
+# ## convert the name to fit with biomod2 species name format
+# sp.list <- gsub("_", ".", sp.list, fixed = TRUE)
+# 
+# ## define the gcm and rcp we want to consider
+# rcp.list <- c("RCP_2.6_2080", "RCP_4.5_2080", "RCP_6.0_2080", "RCP_8.5_2080")
+# gcm.list <- c("cesm1_cam5", "gfdl_esm2m", "miroc_miroc5", "mri_cgcm3", "ncar_ccsm4",
+#               "nimr_hadgem2ao")
+# rcp.gcm.comb <- expand.grid(rcp.list = rcp.list,
+#                             gcm.list = gcm.list)
+# from.path.to.fut.expl.var <- "/data/idiv_sdiv/brisca/Data/Climate/Macroclimate/Future/CIAT_AR5_bio_prec_tmean_tmax_tmin/Processed/Projected_polar_laea_10km/Full_arctic_30_north"
+# path.to.fut.expl.var <- file.path(from.path.to.fut.expl.var, rcp.gcm.comb$rcp.list, rcp.gcm.comb$gcm.list)
+# path.to.cur.expl.var <- "/data/idiv_sdiv/brisca/Data/Climate/Macroclimate/Current/Processed/Projected"
+# path.to.expl.var <- c(path.to.cur.expl.var, path.to.fut.expl.var)
+# 
+# params <- expand.grid(sp.list = sp.list,
+#                       path.to.expl.var = path.to.expl.var)
+# 
+# 
+# write.table(params, file = file.path(out.dir, "params_spcp.txt"), sep = " ", 
+#             quote = FALSE, append = FALSE, row.names = TRUE, col.names = FALSE)
