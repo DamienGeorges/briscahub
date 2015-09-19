@@ -66,3 +66,9 @@ proj.tab$ensmod.proj.ok <- file.exists(proj.tab$ensmod.proj.obj)
 
 sum(proj.tab$mod.proj.ok)
 sum(proj.tab$ensmod.proj.ok)
+
+## produce the new parameter file
+out.dir <- "/work/georges/BRISCA/grid_params/"
+write.table(proj.tab[ !proj.tab$mod.proj.ok, 2:3], file = file.path(out.dir, "params_spcp20G.txt"), sep = " ", 
+            quote = FALSE, append = FALSE, row.names = TRUE, col.names = FALSE)
+

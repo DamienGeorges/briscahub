@@ -64,7 +64,8 @@ if(host == "pinea"){
 #   in.mod <- "/work/georges/BRISCA/Biomod_pure_climate"
   in.mod <- "/work/georges/BRISCA/Biomod_pure_climate_wm"
   # path to parameter table
-  param.file <- "/work/georges/BRISCA/grid_params/params_spcp.txt"
+  param.file <- "/work/georges/BRISCA/grid_params/params_spcp.txt" ## first run (10G ram)
+#   param.file <- "/work/georges/BRISCA/grid_params/params_spcp20G.txt" ## second run (20G ram)
 }
 
 ## create the output directory and change the working directory ----------------
