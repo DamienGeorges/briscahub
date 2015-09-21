@@ -91,7 +91,7 @@ if(host == "pinea"){
   # GDD layer
   in.gdd <- "/data/idiv_sdiv/brisca/Data/Climate/Macroclimate/Current/Processed/Projected/tave10_esri"
   # output directory (= workking directory)
-  out.dir <- "/work/georges/BRISCA/Biomod_pure_climate_wm"
+  out.dir <- "/work/georges/BRISCA/Biomod_pure_climate"
   # path to maxent.jar file  
   path_to_maxent.jar <- "/data/idiv_sdiv/brisca/SDM_sessions/Maxent"
   ##' @note beacause of the the job manager installed in this cluster (qsub)
@@ -107,7 +107,7 @@ dir.create(out.dir, showWarnings = FALSE, recursive = TRUE)
 setwd(out.dir)
 
 ## require libraries -----------------------------------------------------------
-require(biomod2)
+require(biomod2, lib.loc = "/home/georges/R/biomod2_pkg/biomod2_3.1-73-02")
 require(rgdal)
 # require(biomod2, lib.loc="/gpfs0/home/georges/R/old_biomod2")
 
@@ -176,10 +176,17 @@ bm.dat <- BIOMOD_FormatingData(resp.var = sp.resp,
                                PA.table = sp.pa.tab, 
                                na.rm = TRUE)
 
+## create a suitable background directory for MAXENT ---------------------------
+
+maxent.bg.dir <- .create.maxent.bg.dir(clim.cur, bm.dat)
+
 ## define models options: BIOMOD_MOdellingOptions ------------------------------
 
 bm.opt <- BIOMOD_ModelingOptions(
   MAXENT = list( path_to_maxent.jar = path_to_maxent.jar,
+                 memory_allocated = 1000,
+                 background_data_dir = maxent.bg.dir,
+                 maximumbackground = 10000,
                  maximumiterations = 200,
                  visible = FALSE,
                  linear = TRUE,
@@ -195,11 +202,18 @@ bm.opt <- BIOMOD_ModelingOptions(
                  beta_lqp = -1,
                  beta_hinge = -1,
                  defaultprevalence = 0.5),
-  GAM = list( algo = 'GAM_mgcv', ## note: was mgcv but seems to cause a memory leak
-              type = 's_smoother',
-              interaction.level = 0,
+  GLM = list( type = 'polynomial',
+              interaction.level = 1,
               myFormula = NULL,
-              family = 'binomial'),
+              test = 'AIC',
+              family = binomial(link = 'logit'),
+              mustart = 0.5,
+              control = glm.control(epsilon = 1e-08, maxit = 50, trace = FALSE) ),
+#   GAM = list( algo = 'GAM_mgcv', ## note: was mgcv but seems to cause a memory leak
+#               type = 's_smoother',
+#               interaction.level = 0,
+#               myFormula = NULL,
+#               family = 'binomial'),
   GBM = list( distribution = 'bernoulli',
               n.trees = 1000,
               interaction.depth = 7,
@@ -229,7 +243,7 @@ bm.opt <- BIOMOD_ModelingOptions(
 
 bm.mod <- BIOMOD_Modeling(
   bm.dat,
-  models = c('GAM', 'GBM', 'RF', 'MARS', 'CTA', 'MAXENT'), ## MAXENT was removed because it was crashing on Idiv clusters
+  models = c('GLM', 'GBM', 'RF', 'MARS', 'CTA', 'MAXENT'), ## GAM replaced by GLM because of the projection that is too time consumming
   models.options = bm.opt,
   NbRunEval = 10,
   DataSplit = 80,
@@ -243,6 +257,10 @@ bm.mod <- BIOMOD_Modeling(
   modeling.id = "pure_climat")
 
 gc()
+
+## remove useless maxent background files
+unlink(maxent.bg.dir, recursive = TRUE, force = TRUE)
+
 ## produce ensemble models: BIOMOD_EnsembleModeling() --------------------------
 
 bm.ensmod <- BIOMOD_EnsembleModeling(modeling.output = bm.mod,
