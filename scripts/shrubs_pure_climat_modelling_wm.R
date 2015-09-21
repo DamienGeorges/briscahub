@@ -134,6 +134,11 @@ pres.thin.file <- list.files(in.spp,
 ## load the .csv
 pres.thin <- read.csv(pres.thin.file)
 
+## remove all 'tricky' characters from sp names
+sp.name <- gsub("-", "", sp.name)
+sp.name <- gsub(" ", ".", sp.name, fixed = "TRUE")
+sp.name <- gsub("_", ".", sp.name, fixed = "TRUE")
+
 ## reformat input data to be suitable with BIOMOD_FormatingData() --------------
 
 ## create response variable
