@@ -1,0 +1,17 @@
+Package: biomod2
+Type: Package
+Title: Ensemble platform for species distribution modeling
+Version: 3.1-73-02
+Date: 2015-03-19
+Author: Wilfried Thuiller, Damien Georges and Robin Engler
+Maintainer: Damien Georges <damien.georges2@gmail.com>
+Contact: Wilfried Thuiller <wilfried.thuiller@ujf-grenoble.fr>, Damien
+        Georges <damien.georges2@gmail.com>
+BugReports: <https://r-forge.r-project.org/R/?group_id=302>
+Description: Functions for species distribution modeling, calibration and evaluation, ensemble of models.
+Depends: stats, utils, sp, raster, parallel, reshape, ggplot2
+Imports: abind, rasterVis, pROC, nnet, gbm, mda, randomForest, rpart,
+        MASS, methods
+Suggests: ade4, foreign, Hmisc, mgcv, gam, testthat
+License: GPL-2
+Packaged: 2015-09-10 13:20:43 UTC; georges
