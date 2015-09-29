@@ -1378,14 +1378,17 @@ setMethod('predict', signature(object = 'EMmean_biomod2_model'),
               newdata <- check_data_range(model=object, new_data=newdata)
             }
             
-            ## check if models are formal loaded
-            if(is.character(object@model)){
-              model_tmp <- lapply(object@model, function(x){
-                return(get(load(file.path(object@resp_name, "models", object@modeling.id, x))))
-              })
-              names(model_tmp) <- object@model
-              object@model <- model_tmp
-            }
+#            ## check if models are formal loaded
+#             if(is.character(object@model)){
+#               cat("\n*** models that will be loaded", object@model)
+#               mem.change <- mem_change(model_tmp <- lapply(object@model, function(x){
+#                 cat("\n***\t\t loading ", file.path(object@resp_name, "models", object@modeling.id, x))
+#                 return(get(load(file.path(object@resp_name, "models", object@modeling.id, x))))
+#               }))
+#               cat("\n*** mem change:", mem.change)
+#               names(model_tmp) <- object@model
+#               object@model <- model_tmp
+#             }
             
             if(inherits(newdata, 'Raster') | inherits(formal_predictions, 'Raster')){            
               return(.predict.EMmean_biomod2_model.RasterStack(object, newdata, formal_predictions, ... ))
@@ -1405,7 +1408,12 @@ setMethod('predict', signature(object = 'EMmean_biomod2_model'),
   
   if(is.null(formal_predictions)){
     # make prediction of all models required
-    formal_predictions <- raster::stack(lapply(object@model, predict, newdata=newdata, on_0_1000=on_0_1000))
+    formal_predictions <- raster::stack(lapply(object@model, 
+          function(mod, resp_name, modeling.id){
+            ## check if model is loaded on memory
+            if(is.character(mod)) mod <- get(load(file.path(resp_name, "models", modeling.id, mod)))
+            return(predict(mod, newdata=newdata, on_0_1000=on_0_1000))
+          }, resp_name = object@resp_name, modeling.id = object@modeling.id))
   }
   
   out <- raster::mean(formal_predictions)
@@ -1428,7 +1436,12 @@ setMethod('predict', signature(object = 'EMmean_biomod2_model'),
   
   if(is.null(formal_predictions)){
     # make prediction of all models required
-    formal_predictions <- sapply(object@model, predict, newdata=newdata, on_0_1000=on_0_1000)
+    formal_predictions <- sapply(object@model, 
+                                   function(mod, resp_name, modeling.id){
+                                     ## check if model is loaded on memory
+                                     if(is.character(mod)) mod <- get(load(file.path(resp_name, "models", modeling.id, mod)))
+                                     return(predict(mod, newdata=newdata, on_0_1000=on_0_1000))
+                                   } , resp_name = object@resp_name, modeling.id = object@modeling.id)
   }
   
   out <- rowMeans(formal_predictions, na.rm=T)
@@ -1469,14 +1482,14 @@ setMethod('predict', signature(object = 'EMmedian_biomod2_model'),
               newdata <- check_data_range(model=object, new_data=newdata)
             }
             
-            ## check if models are formal loaded
-            if(is.character(object@model)){
-              model_tmp <- lapply(object@model, function(x){
-                return(get(load(file.path(object@resp_name, "models", object@modeling.id, x))))
-              })
-              names(model_tmp) <- object@model
-              object@model <- model_tmp
-            }
+#             ## check if models are formal loaded
+#             if(is.character(object@model)){
+#               model_tmp <- lapply(object@model, function(x){
+#                 return(get(load(file.path(object@resp_name, "models", object@modeling.id, x))))
+#               })
+#               names(model_tmp) <- object@model
+#               object@model <- model_tmp
+#             }
             
             if(inherits(newdata, 'Raster') | inherits(formal_predictions, 'Raster')){            
               return(.predict.EMmedian_biomod2_model.RasterStack(object, newdata, formal_predictions, ... ))
@@ -1496,7 +1509,12 @@ setMethod('predict', signature(object = 'EMmedian_biomod2_model'),
   
   if(is.null(formal_predictions)){
     # make prediction of all models required
-    formal_predictions <- raster::stack(lapply(object@model, predict, newdata=newdata, on_0_1000=on_0_1000))
+    formal_predictions <- raster::stack(lapply(object@model, 
+                                               function(mod, resp_name, modeling.id){
+                                                 ## check if model is loaded on memory
+                                                 if(is.character(mod)) mod <- get(load(file.path(resp_name, "models", modeling.id, mod)))
+                                                 return(predict(mod, newdata=newdata, on_0_1000=on_0_1000))
+                                               }, resp_name = object@resp_name, modeling.id = object@modeling.id))
   }
   
   out <- calc(formal_predictions, median)
@@ -1519,7 +1537,12 @@ setMethod('predict', signature(object = 'EMmedian_biomod2_model'),
   
   if(is.null(formal_predictions)){
     # make prediction of all models required
-    formal_predictions <- sapply(object@model, predict, newdata=newdata, on_0_1000=on_0_1000)
+    formal_predictions <- sapply(object@model, 
+                                 function(mod, resp_name, modeling.id){
+                                   ## check if model is loaded on memory
+                                   if(is.character(mod)) mod <- get(load(file.path(resp_name, "models", modeling.id, mod)))
+                                   return(predict(mod, newdata=newdata, on_0_1000=on_0_1000))
+                                 } , resp_name = object@resp_name, modeling.id = object@modeling.id)
   }
   
   out <- apply(formal_predictions, 1, median, na.rm=T)
@@ -1560,14 +1583,14 @@ setMethod('predict', signature(object = 'EMcv_biomod2_model'),
               newdata <- check_data_range(model=object, new_data=newdata)
             }
             
-            ## check if models are formal loaded
-            if(is.character(object@model)){
-              model_tmp <- lapply(object@model, function(x){
-                return(get(load(file.path(object@resp_name, "models", object@modeling.id, x))))
-              })
-              names(model_tmp) <- object@model
-              object@model <- model_tmp
-            }
+#             ## check if models are formal loaded
+#             if(is.character(object@model)){
+#               model_tmp <- lapply(object@model, function(x){
+#                 return(get(load(file.path(object@resp_name, "models", object@modeling.id, x))))
+#               })
+#               names(model_tmp) <- object@model
+#               object@model <- model_tmp
+#             }
             
             if(inherits(newdata, 'Raster') | inherits(formal_predictions, 'Raster')){            
               return(.predict.EMcv_biomod2_model.RasterStack(object, newdata, formal_predictions, ... ))
@@ -1588,9 +1611,14 @@ setMethod('predict', signature(object = 'EMcv_biomod2_model'),
   
   if(is.null(formal_predictions)){
     # make prediction of all models required
-    formal_predictions <- raster::stack(lapply(object@model, predict, newdata=newdata, on_0_1000=on_0_1000))
+    formal_predictions <- raster::stack(lapply(object@model, 
+                                               function(mod, resp_name, modeling.id){
+                                                 ## check if model is loaded on memory
+                                                 if(is.character(mod)) mod <- get(load(file.path(resp_name, "models", modeling.id, mod)))
+                                                 return(predict(mod, newdata=newdata, on_0_1000=on_0_1000))
+                                               }, resp_name = object@resp_name, modeling.id = object@modeling.id))
   }
- 
+  
   out <- raster::cv(formal_predictions, na.rm=TRUE, aszero=TRUE)
     
 #   if (on_0_1000){
@@ -1612,8 +1640,14 @@ setMethod('predict', signature(object = 'EMcv_biomod2_model'),
   
   if(is.null(formal_predictions)){
     # make prediction of all models required
-    formal_predictions <- sapply(object@model, predict, newdata=newdata, on_0_1000=on_0_1000)
+    formal_predictions <- sapply(object@model, 
+                                 function(mod, resp_name, modeling.id){
+                                   ## check if model is loaded on memory
+                                   if(is.character(mod)) mod <- get(load(file.path(resp_name, "models", modeling.id, mod)))
+                                   return(predict(mod, newdata=newdata, on_0_1000=on_0_1000))
+                                 } , resp_name = object@resp_name, modeling.id = object@modeling.id)
   }
+
   
 #   if(is.null(mean_prediction)){
 #     # calculate mean of predictions
@@ -1670,14 +1704,14 @@ setMethod('predict', signature(object = 'EMci_biomod2_model'),
               newdata <- check_data_range(model=object, new_data=newdata)
             }
             
-            ## check if models are formal loaded
-            if(is.character(object@model)){
-              model_tmp <- lapply(object@model, function(x){
-                return(get(load(file.path(object@resp_name, "models", object@modeling.id, x))))
-              })
-              names(model_tmp) <- object@model
-              object@model <- model_tmp
-            }
+#             ## check if models are formal loaded
+#             if(is.character(object@model)){
+#               model_tmp <- lapply(object@model, function(x){
+#                 return(get(load(file.path(object@resp_name, "models", object@modeling.id, x))))
+#               })
+#               names(model_tmp) <- object@model
+#               object@model <- model_tmp
+#             }
             
             if(inherits(newdata, 'Raster') | inherits(formal_predictions, 'Raster')){            
               return(.predict.EMci_biomod2_model.RasterStack(object, newdata, formal_predictions, ... ))
@@ -1699,7 +1733,12 @@ setMethod('predict', signature(object = 'EMci_biomod2_model'),
   
   if(is.null(formal_predictions)){
     # make prediction of all models required
-    formal_predictions <- raster::stack(lapply(object@model, predict, newdata=newdata, on_0_1000=on_0_1000))
+    formal_predictions <- raster::stack(lapply(object@model, 
+                                               function(mod, resp_name, modeling.id){
+                                                 ## check if model is loaded on memory
+                                                 if(is.character(mod)) mod <- get(load(file.path(resp_name, "models", modeling.id, mod)))
+                                                 return(predict(mod, newdata=newdata, on_0_1000=on_0_1000))
+                                               }, resp_name = object@resp_name, modeling.id = object@modeling.id))
   }
   
   if(is.null(mean_prediction)){
@@ -1736,7 +1775,12 @@ setMethod('predict', signature(object = 'EMci_biomod2_model'),
   
   if(is.null(formal_predictions)){
     # make prediction of all models required
-    formal_predictions <- sapply(object@model, predict, newdata=newdata, on_0_1000=on_0_1000)
+    formal_predictions <- sapply(object@model, 
+                                 function(mod, resp_name, modeling.id){
+                                   ## check if model is loaded on memory
+                                   if(is.character(mod)) mod <- get(load(file.path(resp_name, "models", modeling.id, mod)))
+                                   return(predict(mod, newdata=newdata, on_0_1000=on_0_1000))
+                                 } , resp_name = object@resp_name, modeling.id = object@modeling.id)
   }
   
   if(is.null(mean_prediction)){
@@ -1794,14 +1838,14 @@ setMethod('predict', signature(object = 'EMca_biomod2_model'),
               newdata <- check_data_range(model=object, new_data=newdata)
             }
             
-            ## check if models are formal loaded
-            if(is.character(object@model)){
-              model_tmp <- lapply(object@model, function(x){
-                return(get(load(file.path(object@resp_name, "models", object@modeling.id, x))))
-              })
-              names(model_tmp) <- object@model
-              object@model <- model_tmp
-            }
+#             ## check if models are formal loaded
+#             if(is.character(object@model)){
+#               model_tmp <- lapply(object@model, function(x){
+#                 return(get(load(file.path(object@resp_name, "models", object@modeling.id, x))))
+#               })
+#               names(model_tmp) <- object@model
+#               object@model <- model_tmp
+#             }
             
             if(inherits(newdata, 'Raster') | inherits(formal_predictions, 'Raster')){            
               return(.predict.EMca_biomod2_model.RasterStack(object, newdata, formal_predictions, ... ))
@@ -1821,7 +1865,12 @@ setMethod('predict', signature(object = 'EMca_biomod2_model'),
   
   if(is.null(formal_predictions)){
     # make prediction of all models required
-    formal_predictions <- raster::stack(lapply(object@model, predict, newdata=newdata, on_0_1000=on_0_1000))
+    formal_predictions <- raster::stack(lapply(object@model, 
+                                               function(mod, resp_name, modeling.id){
+                                                 ## check if model is loaded on memory
+                                                 if(is.character(mod)) mod <- get(load(file.path(resp_name, "models", modeling.id, mod)))
+                                                 return(predict(mod, newdata=newdata, on_0_1000=on_0_1000))
+                                               }, resp_name = object@resp_name, modeling.id = object@modeling.id))
   }
   
   if (on_0_1000){
@@ -1848,8 +1897,14 @@ setMethod('predict', signature(object = 'EMca_biomod2_model'),
   
   if(is.null(formal_predictions)){
     # make prediction of all models required
-    formal_predictions <- sapply(object@model, predict, newdata=newdata, on_0_1000=on_0_1000)
+    formal_predictions <- sapply(object@model, 
+                                 function(mod, resp_name, modeling.id){
+                                   ## check if model is loaded on memory
+                                   if(is.character(mod)) mod <- get(load(file.path(resp_name, "models", modeling.id, mod)))
+                                   return(predict(mod, newdata=newdata, on_0_1000=on_0_1000))
+                                 } , resp_name = object@resp_name, modeling.id = object@modeling.id)
   }
+  
   
   if (on_0_1000){
     thresh <- object@tresholds
@@ -1887,14 +1942,14 @@ setMethod('predict', signature(object = 'EMwmean_biomod2_model'),
               newdata <- check_data_range(model=object, new_data=newdata)
             }
             
-            ## check if models are formal loaded
-            if(is.character(object@model)){
-              model_tmp <- lapply(object@model, function(x){
-                return(get(load(file.path(object@resp_name, "models", object@modeling.id, x))))
-              })
-              names(model_tmp) <- object@model
-              object@model <- model_tmp
-            }
+#             ## check if models are formal loaded
+#             if(is.character(object@model)){
+#               model_tmp <- lapply(object@model, function(x){
+#                 return(get(load(file.path(object@resp_name, "models", object@modeling.id, x))))
+#               })
+#               names(model_tmp) <- object@model
+#               object@model <- model_tmp
+#             }
             
             if(inherits(newdata, 'Raster') | inherits(formal_predictions, 'Raster')){            
               return(.predict.EMwmean_biomod2_model.RasterStack(object, newdata, formal_predictions, ... ))
@@ -1914,7 +1969,12 @@ setMethod('predict', signature(object = 'EMwmean_biomod2_model'),
   
   if(is.null(formal_predictions)){
     # make prediction of all models required
-    formal_predictions <- raster::stack(lapply(object@model, predict, newdata=newdata, on_0_1000=on_0_1000))
+    formal_predictions <- raster::stack(lapply(object@model, 
+                                               function(mod, resp_name, modeling.id){
+                                                 ## check if model is loaded on memory
+                                                 if(is.character(mod)) mod <- get(load(file.path(resp_name, "models", modeling.id, mod)))
+                                                 return(predict(mod, newdata=newdata, on_0_1000=on_0_1000))
+                                               }, resp_name = object@resp_name, modeling.id = object@modeling.id))
   }
   
   out <- sum(formal_predictions * object@penalization_scores)
@@ -1937,8 +1997,14 @@ setMethod('predict', signature(object = 'EMwmean_biomod2_model'),
   
   if(is.null(formal_predictions)){
     # make prediction of all models required
-    formal_predictions <- sapply(object@model, predict, newdata=newdata, on_0_1000=on_0_1000)
+    formal_predictions <- sapply(object@model, 
+                                 function(mod, resp_name, modeling.id){
+                                   ## check if model is loaded on memory
+                                   if(is.character(mod)) mod <- get(load(file.path(resp_name, "models", modeling.id, mod)))
+                                   return(predict(mod, newdata=newdata, on_0_1000=on_0_1000))
+                                 } , resp_name = object@resp_name, modeling.id = object@modeling.id)
   }
+  
   
   out <- as.vector(as.matrix(formal_predictions) %*% object@penalization_scores)
   
