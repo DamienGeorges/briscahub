@@ -72,12 +72,14 @@ setMethod('BinaryTransformation', signature(data='RasterStack'),
     if(length(threshold) == 1){
       threshold <- rep(threshold, raster::nlayers(data))
     }
-    StkTmp <- raster::stack()
-    for(i in 1:raster::nlayers(data)){
-      StkTmp <- raster::addLayer(StkTmp, BinaryTransformation(raster::subset(data,i,drop=TRUE), threshold[i]))
-    }
-    names(StkTmp) <- names(data)
-    return(StkTmp)
+    return(calc(data, function(x){x >= threshold}))
+#     ## old version
+#     StkTmp <- raster::stack()
+#     for(i in 1:raster::nlayers(data)){
+#       StkTmp <- raster::addLayer(StkTmp, BinaryTransformation(raster::subset(data,i,drop=TRUE), threshold[i]))
+#     }
+#     names(StkTmp) <- names(data)
+#     return(StkTmp)
   })
           
 setMethod('BinaryTransformation', signature(data='RasterBrick'), 
