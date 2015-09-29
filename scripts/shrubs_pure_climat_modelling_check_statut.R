@@ -28,15 +28,19 @@
 
 rm(list=ls())
 
-modelling.dir <- "/work/georges/BRISCA/Biomod_pure_climate_wm"
+modelling.dir <- "/work/georges/BRISCA/Biomod_pure_climate"
 sp.tab <- read.table("/work/georges/BRISCA/grid_params/params_pcm.txt", header = FALSE, sep = " ")
 sp.list <- as.character(sp.tab[, 2])
 
+## update sp.list to fit with the well formated names
+## remove all 'tricky' characters from sp names
+sp.list <- gsub("-", "", sp.list)
+sp.list <- gsub(" ", ".", sp.list, fixed = "TRUE")
+sp.list <- gsub("_", ".", sp.list, fixed = "TRUE")
+
 ## check if species have been completed
 sp.ok <- sapply(sp.list, function(spp){
-  file.exists(file.path(modelling.dir, 
-                        gsub("_", ".", spp, fixed = TRUE),
-                        "bm.eval.txt"))
+  file.exists(file.path(modelling.dir, spp, "bm.eval.txt"))
   })
 
 sum(sp.ok)
@@ -46,9 +50,8 @@ sp.nok.id
 ## check if at least the modelling part have been completed
 sp.mok <- sapply(sp.list, function(spp){
   file.exists(file.path(modelling.dir, 
-                        gsub("_", ".", spp, fixed = TRUE),
-                        paste0(gsub("_", ".", spp, fixed = TRUE),
-                               ".pure_climat.models.out")))
+                        spp,
+                        paste0(spp, ".pure_climat.models.out")))
 })
 sum(sp.mok)
 sp.nmok.id <- which(!sp.mok) 

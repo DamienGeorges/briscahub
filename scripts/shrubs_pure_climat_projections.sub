@@ -5,12 +5,14 @@
 # ----------------------------------------------------------------------
 
 ## #$  -N  shrub_pure_climat_projections
-#$  -N  shrub_pure_climat_projections_20G
+#$  -N  shrub_pure_climat_projections_5G
 #$  -S  /bin/bash
-## #$  -l  h_vmem=9999M
-#$  -l  h_vmem=20G,highmem
+## #$  -l  h_vmem=5999M
+#$  -l  h_vmem=9999M
+## #$  -l  h_vmem=20G,highmem
 #$  -l  h_rt=24:00:00
-#$  -t  1-4975
+## #$  -t  1-4900
+#$  -t 1-890
 #$  -binding linear:1 ## core binding
 
 # ---------------------------------------------------------------------- 

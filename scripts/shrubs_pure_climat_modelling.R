@@ -66,7 +66,7 @@ if(host == "pinea"){
   # GDD layer
   in.gdd <- "~/Work/SHRUBS/WORKDIR/SDM/Damien_ModellingData"
   # output directory (= workking directory)
-  out.dir <- "~/Work/SHRUBS/WORKDIR/SDM/Biomod_pure_climate"
+  out.dir <- "~/Work/SHRUBS/WORKDIR/SDM/Biomod_pure_climate_highmem"
   # path to maxent.jar file
   path_to_maxent.jar <- "~/Work/SHRUBS/WORKDIR/SDM"
 } else if(host == "brisca_cluster"){
@@ -229,7 +229,7 @@ bm.opt <- BIOMOD_ModelingOptions(
 
 bm.mod <- BIOMOD_Modeling(
   bm.dat,
-  models = c('MAXENT', 'GAM', 'GBM', 'RF', 'MARS', 'CTA'),
+  models = c('GAM', 'GBM', 'RF', 'MARS', 'CTA'), ## MAXENT was removed because it was crashing on Idiv clusters
   models.options = bm.opt,
   NbRunEval = 10,
   DataSplit = 80,
@@ -291,7 +291,7 @@ quit("no")
 # 
 # write.table(params, file = file.path(out.dir, "params_pcm.txt"), sep = " ", 
 #             quote = FALSE, append = FALSE, row.names = TRUE, col.names = FALSE)
-# 
+
 
 # ## create a set of batch files for parallel computing over our Win machine -----
 # 

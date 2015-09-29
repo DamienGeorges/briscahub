@@ -61,11 +61,10 @@ if(host == "pinea"){
   ## TODO (Damien)
 } else if (host == "idiv_cluster"){
   # path to the directory where models have been computed
-#   in.mod <- "/work/georges/BRISCA/Biomod_pure_climate"
-  in.mod <- "/work/georges/BRISCA/Biomod_pure_climate_wm"
+  in.mod <- "/work/georges/BRISCA/Biomod_pure_climate"
   # path to parameter table
-  param.file <- "/work/georges/BRISCA/grid_params/params_spcp.txt" ## first run (10G ram)
-#   param.file <- "/work/georges/BRISCA/grid_params/params_spcp20G.txt" ## second run (20G ram)
+#  param.file <- "/work/georges/BRISCA/grid_params/params_spcp.txt" ## first run (10G ram)
+   param.file <- "/work/georges/BRISCA/grid_params/params_spcp20G.txt" ## second run (20G ram)
 }
 
 ## create the output directory and change the working directory ----------------
@@ -79,7 +78,7 @@ path.to.expl.var <- as.character(param.tab[job.id, 3])
 
 
 ## require libraries -----------------------------------------------------------
-require(biomod2, lib.loc='~/R/debug') ## version 1.3-73-00 (= the same than 1.3.73 with a trick not to save rasters in tmp dir)
+require(biomod2, lib.loc='~/R/biomod2_pkg/biomod2_3.1-73-02') ## version 1.3-73-02 (= the same than 1.3.73 with a trick not to save rasters in tmp dir)
 
 ## load models outputs and explanatory variables -------------------------------
 ## load models
@@ -121,11 +120,14 @@ bm.mod.proj <- BIOMOD_Projection(modeling.output = bm.mod,
                                  do.stack = FALSE,
                                  keep.in.memory = TRUE)
 
-## do ensemble models projections
-bm.ensmod.proj <- BIOMOD_EnsembleForecasting(EM.output = bm.ensmod,
-                                             projection.output = bm.mod.proj,
-                                             binary.meth = c('TSS'),
-                                             compress = TRUE)
+##' @note  causeit require significatively more memory, I decided to do ensemble projections 
+##'   in a separate step.
+
+# ## do ensemble models projections
+# bm.ensmod.proj <- BIOMOD_EnsembleForecasting(EM.output = bm.ensmod,
+#                                              projection.output = bm.mod.proj,
+#                                              binary.meth = c('TSS'),
+#                                              compress = TRUE)
 
 
 quit('no')
@@ -146,8 +148,10 @@ quit('no')
 # ## decuce the species names from list of thin files
 # sp.list <- sub("^pres_and_10000_PA_thin_", "", 
 #                tools::file_path_sans_ext(basename(pres.thin.files)))
-# ## convert the name to fit with biomod2 species name format
-# sp.list <- gsub("_", ".", sp.list, fixed = TRUE)
+# ## remove all 'tricky' characters from sp names
+# sp.list <- gsub("-", "", sp.list)
+# sp.list <- gsub(" ", ".", sp.list, fixed = "TRUE")
+# sp.list <- gsub("_", ".", sp.list, fixed = "TRUE")
 # 
 # ## define the gcm and rcp we want to consider
 # rcp.list <- c("RCP_2.6_2080", "RCP_4.5_2080", "RCP_6.0_2080", "RCP_8.5_2080")
