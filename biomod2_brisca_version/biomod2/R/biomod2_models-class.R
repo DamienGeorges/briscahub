@@ -1403,6 +1403,8 @@ setMethod('predict', signature(object = 'EMmean_biomod2_model'),
   
   on_0_1000 <- args$on_0_1000
   if (is.null(on_0_1000)) on_0_1000 <- FALSE
+  filename <- args$filename
+  if (is.null(filename)) filename <- ''
   
   #formal_predictions <- args$formal_predictions
   
@@ -1416,11 +1418,13 @@ setMethod('predict', signature(object = 'EMmean_biomod2_model'),
           }, resp_name = object@resp_name, modeling.id = object@modeling.id))
   }
   
-  out <- raster::mean(formal_predictions)
-  
-  if (on_0_1000){
-    out <- round(out)
-  } 
+  out <- calc(formal_predictions, 
+             function(x){
+               m <- mean(x)
+               if(on_0_1000) m <- round(m)
+               return(m)
+             }, 
+             filename = filename, overwrite = TRUE)
   
   return(out)
   
@@ -1504,6 +1508,8 @@ setMethod('predict', signature(object = 'EMmedian_biomod2_model'),
   
   on_0_1000 <- args$on_0_1000
   if (is.null(on_0_1000)) on_0_1000 <- FALSE
+  filename <- args$filename
+  if (is.null(filename)) filename <- ''
   
   #formal_predictions <- args$formal_predictions
   
@@ -1517,11 +1523,13 @@ setMethod('predict', signature(object = 'EMmedian_biomod2_model'),
                                                }, resp_name = object@resp_name, modeling.id = object@modeling.id))
   }
   
-  out <- calc(formal_predictions, median)
-  
-  if (on_0_1000){
-    out <- round(out)
-  } 
+  out <- calc(formal_predictions,
+              function(x){
+                m <- median(x)
+                if(on_0_1000) m <- round(m)
+                return(m)
+              }, 
+              filename = filename, overwrite = TRUE)
   
   return(out)
 
@@ -1605,6 +1613,8 @@ setMethod('predict', signature(object = 'EMcv_biomod2_model'),
   
   on_0_1000 <- args$on_0_1000
   if (is.null(on_0_1000)) on_0_1000 <- FALSE
+  filename <- args$filename
+  if (is.null(filename)) filename <- ''
   
   #formal_predictions <- args$formal_predictions
   mean_prediction <- args$mean_prediction
@@ -1619,11 +1629,8 @@ setMethod('predict', signature(object = 'EMcv_biomod2_model'),
                                                }, resp_name = object@resp_name, modeling.id = object@modeling.id))
   }
   
-  out <- raster::cv(formal_predictions, na.rm=TRUE, aszero=TRUE)
-    
-#   if (on_0_1000){
-#     out <- round(out)
-#   } 
+  out <- calc(formal_predictions, cv, 
+              filename = filename, overwrite = TRUE, na.rm=TRUE, aszero=TRUE) 
   
   return(out)
   
@@ -1726,6 +1733,8 @@ setMethod('predict', signature(object = 'EMci_biomod2_model'),
   
   on_0_1000 <- args$on_0_1000
   if (is.null(on_0_1000)) on_0_1000 <- FALSE
+  filename <- args$filename
+  if (is.null(filename)) filename <- ''
   
   #formal_predictions <- args$formal_predictions
   mean_prediction <- args$mean_prediction # mean of predictions should be given for time saving
@@ -1742,7 +1751,7 @@ setMethod('predict', signature(object = 'EMci_biomod2_model'),
   }
   
   if(is.null(mean_prediction)){
-    mean_prediction <- round(raster::mean(formal_predictions))
+    mean_prediction <- calc(formal_predictions, mean)
   }
   
   if(is.null(sd_prediction)){
@@ -1860,6 +1869,8 @@ setMethod('predict', signature(object = 'EMca_biomod2_model'),
   
   on_0_1000 <- args$on_0_1000
   if (is.null(on_0_1000)) on_0_1000 <- FALSE
+  filename <- args$filename
+  if (is.null(filename)) filename <- ''
   
   #formal_predictions <- args$formal_predictions
   
@@ -1877,12 +1888,15 @@ setMethod('predict', signature(object = 'EMca_biomod2_model'),
     thresh <- object@tresholds
   } else { thresh <- object@tresholds / 1000 }
   
-  out <- raster::mean(BinaryTransformation(formal_predictions, thresh), na.rm=T)
-  
-  if (on_0_1000){
-    out <- round(out* 1000)
-  } 
-  
+#   out <- raster::mean(BinaryTransformation(formal_predictions, thresh), na.rm=T)
+  out <- calc(BinaryTransformation(formal_predictions, thresh), 
+                function(x){
+                  m <- mean(x)
+                  if(on_0_1000) m <- round(m * 1000)
+                  return(m)
+                  }, 
+              filename = filename, overwrite = TRUE)
+
   return(out)
 
 }
@@ -1963,7 +1977,9 @@ setMethod('predict', signature(object = 'EMwmean_biomod2_model'),
   args <- list(...)
   
   on_0_1000 <- args$on_0_1000
+  filename <- args$filename
   if (is.null(on_0_1000)) on_0_1000 <- FALSE
+  if (is.null(filename)) filename <- ''
   
   #formal_predictions <- args$formal_predictions
   
@@ -1977,11 +1993,14 @@ setMethod('predict', signature(object = 'EMwmean_biomod2_model'),
                                                }, resp_name = object@resp_name, modeling.id = object@modeling.id))
   }
   
-  out <- sum(formal_predictions * object@penalization_scores)
-    
-  if (on_0_1000){
-    out <- round(out)
-  } 
+#   out <- sum(formal_predictions * object@penalization_scores)
+  out <- calc(formal_predictions, 
+              function(x){
+                wm <- sum(x * object@penalization_scores)
+                if(on_0_1000) wm <- round(wm)
+                return(wm)
+              }, 
+              filename = filename, overwrite = TRUE)
   
   return(out)
 
