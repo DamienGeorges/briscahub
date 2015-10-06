@@ -181,7 +181,7 @@ generate.pseudo.abs <- function(pres.xy, ref.grid, dist.min.from.pres, dist.max.
 ## parallel version
 library(foreach)
 library(doParallel)
-cl <- makeCluster(20)
+cl <- makeCluster(27)
 registerDoParallel(cl)
 foreach(k = 1:length(sp.list)) %dopar% {
 ## end parallel version
