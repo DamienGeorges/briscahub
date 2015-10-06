@@ -1,5 +1,5 @@
 ### HEADER #####################################################################
-##' @title generate pseudo absences for our gbif/bioscience/hulten thinned presences
+##' @title generate pseudo absences for our gbif/bioscience/hulten/usgs thinned presences
 ##'
 ##' @author Damien G. 
 ##' @contact damien.georges2 at gmail.com
@@ -25,6 +25,7 @@
 ##'     existing files (cause we decided to add couple of species and do not want to
 ##'     erase the PA generated for species we have already do modelling)
 ##'   - 14/09/2015 (damien): deal with both shrubs and trees
+##'   - 06/10/2015 (damien): adapt the script to deal with the new master file
 ##' 
 ##' 
 ##' @licencing GPL
@@ -62,8 +63,9 @@ source("thining_raster.R")
 # define paths to data and parameters -------------------------------------
 
 ## define the path to directory where all presences thined csv are stored
-pres.thin.dir <- c("I:\\C_Write\\Signe\\aa_BRISCA\\Data\\StudySpecies\\Processed\\Species.list\\Occurrence.tables.combined_hult_masked\\gbif_biosc_hultBuff_thinned\\",
-                   "I:\\C_Write\\Signe\\aa_BRISCA\\Data\\StudySpecies\\Processed\\Species.list\\Occurrence.tables.combined_hult_masked_trees\\gbif_biosc_hultBuff_thinned\\")
+# pres.thin.dir <- c("I:\\C_Write\\Signe\\aa_BRISCA\\Data\\StudySpecies\\Processed\\Species.list\\Occurrence.tables.combined_hult_masked\\gbif_biosc_hultBuff_thinned\\",
+#                    "I:\\C_Write\\Signe\\aa_BRISCA\\Data\\StudySpecies\\Processed\\Species.list\\Occurrence.tables.combined_hult_masked_trees\\gbif_biosc_hultBuff_thinned\\")
+pres.thin.dir <- c("I:\\C_Write\\Signe\\aa_BRISCA\\Data\\StudySpecies\\Processed\\Species.list\\Occurrence.tables.combined.all.sources.hult_usgs.masked\\gbif_biosc_hultBuff_thinned")
 outpath <- "I:\\C_Write\\Signe\\aa_BRISCA\\Data\\StudySpecies\\Processed\\Species.list\\Presence-PseudoAbsence_thinned\\Data_output\\"
 # pres.thin.dir <- "."
 # outpath <- "."
@@ -86,7 +88,7 @@ PA.thin.dist <- 50000 ## the minimal distance btw 2 PA
 ## define a output directory that fits with PA samppling parameters define above
 ## here some proposition
 # out.dir <- "gbif_biosc_hult_random" ## presences + 10000 random PA
-out.dir <- "gbif_biosc_hult_thined_10000" ## presences + 10000 thined PA
+out.dir <- "gbif_biosc_hult_usgs_thined_10000" ## presences + 10000 thined PA
 # out.dir <- "gbif_biosc_hultBuff" ## presences + 10 times the number of presences PA
 
 ## define a file prefix
@@ -102,14 +104,15 @@ pres.thin.files <- list.files(pres.thin.dir, pattern = "^pres_thin_.*.csv$", ful
 ## decuce the species names from list of thin files
 sp.list <- sub("^pres_thin_", "", file_path_sans_ext(basename(pres.thin.files)))
 
-##' @note !!TRICKY PART!!
-##'   PA selection was done in 2 campain and cause we don't want to overwrite
-##'   first campain results we will make a species subselection. If you want to
-##'   regenerate all the files just comment the next few lines.
-sp.list <- sp.list[sapply(sp.list, function(sp.n){
-  !any(grepl(gsub(" ", "_", sp.n), 
-             list.files(file.path(outpath, out.dir))))
-})]
+# ##' @note !!TRICKY PART!!
+# ##'   PA selection was done in 2 campain and cause we don't want to overwrite
+# ##'   first campain results we will make a species subselection. If you want to
+# ##'   regenerate all the files just comment the next few lines.
+# sp.list <- sp.list[sapply(sp.list, function(sp.n){
+#   !any(grepl(gsub(" ", "_", sp.n), 
+#              list.files(file.path(outpath, out.dir))))
+# })]
+
 ## ensure that sp.list and pres.thin.files are sorted in a coherent order
 pres.thin.files <- sapply(sp.list, function(sp.n){
   grep(sp.n, pres.thin.files, value = TRUE)
