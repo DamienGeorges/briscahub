@@ -1,52 +1,35 @@
-
 ##########################################################################################################################################################
 ##################################################---Thinning process of presence data---############################################################################################
 ##########################################################################################################################################################
 rm(list = ls())
 setwd("I:\\C_Write\\Signe\\aa_BRISCA\\Data\\StudySpecies\\Processed\\R_workspace")
 #setwd("~/SHRUBS/WORKDIR/SDM/")
-
+.libPaths("J:\\People\\Damien\\R")
+##install.packages("dplyr", lib = "J:\\People\\Damien\\R")
 library(raster)
+library(dplyr)
 #library(spThin)
 
-inras.shrub <- "I:\\C_Write\\Signe\\aa_BRISCA\\Data\\StudySpecies\\Processed\\bb_HULTEN\\hult.spp.data\\All.Hulten.rasters\\rasters.all.combi\\"
-inpath.shrub <- "I:\\C_Write\\Signe\\aa_BRISCA\\Data\\StudySpecies\\Processed\\Species.list\\Occurrence.tables.combined\\"
-outpath.shrub <- "I:\\C_Write\\Signe\\aa_BRISCA\\Data\\StudySpecies\\Processed\\Species.list\\Occurrence.tables.combined_hult_masked\\" 
-
-inras.tree <- "I:\\C_Write\\Signe\\aa_BRISCA\\Data\\StudySpecies\\Processed\\bb_HULTEN\\hult.spp.data\\Hulten.rasters.trees\\Rasters.combi.reclass.img\\"
-inpath.tree <- "I:\\C_Write\\Signe\\aa_BRISCA\\Data\\StudySpecies\\Processed\\Species.list\\Occurrence.tables.combined_trees\\"
-outpath.tree <- "I:\\C_Write\\Signe\\aa_BRISCA\\Data\\StudySpecies\\Processed\\Species.list\\Occurrence.tables.combined_hult_masked_trees\\" 
+inras <- c("I:\\C_Write\\Signe\\aa_BRISCA\\Data\\StudySpecies\\Processed\\bb_HULTEN\\hult.spp.data\\All.Hulten.rasters\\rasters.all.combi\\", ## hultens for shrubs
+           "I:\\C_Write\\Signe\\aa_BRISCA\\Data\\StudySpecies\\Processed\\bb_HULTEN\\hult.spp.data\\Hulten.rasters.trees\\Rasters.combi.reclass.img\\", ## hultens for trees
+           "I:\\C_Write\\Signe\\aa_BRISCA\\Data\\StudySpecies\\Processed\\bb_USGS\\usgs.spp.data\\USGS.rasters.trees\\Rasters.raw.img\\" ) ## usgs for trees
+ 
+inpath <- "I:\\C_Write\\Signe\\aa_BRISCA\\Data\\StudySpecies\\Processed\\Species.list\\Occurrence.tables.combined.all.sources\\"
+outpath <- "I:\\C_Write\\Signe\\aa_BRISCA\\Data\\StudySpecies\\Processed\\Species.list\\Occurrence.tables.combined.all.sources.hult_usgs.masked\\" 
 
 ## define a couple of constant that will be used latter on
 buff.dist.hult = 50000 ## the distance use to filter Hulten rasters (hulten points too close to 'TRUE' occurrences will be removed)
 buff.dist.thin = 50000 ## the distance use to apply thining procedure
 nb.run.thin = 10 ## the nuber of thining repetition perform 
 
-## we will consider the shrub species having for which we have heigth data
-MASTER <- read.table("I:\\C_Write\\Signe\\aa_BRISCA\\Data\\StudySpecies\\Processed\\aa_MASTER\\MASTER12.txt", sep="\t", header = TRUE, dec = ".", fill= TRUE, stringsAsFactors = FALSE)
-head(MASTER)
+## we will consider the shrub and tree species in the Arctic (PAF ==1) that have not been processed yet (Rerun == 1)
+dataset <- read.table("I:\\C_Write\\Signe\\aa_BRISCA\\Data\\StudySpecies\\Processed\\Species.list\\sp.list_06102015.txt", sep="\t", header = TRUE, stringsAsFactors = FALSE)
+# Subset to only wiev the species with at least one source data
+data <- dataset %>% filter(data == 1, Rerun == 1)
 
-Arctic.sub <- subset(MASTER, Arctic.Shrubs == 1)
-
-## Find unique shrub names
-Arctic.names <- unique(Arctic.sub$Genus.species)
-Arctic.names  #(183)
-
-## Which we have height data for
-height.dat <- subset(Arctic.sub, !is.na(Arctic.sub$All.height.median))             
-
-## Find unique shrub names
-height.names <- unique(height.dat$Genus.species)
-height.names  #(146)
-
-shrub.list <- height.names
-
-## we will qlso consider couple of tree species thqt will be use to shade highest class shrubs
-tree.sub <- subset(MASTER, Growthform.manual == "TREE")
-tree.list <- unique(tree.sub$Genus.species)
-
-## merge our shrubs and tree lists
-sp.list <- unique(c(shrub.list, tree.list))
+#Extract the species list for which we need to rerun some processes
+sp.list <- data %>% select(Genus.species) %>% distinct %>% unlist
+sp.list
 
 ##' @note
 ##' !!TRICKY PART!! : 
@@ -54,13 +37,13 @@ sp.list <- unique(c(shrub.list, tree.list))
 ##' for model species distribution, we don't want to redo the job so this species will be removed from
 ##' species list. In case you want to regenerate the full set of thined dataset you will have to comment
 ##' the next few lines
-sp.list <- sp.list[sapply(sp.list, function(sp.n){
-  !any(grepl(gsub(" ", "_", sp.n), 
-       list.files(file.path(c(outpath.shrub, outpath.tree), "gbif_biosc_hultBuff_thinned"))))
-})]
-
+# sp.list <- sp.list[sapply(sp.list, function(sp.n){
+#   !any(grepl(gsub(" ", "_", sp.n),                                                     
+#              list.files(file.path(c(outpath.shrub, outpath.tree), "gbif_biosc_hultBuff_thinned"))))                                     
+# })]                                                                                                
+                                                                                                     
 ## Rasters of the hulten rangemaps
-ras.files <- list.files(c(inras.shrub, inras.tree), pattern = ".img$", full.names = TRUE)
+ras.files <- list.files(inras, pattern = ".img$", full.names = TRUE)
 
 ## define a reference raster to get raster grid
 ras.ref <- raster(ras.files[1])
@@ -135,11 +118,13 @@ thining.raster <- function(ras, buff.dist = 50000, nb.pts = 100, as.raster = FAL
 
 
 # Here I try to mask out the Hulten presences in the vacinity of GBIF or BIOSCIENCE presences (50km) and only extracting the ones falling outside the buffer
-## test k = 1
+## test 
+## k = 1
+
 ## loop over species
 
 ## sequential version
-# for (k in 1:length(sp.list)){ 
+##for (k in 1:length(sp.list)){ 
 ## end sequential version
 
 ## parallel version
@@ -147,48 +132,32 @@ library(foreach)
 library(doParallel)
 cl <- makeCluster(20)
 registerDoParallel(cl)
-foreach(k = 1:length(sp.list), .packages = c('raster')) %dopar% {
+foreach(k = 1:length(sp.list), .packages = c('raster', 'dplyr')) %dopar% {
 ## end parallel version
-
-  ## get some information on the species
-  ## is it a tree or a shrub?
-  is.shrub <- is.element(sp.list[k], shrub.list)
-  ## does the species has hulten data?
-  has.hulten <- any(grepl(paste0(sp.list[k], ".img"), ras.files))
   
-  ## adapt the path depending on the type of plant
-  if(is.shrub){
-    inras <- inras.shrub
-    inpath <- inpath.shrub
-    outpath <- outpath.shrub
-  } else {
-    inras <- inras.tree
-    inpath <- inpath.tree
-    outpath <- outpath.tree
-  }
-  
+  ## does the species has hulten or usgs data?
+  has.hulten.usgs <- any(grepl(paste0(sp.list[k], ".img"), ras.files))
+ 
   ## read the occurence table for the species
   dat <- read.table(file.path(inpath, paste0(sp.list[k], ".txt")), 
                     sep="\t", header = TRUE, fill= TRUE, stringsAsFactors = FALSE)
-  dat1 <- subset(dat, !is.na(dat$X))
-  dat1 <- subset(dat1, dat1$Source != "Hulten")
-  
+  dat1 <- dat %>% filter(!is.na(X), !is.na(Y), !is.element(Source, c("Hulten", "USGS")))
   file.name <- file.path(outpath, "gbif_biosc_hultBuff", paste0(sub(" ", "_", sp.list[k]), ".csv"))
   dir.create(dirname(file.name), showWarnings = FALSE, recursive = TRUE)
   
-  if (nrow(dat1)==0 | !has.hulten){ ## either only hulten or no hulten points case
+  if (nrow(dat1)==0 | !has.hulten.usgs){ ## either only hulten or no hulten points case
     write.csv(dat, file.name, row.names = FALSE)
   } else { ## hulten and another source of points
     pt.mask <- SpatialPoints(dat1[, c("X", "Y")], 
-                                  proj4string = CRS("+proj=laea +lat_0=90 +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +units=m +no_defs"))
+                             proj4string = CRS("+proj=laea +lat_0=90 +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +units=m +no_defs"))
     ## add the points on a raster
     pt.ras <- ras.ref
     pt.ras[cellFromXY(pt.ras, pt.mask)] <- 1
-  
+    
     ## create a 50km buffer aroud all presences points (where we don't want to sample hulten presences)
     buff.ras <- buffer(pt.ras, width = 50000)
     ## load the hulten raster for our species 
-    hult.ras <- raster(ras.files[k])
+    hult.ras <- raster(grep(sp.list[k], ras.files, value = TRUE))
     ## remove all area in the buffer
     hult.ras.masked <- mask(hult.ras, buff.ras, inverse = TRUE)
     ## remove all 'absences'
@@ -204,37 +173,36 @@ foreach(k = 1:length(sp.list), .packages = c('raster')) %dopar% {
     ## write a copy of the file on the hardrive
     write.csv(dat2, file.name, row.names = FALSE)
   }
-
+  
   ##' @note At this stage we have a table with our conbined occurences for 
   ##'   GBIF, Bioscience and Hulten (out of the 50km buffer). We will then
   ##'   make a subselection of this occurences with SpThin like utilities
-
+  
   ## define a full presences mask that will be use to do thining
   full.pts.df <- read.csv(file.name, header = TRUE)
   full.pts.ras <- raster(ras.files[1])
   full.pts.ras[] <- NA
   full.pts.ras[cellFromXY(full.pts.ras, full.pts.df[, c("X", "Y")])] <- 1
-
-        
-#   full.pts.ras <- calc(stack(pt.ras, hult.ras.masked), fun = sum, na.rm = TRUE)
-#   full.pts.ras[full.pts.ras == 0] <- NA
+  
+  
+  #   full.pts.ras <- calc(stack(pt.ras, hult.ras.masked), fun = sum, na.rm = TRUE)
+  #   full.pts.ras[full.pts.ras == 0] <- NA
   ## apply the home made thining function
   thin.pts.list <- lapply( 1:nb.run.thin, function(x){
-                           thin.df <- thining.raster( full.pts.ras, 
-                                           buff.dist = 50000, 
-                                           nb.pts = 200, 
-                                           as.raster = FALSE, 
-                                           lonlat = FALSE)
-                           thin.df[[paste0("thin.run.", x)]] <- 1
-                           return(thin.df)} )
+    thin.df <- thining.raster( full.pts.ras, 
+                               buff.dist = 50000, 
+                               nb.pts = 200, 
+                               as.raster = FALSE, 
+                               lonlat = FALSE)
+    thin.df[[paste0("thin.run.", x)]] <- 1
+    return(thin.df)} )
   ## merge the thined pts
   thin.pts <- Reduce(function(...) merge(..., all = T, by = c("cell", "x", "y") ), thin.pts.list)
   ## save the thined dataset
   file.name <- file.path(outpath, "gbif_biosc_hultBuff_thinned", paste0("pres_thin_", sub(" ", "_", sp.list[k]), ".csv"))
   dir.create(dirname(file.name), showWarnings = FALSE, recursive = TRUE)
   write.csv(thin.pts, file.name, row.names = FALSE)
-  
 }
 
 ## exit the script
-q('no')
+# q('no')
