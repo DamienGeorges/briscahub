@@ -14,7 +14,7 @@ rm(list = ls())
 setwd("~/BRISCA/workdir")
 
 ## get the final list of species we want to model
-sp.tab <- read.table("../briscahub/data/sp.list_06102015.txt", sep = "\t", 
+sp.tab <- read.table("../briscahub/data/sp.list_08102015.txt", sep = "\t", 
                      header = TRUE, stringsAsFactors = FALSE)
 head(sp.tab)
 
