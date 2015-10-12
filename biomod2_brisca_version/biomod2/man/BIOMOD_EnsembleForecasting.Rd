@@ -60,6 +60,7 @@ Wilfried Thuiller, Damien Georges, Robin Engler
 }
 
 \examples{
+
 # 0. Load data & Selecting Data
 # species occurrences
 DataSpecies <- read.csv(system.file("external/species/mammals_table.csv",
@@ -141,6 +142,7 @@ myBiomodProjection <- BIOMOD_Projection(
 # 4. Creating the ensemble projections
 BIOMOD_EnsembleForecasting( projection.output = myBiomodProjection,
                             EM.output = myBiomodEM)
+
 }
 
 \keyword{ models }

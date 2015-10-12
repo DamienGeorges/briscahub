@@ -116,11 +116,11 @@
              showWarnings = FALSE, recursive = TRUE, mode = "777")
   
   indiv_proj_dir <- file.path(EM.output@sp.name,paste("proj_", proj.name, sep=""), "individual_projections")
-  if(!do.stack){
+#   if(!do.stack){
 #     rasterOptions(todisk=T)
     dir.create(indiv_proj_dir, 
                showWarnings = FALSE, recursive = TRUE, mode = "777")
-  }
+#   }
   
   saved.files <- c()
                                                   

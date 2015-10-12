@@ -1535,8 +1535,7 @@ setMethod("get_predictions", "BIOMOD.projection.out",
           function(obj, as.data.frame=FALSE, full.name=NULL, model=NULL, run.eval=NULL, data.set=NULL){
             models_selected <- get_projected_models(obj)
             if(length(full.name)){
-              # models subselection according to model names
-              models_selected <- grep(pattern=paste(full.name,collapse="|"), models_selected, value=T)
+              models_selected <- intersect(full.name, models_selected)
             } else if(length(model) | length(run.eval) | length(data.set)){
               # models subselection according to model, run.eval and sata.set parameters
               if(length(model)) grep_model <- paste("(",paste(model,collapse="|"),")", sep="") else grep_model = "*"
