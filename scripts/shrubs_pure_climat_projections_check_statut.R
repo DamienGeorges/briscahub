@@ -28,7 +28,7 @@
 
 rm(list=ls())
 
-modelling.dir <- "/work/georges/BRISCA/Biomod_pure_climate"
+modelling.dir <- "/work/georges/BRISCA/Biomod_pure_climate_usgs"
 proj.tab <- read.table("/work/georges/BRISCA/grid_params/params_spcp.txt", header = FALSE, sep = " ")
 # proj.tab <- read.table("~/Work/BRISCA/grid_params/params_spcp.txt", header = FALSE, sep = " ")
 colnames(proj.tab) <- c("job.id", "sp.name", "path.to.expl")
@@ -69,6 +69,11 @@ sum(proj.tab$ensmod.proj.ok)
 
 ## produce the new parameter file
 out.dir <- "/work/georges/BRISCA/grid_params/"
-write.table(proj.tab[ !proj.tab$mod.proj.ok, 2:3], file = file.path(out.dir, "params_spcp20G.txt"), sep = " ", 
-            quote = FALSE, append = FALSE, row.names = TRUE, col.names = FALSE)
+# write.table(proj.tab[ !proj.tab$mod.proj.ok & is.element(proj.tab$sp.name, c("Spiraea.salicifolia", "Vaccinium.myrtilloides")), 2:3], file = file.path(out.dir, "params_spcp.txt"), sep = " ", 
+#             quote = FALSE, append = FALSE, row.names = TRUE, col.names = FALSE)
+
+## produce the new parameter file
+#  write.table(proj.tab[ !proj.tab$ensmod.proj.ok, 2:3], file = file.path(out.dir, "params_spcep.txt"), sep = " ", 
+#              quote = FALSE, append = FALSE, row.names = TRUE, col.names = FALSE)
+dim(proj.tab[ !proj.tab$ensmod.proj.ok, 2:3])
 

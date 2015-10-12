@@ -28,8 +28,8 @@
 
 rm(list=ls())
 
-modelling.dir <- "/work/georges/BRISCA/Biomod_pure_climate"
-sp.tab <- read.table("/work/georges/BRISCA/grid_params/params_pcm.txt", header = FALSE, sep = " ")
+modelling.dir <- "/work/georges/BRISCA/Biomod_pure_climate_usgs/"
+sp.tab <- read.table("/work/georges/BRISCA/grid_params/params_spcm.txt", header = FALSE, sep = " ")
 sp.list <- as.character(sp.tab[, 2])
 
 ## update sp.list to fit with the well formated names

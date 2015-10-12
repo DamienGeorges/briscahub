@@ -61,10 +61,11 @@ if(host == "pinea"){
   ## TODO (Damien)
 } else if (host == "idiv_cluster"){
   # path to the directory where models have been computed
-  in.mod <- "/work/georges/BRISCA/Biomod_pure_climate"
+#   in.mod <- "/work/georges/BRISCA/Biomod_pure_climate"
+  in.mod <- "/work/georges/BRISCA/Biomod_pure_climate_usgs"
   # path to parameter table
-#  param.file <- "/work/georges/BRISCA/grid_params/params_spcp.txt" ## first run (10G ram)
-   param.file <- "/work/georges/BRISCA/grid_params/params_spcp20G.txt" ## second run (20G ram)
+  param.file <- "/work/georges/BRISCA/grid_params/params_spcp.txt" ## first run (10G ram)
+#    param.file <- "/work/georges/BRISCA/grid_params/params_spcp20G.txt" ## second run (20G ram)
 }
 
 ## create the output directory and change the working directory ----------------
@@ -78,7 +79,7 @@ path.to.expl.var <- as.character(param.tab[job.id, 3])
 
 
 ## require libraries -----------------------------------------------------------
-require(biomod2, lib.loc='~/R/biomod2_pkg/biomod2_3.1-73-02') ## version 1.3-73-02 (= the same than 1.3.73 with a trick not to save rasters in tmp dir)
+require(biomod2, lib.loc='~/R/biomod2_pkg/biomod2_3.1-73-04') ## version 1.3-73-02 (= the same than 1.3.73 with a trick not to save rasters in tmp dir)
 
 ## load models outputs and explanatory variables -------------------------------
 ## load models
@@ -138,7 +139,7 @@ quit('no')
 # 
 # ## on idiv_cluster
 # out.dir <- "/work/georges/BRISCA/grid_params/"
-# in.spp <- "/data/idiv_sdiv/brisca/SDM_sessions/Presence-PseudoAbsence_thinned/Data_output/gbif_biosc_hult_thined_10000" 
+# in.spp <- "/data/idiv_sdiv/brisca/SDM_sessions/Presence-PseudoAbsence_thinned/Data_output/gbif_biosc_hult_usgs_thined_10000" 
 # 
 # dir.create(out.dir, showWarnings = FALSE, recursive = TRUE)
 # 

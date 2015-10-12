@@ -4,11 +4,14 @@
 # qsub arguments
 # ----------------------------------------------------------------------
 
-#$  -N  shrub_pure_climat_modelling_highmem_wm
+#$  -N  shrub_pure_climat_modelling_highmem_wm_from_em
 #$  -S  /bin/bash
-#$  -l h_vmem=32G,highmem
-#$  -l  h_rt=24:00:00
-#$  -t  1-54
+#$ -l h_vmem=40G,highmem
+#$  -l  h_rt=10:00:00
+#$  -t  1-13
+## #$  -l  h_vmem=9999M
+## #$ -l h_rt=00:05:00
+## #$ -t 1-1
 #$  -binding linear:1 ## core binding
 ## #$  -pe smp 1
 ## #$  -pe smp 1 ## this script seems not to work properly in parallel
@@ -50,4 +53,4 @@ module list
 
 export JAVA_OPTS=${JAVA_OPTS:-"-Xmx256M -Xms16M"}
 
-Rscript --no-restore --vanilla ~/BRISCA/briscahub/scripts/shrubs_pure_climat_modelling_wm.R  ${params}
+Rscript --no-restore --vanilla ~/BRISCA/briscahub/scripts/shrubs_pure_climat_modelling_wm_from_em.R  ${params}

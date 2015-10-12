@@ -23,6 +23,7 @@
 ##' 
 ##' @log
 ##'   - 09/09/2015: update the script to fit with idiv cluster
+##'   - 06/10/2015: update paths to be able to models the new set of species
 ##' 
 ##' 
 ##' @licencing GPL
@@ -85,20 +86,22 @@ if(host == "pinea"){
   path_to_maxent.jar <- "I:\\C_Write\\Signe\\aa_BRISCA\\SDM_sessions\\Maxent"
 } else if (host == "idiv_cluster"){
   # presences-absences tables
-  in.spp <- "/data/idiv_sdiv/brisca/SDM_sessions/Presence-PseudoAbsence_thinned/Data_output/gbif_biosc_hult_thined_10000" 
+#   in.spp <- "/data/idiv_sdiv/brisca/SDM_sessions/Presence-PseudoAbsence_thinned/Data_output/gbif_biosc_hult_thined_10000" 
+  in.spp <- "/data/idiv_sdiv/brisca/SDM_sessions/Presence-PseudoAbsence_thinned/Data_output/gbif_biosc_hult_usgs_thined_10000" 
   # worldclim layers
   in.clim <- "/data/idiv_sdiv/brisca/Data/Climate/Macroclimate/Current/Processed/Projected/bio"
   # GDD layer
   in.gdd <- "/data/idiv_sdiv/brisca/Data/Climate/Macroclimate/Current/Processed/Projected/tave10_esri"
   # output directory (= workking directory)
-  out.dir <- "/work/georges/BRISCA/Biomod_pure_climate"
+#   out.dir <- "/work/georges/BRISCA/Biomod_pure_climate"
+  out.dir <- "/work/georges/BRISCA/Biomod_pure_climate_usgs"
   # path to maxent.jar file  
   path_to_maxent.jar <- "/data/idiv_sdiv/brisca/SDM_sessions/Maxent"
   ##' @note beacause of the the job manager installed in this cluster (qsub)
   ##'   the input argument is the species ID not the species name so we need 
   ##'   to recover species name manually
   sp.id <- as.numeric(sp.name)
-  sp.tab <- read.table("/work/georges/BRISCA/grid_params/params_pcm.txt", header = FALSE, sep = " ")
+  sp.tab <- read.table("/work/georges/BRISCA/grid_params/params_spcm.txt", header = FALSE, sep = " ")
   sp.name <- as.character(sp.tab[sp.id, 2])
 }
 
@@ -107,7 +110,7 @@ dir.create(out.dir, showWarnings = FALSE, recursive = TRUE)
 setwd(out.dir)
 
 ## require libraries -----------------------------------------------------------
-require(biomod2, lib.loc = "/home/georges/R/biomod2_pkg/biomod2_3.1-73-02")
+require(biomod2, lib.loc = "/home/georges/R/biomod2_pkg/biomod2_3.1-73-04")
 require(rgdal)
 # require(biomod2, lib.loc="/gpfs0/home/georges/R/old_biomod2")
 
@@ -313,7 +316,7 @@ quit("no")
 # 
 # params <- data.frame(sp.name = sp.list)
 # 
-# write.table(params, file = file.path(out.dir, "params_pcm.txt"), sep = " ", 
+# write.table(params, file = file.path(out.dir, "params_spcm.txt"), sep = " ", 
 #             quote = FALSE, append = FALSE, row.names = TRUE, col.names = FALSE)
 
 
