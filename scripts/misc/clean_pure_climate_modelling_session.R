@@ -26,6 +26,9 @@ sp.tab.red$Biomod.name <- gsub("-", "", sp.tab.red$Genus.species)
 sp.tab.red$Biomod.name <- gsub(" ", ".", sp.tab.red$Biomod.name, fixed = "TRUE")
 sp.tab.red$Biomod.name <- gsub("_", ".", sp.tab.red$Biomod.name, fixed = "TRUE")
 
+write.table(sp.tab.red, file = "../briscahub/data/sp.list_08102015_red.txt", sep = "\t", 
+            col.names = TRUE, row.names = FALSE, quote = FALSE)
+
 ## get the latest version of biomod pure climate models and put them in a new 
 ## directory. The priority is to search into "/work/georges/BRISCA/Biomod_pure_climate_usgs/"
 ## then into "/work/georges/BRISCA/Biomod_pure_climate/" 
