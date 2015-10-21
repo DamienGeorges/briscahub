@@ -37,7 +37,7 @@ setwd("/work/georges/BRISCA/")
 # sp.id <- as.numeric(args[1])
 
 for(sp.id in 1:189){
-  cat("\n> sp:", sp.id, "/189 ---------------------------------------------\n")
+cat("\n> sp:", sp.id, "/189 ---------------------------------------------\n")
   
 ## -- load needed packages ----------------------------------------------------- 
 library(biomod2, lib.loc = "~/R/biomod2_pkg/biomod2_3.1-73-04")
@@ -61,29 +61,31 @@ sp.tab <- read.table(file.path(briscahub.dir, "data/sp.list_08102015_red.txt"),
 sp.name <- sp.tab$Genus.species[sp.id]
 sp.name.bm <- sp.tab$Biomod.name[sp.id]
 
-## -- load formal data ---------------------------------------------------------
-in.spp <- "/data/idiv_sdiv/brisca/SDM_sessions/Presence-PseudoAbsence_thinned/Data_output/gbif_biosc_hult_usgs_thined_10000" 
-pres.thin.file <- list.files(in.spp, 
-                             pattern = paste0("^pres_and_10000_PA_thin_", 
-                                              gsub(" ", "_", sp.name), ".csv"),
-                             full.names = TRUE)
-if(!length(pres.thin.file)){
-  in.spp <- "/data/idiv_sdiv/brisca/SDM_sessions/Presence-PseudoAbsence_thinned/Data_output/gbif_biosc_hult_thined_10000" 
-  pres.thin.file <- list.files(in.spp, 
-                               pattern = paste0("^pres_and_10000_PA_thin_", 
-                                                gsub(" ", "_", sp.name), ".csv"),
-                               full.names = TRUE)
-}
-
-## load the .csv
-pres.thin <- read.csv(pres.thin.file)
-
-## add a column defining if a point should be consider as a presence or an absence
-pres.thin[is.na(pres.thin)] <- 0
-pres.thin$sum.samp <- rowSums(pres.thin[, 4:13]) ## count the number of time a cell have been considered as presence
-pres.thin$status <- pres.thin$sum.samp > 0 ## define a state according to each cell (0: absence, 1: presence)
-pres.thin.sp <- SpatialPoints(pres.thin[pres.thin$status == 1, c("x", "y")], 
-                              proj4string=CRS("+proj=laea +lat_0=90.0 +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"))
+## -- load convex hull data ----------------------------------------------------
+convex.hull.dir <- "~/BRISCA/workdir/brsica_shrubs_convex_hull"
+convex.hull.poly <- get(load(file.path(convex.hull.dir, paste0(sp.name, "_convex_hull_poly.RData"))))
+# in.spp <- "/data/idiv_sdiv/brisca/SDM_sessions/Presence-PseudoAbsence_thinned/Data_output/gbif_biosc_hult_usgs_thined_10000" 
+# pres.thin.file <- list.files(in.spp, 
+#                              pattern = paste0("^pres_and_10000_PA_thin_", 
+#                                               gsub(" ", "_", sp.name), ".csv"),
+#                              full.names = TRUE)
+# if(!length(pres.thin.file)){
+#   in.spp <- "/data/idiv_sdiv/brisca/SDM_sessions/Presence-PseudoAbsence_thinned/Data_output/gbif_biosc_hult_thined_10000" 
+#   pres.thin.file <- list.files(in.spp, 
+#                                pattern = paste0("^pres_and_10000_PA_thin_", 
+#                                                 gsub(" ", "_", sp.name), ".csv"),
+#                                full.names = TRUE)
+# }
+# 
+# ## load the .csv
+# pres.thin <- read.csv(pres.thin.file)
+# 
+# ## add a column defining if a point should be consider as a presence or an absence
+# pres.thin[is.na(pres.thin)] <- 0
+# pres.thin$sum.samp <- rowSums(pres.thin[, 4:13]) ## count the number of time a cell have been considered as presence
+# pres.thin$status <- pres.thin$sum.samp > 0 ## define a state according to each cell (0: absence, 1: presence)
+# pres.thin.sp <- SpatialPoints(pres.thin[pres.thin$status == 1, c("x", "y")], 
+#                               proj4string=CRS("+proj=laea +lat_0=90.0 +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"))
 
 ## -- define how we will split our final graph ---------------------------------
 panel.ncol <- 4
@@ -92,11 +94,11 @@ panel.nrow <- 7
 ## -- load current projections -------------------------------------------------
 proj.cur <- raster(file.path(mod.dir, sp.name.bm, "proj_pure_climat_current",
                              "individual_projections", 
-                             paste0(sp.name.bm, "_EMcaByTSS_mergedAlgo_mergedRun_mergedData.grd")))
+                             paste0(sp.name.bm, "_EMwmeanByTSS_mergedAlgo_mergedRun_mergedData.grd")))
 
 proj.cur.bin <- raster(file.path(mod.dir, sp.name.bm, "proj_pure_climat_current",
                                  "individual_projections", 
-                                 paste0(sp.name.bm, "_EMcaByTSS_mergedAlgo_mergedRun_mergedData_TSSbin.grd")))
+                                 paste0(sp.name.bm, "_EMwmeanByTSS_mergedAlgo_mergedRun_mergedData_TSSbin.grd")))
 
 ## -- load future projections ---------------------------------------------------
 ## define the gcm and rcp we want to consider
@@ -114,7 +116,7 @@ rcp.gcm.comb$panel.pos <- rcp.gcm.comb$gcm.id * panel.ncol + rcp.gcm.comb$rcp.id
 rcp.gcm.comb$file <- file.path(mod.dir, sp.name.bm, 
                                paste0("proj_pure_climat_", rcp.gcm.comb$rcp.list, "_", rcp.gcm.comb$gcm.list),
                                "individual_projections", 
-                               paste0(sp.name.bm, "_EMcaByTSS_mergedAlgo_mergedRun_mergedData.grd"))
+                               paste0(sp.name.bm, "_EMwmeanByTSS_mergedAlgo_mergedRun_mergedData.grd"))
 ## load all the projections within a stack
 rcp.gcm.stk <- stack(rcp.gcm.comb$file)
 
@@ -158,8 +160,12 @@ mod.score.graph.by.data_set <- mod.score.graph.by.data_set + geom_point(data = b
 img.width <- panel.ncol * 300
 img.height <- panel.nrow * 300
 
-## open a pdf device
-png(file.path(out.dir, paste0("spcm_", sp.name.bm,".png")), width = img.width, height = img.height, res = 80)
+## open a png device
+png(file.path(out.dir, paste0("spcm_", sp.name.bm,".png")), width = img.width, 
+    height = img.height, res = 80, type = 'cairo')
+# ## open a pdf device
+# pdf(file.path(out.dir, paste0("spcm_", sp.name.bm,".pdf")), width = img.width, 
+#     height = img.height)
 
 lis.args <- list()
 ## define a custom color theme for the raster
@@ -173,8 +179,11 @@ for(i in 1:(panel.ncol*panel.nrow)){
   ## first graph: current binary projections
   if(i == 1){
     pp <- levelplot(proj.cur.bin, par.settings = ras.theme, at = seq(0, 1, .5),
-                    margin = FALSE, colorkey = FALSE) +
-      layer(sp.points(coordinates(pres.thin.sp)[1:10, ], col = 'red'))
+                    margin = FALSE, colorkey = FALSE) + 
+          eval(parse(text = paste("layer(sp.lines(convex.hull.poly[[", 
+                                  1:length(convex.hull.poly),
+                                  "]], col = 'red'))", sep = "", collapse = " + ")))
+      
     pp$main <- "curent (bin)"  
   }
 
@@ -187,11 +196,9 @@ for(i in 1:(panel.ncol*panel.nrow)){
   
   ## graph 3 and 4 are evaluaion linked graphs
   if(i == 3){
-    ## TODO(damien)
     pp <- mod.score.graph.by.mod
   }
   if(i == 4){
-    ## TODO(damien)
     pp <- mod.score.graph.by.data_set
   }
   
@@ -208,10 +215,10 @@ for(i in 1:(panel.ncol*panel.nrow)){
   ## add the graph in the list
   lis.args[[i]] <- pp
 }
-lis.args <- c( lis.args, ncol = panel.ncol, main = list(textGrob(paste0("\n",sp.name), gp=gpar(fontsize=20,font=3))))
+lis.args <- c( lis.args, ncol = panel.ncol, main = list(textGrob(paste0("\n",sp.name,"\nbased on pure climate and models weighted mean"), gp=gpar(fontsize=20,font=3))))
 do.call(grid.arrange, lis.args)
 dev.off()
 
-}
-# q('no')
+} ## end loop over species for serial version
+q('no')
 ## -- end of script ------------------------------------------------------------

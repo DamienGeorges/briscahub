@@ -61,10 +61,14 @@ if(host == "pinea"){
   ## TODO (Damien)
 } else if (host == "idiv_cluster"){
   # path to the directory where models have been computed
-  in.mod <- "/work/georges/BRISCA/Biomod_pure_climate_usgs"
+  #in.mod <- "/work/georges/BRISCA/Biomod_pure_climate_usgs" ## pure climate models
+  in.mod <- "/work/georges/BRISCA/Biomod_pure_climate_xy" ## pure climate + XY models 
   # path to parameter table
+  ## pure climate models
   #param.file <- "/work/georges/BRISCA/grid_params/params_spcp.txt" ## first run (5G ram)
-  param.file <- "/work/georges/BRISCA/grid_params/params_spcep.txt" ## second run 
+  #param.file <- "/work/georges/BRISCA/grid_params/params_spcep.txt" ## second run 
+  ## pure climate + XY models
+  param.file <- "/work/georges/BRISCA/grid_params/params_spcp_xy.txt"
 }
 
 ## define here raster options to limit IO impact of jobs

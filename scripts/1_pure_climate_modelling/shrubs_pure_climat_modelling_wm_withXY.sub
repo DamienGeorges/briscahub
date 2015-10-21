@@ -4,13 +4,12 @@
 # qsub arguments
 # ----------------------------------------------------------------------
 
-#$  -N  shrub_pure_climat_summary
+#$  -N  shrub_pure_climat_modelling_highmem_wm_xy
 #$  -S  /bin/bash
-## #$  -l h_vmem=10G,highmem
-#$  -l h_vmem=5999M
-#$  -l  h_rt=00:15:00
-#$  -t  1-189
-## #$  -t  1-1
+#$  -l h_vmem=32G,highmem
+#$  -l  h_rt=24:00:00
+## #$  -t  1-189
+#$  -t  182-182
 #$  -binding linear:1 ## core binding
 ## #$  -pe smp 1
 ## #$  -pe smp 1 ## this script seems not to work properly in parallel
@@ -46,16 +45,10 @@ echo
 
 source /etc/profile.d/000-modules.sh
 
-## module load libpng libx11 cairo jpeg gdal tiff R/3.1.0-3
-module load uge/8.3.0-3 xproto/7.0.23-1 libxmu/1.1.2-1 freetype/2.5.5-1 zlib/1.2.8-4 libxdmcp/1.1.1-1 libxext/1.3.1-1 fontconfig/2.11.94-1 openssl/1.0.2-1 xcb-proto/1.8-1 libxinerama/1.1.3-1 libffi/3.2.1-1 curl/7.41.0-1 libxcb/1.9-1 libxrender/0.9.8-2 glib/2.45.4-1 expat/2.1.0-4 kbproto/1.0.6-1 lapack/gcc/3.5.0-2 cairo/1.14.2-1 git/2.3.2-1 inputproto/2.2-1 libxml2/2.9.2-1 ncurses/5.9-1 jdk/1.8/45 xtrans/1.2.7-1 pixman/0.32.6-1 readline/6.3-2 libxt/1.1.4-1 xextproto/7.2.1-1 bzip2/1.0.6-3 R/3.1.2-3 libxau/1.0.7-1 libx11/1.5.0-1 libpng/1.6.16-1
-
-echo "loaded modules:"
-echo
+module load gdal R/3.1.0-3
+module unload cairo
 module list
-echo
 
-echo
-echo "launch R script:"
-echo
-Rscript --no-restore ~/BRISCA/briscahub/scripts/1_pure_climate_modelling/shrubs_pure_climat_summary.R ${params}
-# Rscript --no-restore ~/BRISCA/briscahub/scripts/1_pure_climate_modelling/test_png.R ${params}
+export JAVA_OPTS=${JAVA_OPTS:-"-Xmx256M -Xms16M"}
+
+Rscript --no-restore --vanilla ~/BRISCA/briscahub/scripts/1_pure_climate_modelling/shrubs_pure_climat_modelling_wm_withXY.R ${params}
