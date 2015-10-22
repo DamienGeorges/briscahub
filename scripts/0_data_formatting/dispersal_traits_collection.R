@@ -124,12 +124,89 @@ write.table(disp.tab, "sp_list_red_whith_disp_traits.csv", col.names = TRUE, row
 head(disp.tab)
 
 ## -- some summary of this table -----------------------------------------------
+rm(list = ls())
+setwd("~/Work/BRISCA/workdir/")
 
-disp.tab %>% 
+library(dplyr)
+library(tidyr)
+
+disp.tab <- read.table("sp_list_red_whith_disp_traits.csv", header = TRUE, sep = "\t", stringsAsFactors = FALSE)
+
+disp.tab.wg <- disp.tab %>% 
   mutate(Genus = sub("[[:space:]].*$", "", Genus.species),
          AsOneDispTrait = !(is.na(DISP) & is.na(DISP_INDK) & is.na(DISP_VITTOZ) & 
-                              is.na(DISP_KEW) & is.na(DISP_INDKMAN) & is.na(DISP_TRY)) ) %>%
-  group_by(Genus) %>% summarise(nb.trait.for.genus = sum(AsOneDispTrait)) %>% as.data.frame
+                              is.na(DISP_KEW) & is.na(DISP_INDKMAN) & is.na(DISP_TRY)) ) 
+
+## nb.species having at least 1 disp trait 
+sum(disp.tab.wg$AsOneDispTrait) ## 64 / 189
+  
+## nb of genus that have at least one disp trait
+length(unique(disp.tab.wg$Genus)) ## 49 Genus in the dataset
+disp.tab.wg %>%
+  group_by(Genus) %>% 
+  summarise(AsOneDispTraitGenus = any(AsOneDispTrait)) %>% 
+  ungroup %>%
+  summarize(NbGenusWithATrait = sum(AsOneDispTraitGenus)) ## 34/49
+
+## nb of species that have at least one trait by genus
+disp.tab.wg %>%
+  group_by(Genus) %>% 
+  summarise(nb.trait.for.genus = sum(AsOneDispTrait)) %>% 
+  as.data.frame
+
+
+## -- try to model max dispersal distance --------------------------------------
+
+##' @note we will use the dispeRsal function from Tamme et al. 2014
+
+## load the full info 
+disp.tab.tamme.full <- read.csv("sp_list_red_whith_disp_traits_for_dispeRsal_bis.csv", 
+                                stringsAsFactors = FALSE, sep  = "\t")
+disp.tab.tamme.full$SM.try[disp.tab.tamme.full$SM.try == "#VALEUR !"] <- NA
+disp.tab.tamme.full$SM.kew[disp.tab.tamme.full$SM.kew == "#VALEUR !"] <- NA
+
+## reshape the table to keep only needed info
+disp.tab.tamme <- disp.tab.tamme.full %>% 
+  select(Species, DS, GF, RH, SM.kew, SM.try, TV) %>%
+  mutate(SM = ifelse(!is.na(SM.try), SM.try, SM.kew)) %>%
+  select(-c(SM.try, SM.kew))
+
+disp.tab.tamme$Species <- as.factor(disp.tab.tamme$Species)
+disp.tab.tamme$DS <- as.factor(disp.tab.tamme$DS)
+disp.tab.tamme$GF <- as.factor(disp.tab.tamme$GF)
+disp.tab.tamme$RH <- as.numeric(disp.tab.tamme$RH)
+disp.tab.tamme$SM <- as.numeric(disp.tab.tamme$SM)
+disp.tab.tamme$TV <- as.numeric(disp.tab.tamme$TV)
+
+## load the function
+load("dispeRsal.rda")
+
+disp.mod <- dispeRsal(data.predict = disp.tab.tamme, model = 2, CI = TRUE,
+                      random = TRUE, tax = "family", write.result = TRUE)
+
+library(ggplot2)
+
+## MDD ~ species
+gg <- ggplot(data = disp.mod$predictions, aes(x = Species, y = log10MDD, ymin = log10MDD_lwrCL, ymax =  log10MDD_uppCL, col = Family)) + 
+  geom_errorbar() + geom_point() + coord_flip()
+gg
+
+
+dat.mr.mdd <- disp.mod$predictions %>%
+  mutate(Genus.species = as.character(Species)) %>%
+  inner_join(disp.tab) %>%
+  filter(!is.na(Mig.rate.m.yr))
+## MDD ~ migr rate
+gg <- ggplot(data = dat.mr.mdd, aes(x = log10(Mig.rate.m.yr), y = log10MDD, ymin = log10MDD_lwrCL, ymax =  log10MDD_uppCL, col = Family)) + 
+  geom_errorbar(alpha = .3) + geom_point() + geom_smooth(method = 'lm', col = 'black')
+gg
+
+## migr rate ~ species
+gg <- ggplot(data = dat.mr.mdd, aes(x = Species, y = log10(Mig.rate.m.yr), col = Family)) + 
+  geom_point() + coord_flip()
+gg
+
+## 
 
 
 
