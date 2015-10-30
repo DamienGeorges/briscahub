@@ -4,15 +4,14 @@
 # qsub arguments
 # ----------------------------------------------------------------------
 
-## #$  -N  shrub_pure_climat_projections
-#$  -N  spcp_5G
+#$  -N  shrub_pure_climat_projections_dist
 #$  -S  /bin/bash
-#$  -l  h_vmem=5999M
+## #$  -l  h_vmem=5999M
 ## #$  -l  h_vmem=9999M
-## #$  -l  h_vmem=20G,highmem
+#$  -l  h_vmem=15G,highmem
 #$  -l  h_rt=24:00:00
-## #$  -t  1-4900
-#$  -t 1-756
+## #$  -t 1-189
+#$  -t 38-38
 #$  -binding linear:1 ## core binding
 
 # ---------------------------------------------------------------------- 
@@ -52,4 +51,4 @@ module list
 
 export JAVA_OPTS=${JAVA_OPTS:-"-Xmx256M -Xms16M"}
 
-Rscript --no-restore --vanilla ~/BRISCA/briscahub/scripts/1_pure_climate_modelling/shrubs_pure_climat_projections.R  ${params}
+Rscript --no-restore --vanilla /home/georges/BRISCA/briscahub/scripts/1_pure_climate_modelling/shrubs_pure_climat_dist_projections.R  ${params}

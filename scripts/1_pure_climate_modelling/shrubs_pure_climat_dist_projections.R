@@ -6,19 +6,12 @@
 ##' @author damien.georges2 at gmail.com
 ##' 
 ##' @description 
-##'   This script will produce projections of  species distribution models build
-##'   via the script "shrub_pure_climat_modelling.R".
+##'   This script will produce projections of  species distribution models with coordinates as predictors build
+##'   via the script "shrub_pure_climat_modelling_xy.R".
 ##'   
 ##'   We will consider :
-##'     - ~ 200 shrubs and tree species
+##'     - 189 shrubs and tree species
 ##'     - current conditions
-##'     - future conditions forecasted in 2080 in the 5th ipcc/giec repport for 
-##'       4 RCP x 6 GCM
-##'       
-##'   This script is designed to run projections for a single species and a single
-##'   climatique condition given as input to enhance parallel processing of the 
-##'   projections.
-##'   
 ##'   A piece of code to generate parameters is available at the end of this script.
 ##' 
 ##' @log
@@ -62,11 +55,10 @@ if(host == "pinea"){
 } else if (host == "idiv_cluster"){
   # path to the directory where models have been computed
 #   in.mod <- "/work/georges/BRISCA/Biomod_pure_climate"
-  in.mod <- "/work/georges/BRISCA/Biomod_pure_climate_final"
+  in.mod <- "/work/georges/BRISCA/Biomod_pure_climate_dist"
   # path to parameter table
-#   param.file <- "/work/georges/BRISCA/grid_params/params_spcp.txt" ## first run (10G ram)
+  param.file <- "/work/georges/BRISCA/grid_params/params_spcp_xy.txt" ## first run (10G ram)
 #    param.file <- "/work/georges/BRISCA/grid_params/params_spcp20G.txt" ## second run (20G ram)
-  param.file <- "/work/georges/BRISCA/grid_params/params_csiro.txt" ## first run (10G ram)
 }
 
 ## create the output directory and change the working directory ----------------
@@ -76,7 +68,11 @@ setwd(in.mod)
 param.tab <- read.table(param.file, header = FALSE, sep = " ")
 sp.name <- as.character(param.tab[job.id, 2])
 path.to.expl.var <- as.character(param.tab[job.id, 3])
-
+# distance to occ layers
+in.dist <- "/data/idiv_sdiv/brisca/Data/DistanceRaster"
+# load Brisca param files
+sp.tab <- read.table("/home/georges/BRISCA/briscahub/data/sp.list_08102015_red.txt", header = TRUE, sep = "\t")
+sp.name.orig <- as.character(sp.tab[is.element(sp.tab$Biomod.name, sp.name), "Genus.species"])
 
 
 ## require libraries -----------------------------------------------------------
@@ -101,8 +97,11 @@ proj <- CRS("+proj=laea +lat_0=90.0 +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +towgs84
 bio <- stack(file.path(path.to.expl.var, "bio", ifelse(grepl("Current", path.to.expl.var), "bioproj.grd", "bioproj_multi.grd")))
 ## degree day
 ddeg <- raster(file.path(path.to.expl.var, "tave10_esri", "ddeg"), crs = proj)
+## distance to closest occurence
+dist.laea <- raster(file.path(in.dist,
+                              paste0("dist_ras_", sp.name.orig, ".grd")))
 ## merge all cliimatic variables
-expl.stk <- stack(ddeg, subset(bio, c(6, 10, 18, 19)))
+expl.stk <- stack(ddeg, subset(bio, c(6, 10, 18, 19)), dist.laea)
 
 ## do projections --------------------------------------------------------------
 ##define the projection name
@@ -136,33 +135,24 @@ quit('no')
 
 ## end of script ---------------------------------------------------------------
 
-## create the parameter files for the grid -------------------------------------
-
-# ## on idiv_cluster
-# out.dir <- "/work/georges/BRISCA/grid_params/"
-# dir.create(out.dir, showWarnings = FALSE, recursive = TRUE)
-# sp.list <- read.table("~/BRISCA/briscahub/data/sp.list_08102015_red.txt",
-#                       sep = "\t", stringsAsFactors = FALSE, header  = TRUE)
-# sp.list <- sp.list$Biomod.name
-# 
-# ## define the gcm and rcp we want to consider
-# rcp.list <- c("RCP_2.6_2080", "RCP_4.5_2080", "RCP_6.0_2080", "RCP_8.5_2080")
-# gcm.list <- c("cesm1_cam5", "gfdl_esm2m", "miroc_miroc5", "mri_cgcm3", "ncar_ccsm4",
-#               "nimr_hadgem2ao", "csiro_mk360")
-# rcp.gcm.comb <- expand.grid(rcp.list = rcp.list,
-#                             gcm.list = gcm.list)
-# from.path.to.fut.expl.var <- "/data/idiv_sdiv/brisca/Data/Climate/Macroclimate/Future/CIAT_AR5_bio_prec_tmean_tmax_tmin/Processed/Projected_polar_laea_10km/Full_arctic_30_north"
-# path.to.fut.expl.var <- file.path(from.path.to.fut.expl.var, rcp.gcm.comb$rcp.list, rcp.gcm.comb$gcm.list)
-# path.to.cur.expl.var <- "/data/idiv_sdiv/brisca/Data/Climate/Macroclimate/Current/Processed/Projected"
-# path.to.expl.var <- c(path.to.cur.expl.var, path.to.fut.expl.var)
-# 
-# params <- expand.grid(sp.list = sp.list,
-#                       path.to.expl.var = path.to.expl.var)
-# 
-# write.table(params, file = file.path(out.dir, "params_spcp.txt"), sep = " ", 
-#             quote = FALSE, append = FALSE, row.names = TRUE, col.names = FALSE)
-# 
-# ## subselect a part of params?
-# params <- params[grepl("csiro_mk360", params$path.to.expl.var), ]
-# write.table(params, file = file.path(out.dir, "params_csiro.txt"), sep = " ", 
-#             quote = FALSE, append = FALSE, row.names = TRUE, col.names = FALSE)
+#  ## create the parameter files for the grid -------------------------------------
+#  
+#  ## on idiv_cluster
+#  out.dir <- "/work/georges/BRISCA/grid_params/"
+#  dir.create(out.dir, showWarnings = FALSE, recursive = TRUE)
+#  
+#  ## get all species names reduced list of species
+#  sp.tab <- read.table("/home/georges/BRISCA/briscahub/data/sp.list_08102015_red.txt", header = TRUE, sep = "\t")
+#  sp.list <- as.character(sp.tab[, "Biomod.name"])
+#  
+#  ## ## or get all species names from computed models
+#  ## in.spp <- "/work/georges/BRISCA/Biomod_pure_climate_xy"
+#  ## sp.list <- list.files(in.spp)
+#  
+#  path.to.cur.expl.var <- "/data/idiv_sdiv/brisca/Data/Climate/Macroclimate/Current/Processed/Projected"
+#  path.to.expl.var <- c(path.to.cur.expl.var)
+#  
+#  params <- expand.grid(sp.list = sp.list,
+#                        path.to.expl.var = path.to.expl.var)
+#  write.table(params, file = file.path(out.dir, "params_spcp_xy.txt"), sep = " ", 
+#  		quote = FALSE, append = FALSE, row.names = TRUE, col.names = FALSE)

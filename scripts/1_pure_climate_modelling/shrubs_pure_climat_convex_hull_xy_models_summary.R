@@ -62,7 +62,7 @@ panel.nrow <- 20
 img.width <- panel.ncol * 300
 img.height <- panel.nrow * 300
 
-for(sp.id in 121:140){
+for(sp.id in 1:189){
   cat("\n> sp:", sp.id, "/189 ---------------------------------------------\n")
   
   ## -- create a new png file each 20 species ----------------------------------
