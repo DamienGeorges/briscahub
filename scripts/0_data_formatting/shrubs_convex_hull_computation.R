@@ -25,9 +25,10 @@ rm(list = ls())
 # out.dir <- "~/Work/BRISCA/workdir/brsica_shrubs_convex_hull"
 ## on brsica
 path.to.briscahub <- "J:/People/Damien/BRISCA/briscahub" ## path to teh dir where vbrscahub repos have been cloned
-out.dir <- "J:/People/Damien/BRISCA/workdir/brsica_shrubs_convex_hull_full"
+out.dir <- "J:/People/Damien/BRISCA/workdir/brsica_shrubs_convex_hull_full_filtered"
 
-path.to.full.occ.dir <- "I:/C_Write/Signe/aa_BRISCA/Data/StudySpecies/Processed/Species.list/Occurrence.tables.combined.all.sources/" ## path to the dir where all occurences for scpecies are stored
+# path.to.full.occ.dir <- "I:/C_Write/Signe/aa_BRISCA/Data/StudySpecies/Processed/Species.list/Occurrence.tables.combined.all.sources/" ## path to the dir where all occurences for scpecies are stored
+path.to.full.occ.dir <- "I:/C_Write/Damien/BRISCA/workdir/Occurrence.tables.combined.all.sources.no.outliers.merged" ## path to the dir where all occurences for scpecies are stored
 dir.create(out.dir, showWarnings = FALSE, recursive = TRUE)
 
 ## -- require libraries needed -------------------------------------------------
@@ -68,7 +69,11 @@ Convex_Hull_Poly <- function(XY, remove.outliers = FALSE, make.group = FALSE, sp
   if(make.group){
     for(ar in unique(XY$area)){
       cat("\n> building groups for area", ar - 1, "...")
-      grp <- try(find.clusters(XY[XY$area == ar, , drop = FALSE], max.n=15, n.pca=10, scale=FALSE, choose=FALSE))
+      grp <- try(find.clusters(XY[XY$area == ar, , drop = FALSE], 
+                               max.n = min(15, sum(XY$area == ar, na.rm = TRUE) %/% 10),
+                               n.pca = 10, 
+                               scale = FALSE, 
+                               choose = FALSE))
       if(!inherits(grp, 'try-error')){
         cat("\n\t", names(grp$stat), "(", grp$size,")")
         XY$area[XY$area == ar] <- 100 * ar + as.numeric(grp$grp)
@@ -76,7 +81,7 @@ Convex_Hull_Poly <- function(XY, remove.outliers = FALSE, make.group = FALSE, sp
     }
   }
   ## check that at least 6 points
-  low.effective.area <- table(XY$area) < 6
+  low.effective.area <- table(XY$area) < 10
   low.effective.area <- names(low.effective.area)[low.effective.area]
   if(length(low.effective.area)){
     XY <- XY[!is.element(XY$area, low.effective.area), ]
