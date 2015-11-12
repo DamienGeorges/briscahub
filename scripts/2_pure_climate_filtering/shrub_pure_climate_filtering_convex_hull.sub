@@ -1,0 +1,53 @@
+#!/bin/bash
+
+# ----------------------------------------------------------------------
+# qsub arguments
+# ----------------------------------------------------------------------
+
+#$  -N  spcfch
+#$  -S  /bin/bash
+#$  -l h_vmem=2G
+#$  -l  h_rt=02:00:00
+#$  -t  1-189
+#$  -binding linear:1 ## core binding
+## #$  -pe smp 1
+## #$  -pe smp 1 ## this script seems not to work properly in parallel
+
+# ---------------------------------------------------------------------- 
+# output files
+#
+# Explanation:
+#
+#   USER          well, that is your user name
+#   JOB_NAME      reference to the name of the job
+#   JOB_ID        the unique ID of the job
+#   TASK_ID       the task ID of the current task
+# ----------------------------------------------------------------------
+
+#$ -o /work/$USER/logfiles/$JOB_NAME-$JOB_ID-$TASK_ID.log
+#$ -j y
+
+# ----------------------------------------------------------------------
+# actual processing
+# ----------------------------------------------------------------------
+
+paramsFile="none"
+params=${SGE_TASK_ID}
+
+echo
+echo "task id: " ${SGE_TASK_ID}
+echo "params file:" ${paramsFile}
+echo "params: " ${params} 
+echo
+echo
+
+
+source /etc/profile.d/000-modules.sh
+
+module load gdal R/3.1.0-3
+module unload cairo
+module list
+
+export JAVA_OPTS=${JAVA_OPTS:-"-Xmx256M -Xms16M"}
+
+Rscript --no-restore --vanilla ~/BRISCA/briscahub/scripts/2_pure_climate_filtering/shrub_pure_climate_filtering_convex_hull.R ${params}
