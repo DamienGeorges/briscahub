@@ -10,7 +10,7 @@
 #$  -l  h_vmem=25G,highmem
 #$  -l  h_rt=08:00:00
 ## #$  -t  1-189
-#$  -t 1-46
+#$  -t 1-756
 ## #$  -tc 500
 #$  -binding linear:1 ## core binding
 

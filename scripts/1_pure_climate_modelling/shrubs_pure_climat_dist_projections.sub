@@ -8,7 +8,7 @@
 #$  -S  /bin/bash
 ## #$  -l  h_vmem=5999M
 ## #$  -l  h_vmem=9999M
-#$  -l  h_vmem=15G,highmem
+#$  -l  h_vmem=20G,highmem
 #$  -l  h_rt=24:00:00
 ## #$  -t 1-189
 #$  -t 38-38

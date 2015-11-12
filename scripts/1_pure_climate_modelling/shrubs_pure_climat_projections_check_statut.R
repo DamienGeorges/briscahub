@@ -28,9 +28,10 @@
 
 rm(list=ls())
 
+# modelling.dir <- "/work/georges/BRISCA/Biomod_pure_climate_final"
 modelling.dir <- "/work/georges/BRISCA/Biomod_pure_climate_dist"
 proj.tab <- read.table("/work/georges/BRISCA/grid_params/params_spcp_xy.txt", header = FALSE, sep = " ")
-# proj.tab <- read.table("~/Work/BRISCA/grid_params/params_spcp.txt", header = FALSE, sep = " ")
+# proj.tab <- read.table("/work/georges/BRISCA/grid_params/params_csiro.txt", header = FALSE, sep = " ")
 colnames(proj.tab) <- c("job.id", "sp.name", "path.to.expl")
 head(proj.tab)
 

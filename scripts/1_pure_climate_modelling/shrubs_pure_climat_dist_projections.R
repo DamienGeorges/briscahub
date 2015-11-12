@@ -111,10 +111,16 @@ if(grepl("Current", path.to.expl.var)){
   bm.proj.name <- paste0("pure_climat_", sub("/", "_", sub("^.*Full_arctic_30_north/", "", path.to.expl.var))) 
 }
 
+##' @note !!!! here is a horrorful trick to prevent the species 38 Chamaepericlymenum.unalaschkense
+##'  to fail because of maxent models => will just be removed from the computation
+selected.models <- 'all'
+if(job.id == 38) selected.models <- grep("_MAXENT", get_built_models(bm.mod), value = TRUE, invert = TRUE)
+
 ## do single models projections
 bm.mod.proj <- BIOMOD_Projection(modeling.output = bm.mod,
                                  new.env = expl.stk,
                                  proj.name = bm.proj.name,
+                                 selected.models = selected.models,
 #                                  binary.meth = c('TSS'), ## no needd to produce binary here
                                  build.clamping.mask = FALSE,
                                  compress = TRUE,
