@@ -58,8 +58,8 @@ ras.null[] <- NA
 
 ## calculate inv distance raster
 for(cell.id in ddeg.non.na.cell){
-  cell.num <- which(is.element(cell.id, ddeg.non.na.cell))
-  if(cell.num %% 5000 == 0) cat("\t", cell.num) 
+  cell.num <- which(is.element(ddeg.non.na.cell, cell.id))
+  if(cell.num %% 500 == 0) cat("\t", cell.num) 
   ras.dist <- ras.null
   ras.dist[cell.id] <- 1
   ras.dist <- 1 / distance(ras.dist)
@@ -69,6 +69,7 @@ for(cell.id in ddeg.non.na.cell){
   out.ras.mean[cell.id] <- cellStats(ras.dist, 'mean')
   
   if(cell.num %% 5000 == 0){
+    cat("\n writting the raster with", cell.num, "cells filled")
     old.ras <- list.files(out.dir, paste0("^.*_inv_dist_ras_", sp.name, ".*$"), full.names = TRUE)
     ## save the intermediate raster on the hard drive
     writeRaster(out.ras.sum, filename = file.path(out.dir, paste0("sum_inv_dist_ras_", sp.name, "_", cell.num, ".grd")),

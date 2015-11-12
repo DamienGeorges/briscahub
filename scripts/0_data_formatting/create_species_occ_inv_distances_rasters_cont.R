@@ -64,7 +64,6 @@ if(all(is.element(final.ras, old.ras))){
   cat("\n> Inverse distance raster already completed!")
   quit("no")
 } else{
-  file.path(out.dir, paste0("sum_inv_dist_ras_", sp.name, "_", cell.num, ".grd")
   restart.pt <- sub(paste0("sum_inv_dist_ras_", sp.name, "_"), "", old.ras)
   restart.pt <- sub(".grd$", "", restart.pt)
   restart.pt <- min(as.numeric(restart.pt), na.rm = TRUE) + 1
@@ -77,8 +76,8 @@ if(all(is.element(final.ras, old.ras))){
 
 ## calculate inv distance raster
 for(cell.id in ddeg.non.na.cell[restart.pt:length(ddeg.non.na.cell)]){
-  cell.num <- which(is.element(cell.id, ddeg.non.na.cell))
-  if(cell.num %% 5000 == 0) cat("\t", cell.num) 
+  cell.num <- which(is.element(ddeg.non.na.cell, cell.id))
+  if(cell.num %% 500 == 0) cat("\t", cell.num) 
   ras.dist <- ras.null
   ras.dist[cell.id] <- 1
   ras.dist <- 1 / distance(ras.dist)
