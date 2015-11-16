@@ -1,0 +1,25 @@
+{
+  "name": "csoidra",
+  "project": "teembio",
+  "resources": "/nodes=1/core=1",
+  "param_file": "/home/ciment/dgeorges/params_csoidra.txt",
+  "test_mode": "false",
+  "type": "best-effort",
+  "clusters": {
+    "luke": {
+      "prologue": [
+        "set -e",
+        "source /applis/ciment/v2/env.bash",
+        "module load netcdf",
+        "module load proj",
+        "module load gdal",
+        "module load R",
+        "cd /home/dgeorges/BRISCA/WORKDIR"
+        ],
+      "exec_directory" : "/home/dgeorges/BRISCA/WORKDIR",
+      "exec_file" : "/home/dgeorges/BRISCA/briscahub/scripts/0_data_formatting/start_csoidra.bash",
+      "walltime" : "01:00:00"
+    }
+  }
+}
+
