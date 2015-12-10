@@ -50,6 +50,7 @@ write.table(data.frame(cbna_code = cbna.valid.sp$valid_CBNA), file = "leca_db_sp
 
 ##' Make the extraction on http://leca-bdgis.ujf-grenoble.fr/METABASE_EMABIO_V4/#
 
+##' Traits linked to dispersal
 leca.traits <- read.csv("leca_db_extraction.csv", stringsAsFactor = FALSE)
 leca.traits$Libelle_short <- sapply(strsplit(leca.traits$Libelle, " "), 
                                     function(x){return(paste(x[1:2], collapse = " "))})
@@ -58,6 +59,19 @@ head(leca.traits)
 leca.traits %>% filter(Code == "DISP") 
 leca.traits %>% filter(Code == "DISP_VITTOZ") 
 leca.traits %>% filter(Code == "DISP_INDK") 
+
+##' Traits linked to maturity age
+leca.traits.age <- read.csv("leca_db_extraction_age.csv", stringsAsFactor = FALSE)
+leca.traits.age$Libelle_short <- sapply(strsplit(leca.traits.age$Libelle, " "), 
+                                    function(x){return(paste(x[1:2], collapse = " "))})
+head(leca.traits.age)
+
+unique(leca.traits.age$Code)
+leca.traits.age %>% group_by(Code) %>% summarise(n.species = n())
+leca.traits.age %>% filter(Code == "AGEFLOW_MIN") 
+leca.traits.age %>% filter(Code == "AGEFLOW_MAX") 
+leca.traits.age %>% filter(Code == "MAX_AGE_INDK") 
+
 
 ## replace in this table synonyms by species names
 
@@ -178,18 +192,147 @@ disp.tab.tamme$RH <- as.numeric(disp.tab.tamme$RH)
 disp.tab.tamme$SM <- as.numeric(disp.tab.tamme$SM)
 disp.tab.tamme$TV <- as.numeric(disp.tab.tamme$TV)
 
+## fill missing data by extrapolating ------------------------------------------
+
+## extrapolating rules ---
+## 1. genus / growth form
+## 2. familly / growth form
+## 3. growth form
+
+## check the gap we have to fill
+sum(!is.na(disp.tab.tamme$DS)) ## 63 / 189
+sum(!is.na(disp.tab.tamme$GF)) ## 189 / 189
+sum(!is.na(disp.tab.tamme$RH)) ## 189 / 189
+sum(!is.na(disp.tab.tamme$SM)) ## 172 / 189
+
 ## load the function
 load("dispeRsal.rda")
 
-disp.mod <- dispeRsal(data.predict = disp.tab.tamme, model = 2, CI = TRUE,
-                      random = TRUE, tax = "family", write.result = TRUE)
+## define the family level of our species
+sp.family.tab <- TPLMod(splist = as.character(disp.tab.tamme$Species))
 
+## merge data 
+disp.tab.tamme$Genus.species <- disp.tab.tamme$Species
+disp.tab.tamme$Genus <- sub(" .*", "", disp.tab.tamme$Genus.species)
+disp.tab.tamme$Species <- sub("^.* ", "", disp.tab.tamme$Genus.species)
+disp.tab.tamme <- disp.tab.tamme %>% full_join(sp.family.tab)
+
+## check dispersal syndrom representation in our table
+disp.tab.tamme %>% group_by(Genus.species, GF) %>% 
+  summarise(has.DS = any(!is.na(DS)),
+            has.SM = any(!is.na(SM))) %>%
+  ungroup %>%
+  summarise(pc.spe.with.DS = mean(has.DS),
+            pc.spe.with.SM = mean(has.SM))
+
+disp.tab.tamme %>% group_by(Genus, GF) %>% 
+  summarise(has.DS = any(!is.na(DS)),
+            has.SM = any(!is.na(SM))) %>%
+  ungroup %>%
+  summarise(pc.gen.with.DS = mean(has.DS),
+            pc.spe.with.SM = mean(has.SM))
+
+disp.tab.tamme %>% group_by(Family, GF) %>% 
+  summarise(has.DS = any(!is.na(DS)),
+            has.SM = any(!is.na(SM))) %>%
+  ungroup %>%
+  summarise(pc.fam.with.DS = mean(has.DS),
+            pc.spe.with.SM = mean(has.SM))
+
+## fill the seed mass and  info
+disp.tab.tamme$SM.extrapol <- 0 ## no extrapolation
+
+Traits.extrap <- disp.tab.tamme %>% 
+  mutate(SM.Species = SM,
+         DS.Species = as.character(DS)) %>%
+  group_by(Genus, GF) %>% 
+  mutate(SM.mean.GenusGF = mean(SM, na.rm = TRUE),
+         SM.median.GenusGF = median(SM, na.rm = TRUE),
+         DS.maj.GenusGF = names(table(DS))[which.max(table(DS))]) %>%
+  ungroup %>% group_by(Family, GF) %>%
+  mutate(SM.mean.FamilyGF = mean(SM, na.rm = TRUE),
+         SM.median.FamilyGF = median(SM, na.rm = TRUE),
+         DS.maj.FamilyGF = names(table(DS))[which.max(table(DS))]) %>%
+  ungroup %>% group_by(GF) %>%
+  mutate(SM.mean.GF = mean(SM, na.rm = TRUE),
+         SM.median.GF = median(SM, na.rm = TRUE),
+         DS.maj.GF = names(table(na.omit(DS)))[which.max(table(na.omit(DS)))]) %>%
+  ungroup %>% rowwise %>%
+  mutate(SM.extrap = ifelse(!is.na(SM.Species), SM.Species, 
+                            ifelse(!is.na(SM.median.GenusGF), SM.median.GenusGF,
+                                   ifelse(!is.na(SM.median.FamilyGF), SM.median.FamilyGF,
+                                          SM.median.GF))),
+         SM.extrap.level = ifelse(!is.na(SM.Species), "Species", 
+                            ifelse(!is.na(SM.median.GenusGF), "Genus",
+                                   ifelse(!is.na(SM.median.FamilyGF), "Family",
+                                          "GrowthForm"))),
+         DS.extrap = ifelse(!is.na(DS.Species), DS.Species, 
+                            ifelse(!is.na(DS.maj.GenusGF), DS.maj.GenusGF,
+                                   ifelse(!is.na(DS.maj.FamilyGF), DS.maj.FamilyGF,
+                                          DS.maj.GF))),
+         DS.extrap.level = ifelse(!is.na(DS.Species), "Species", 
+                            ifelse(!is.na(DS.maj.GenusGF), "Genus",
+                                   ifelse(!is.na(DS.maj.FamilyGF), "Family",
+                                          "GrowthForm")))
+         ) %>%
+  as.data.frame
+
+head(Traits.extrap)
+
+## extract a subset of the extrapolated version of traits to estimate disersal 
+## distances
+
+disp.tab.tamme.extrap <- Traits.extrap %>% 
+  mutate(Species = Genus.species,
+         DS = as.factor(DS.extrap),
+         GF = GF,
+         SM = SM.extrap,
+         RH = RH) %>%
+  select(Species, DS, GF, SM, RH)
+
+## --- compute the model to estimate maximal dispersal distance ----------------
+disp.mod <- dispeRsal(data.predict = disp.tab.tamme.extrap, 
+                      model = 2, 
+                      CI = TRUE,
+                      random = TRUE, 
+                      tax = "family", 
+                      write.result = TRUE)
+
+## reorder the table to fit with our ref table, add a key to make the jointing easier
+## and save it!
+dat.sp <- read.table("../briscahub/data/sp.list_08102015_red.txt", 
+                     header = TRUE, sep = "\t", stringsAsFactors = FALSE)
+
+dat.disp <- disp.mod$predictions
+##' @note it seems that Salix ovalifolia disapear from this table but because this
+##'   species has exactly the same input params than Salix rotundifolia, we will
+##'   just make a copy of this species dispersal limitation predictions
+sal.ova.disp <- dat.disp %>% filter(Species == "Salix rotundifolia") %>% mutate(Species = "Salix ovalifolia")
+dat.disp <- dat.disp %>% bind_rows(sal.ova.disp)
+
+## rename Species column to simplify jointing
+dat.disp <- dat.disp %>% rename(Genus.species = Species)
+
+dat.disp <- dat.disp %>% left_join(select(dat.sp, Genus.species, Biomod.name))
+
+## check that all matches have been done
+dat.disp <- dat.disp %>% arrange(Biomod.name)
+sum(is.na(dat.disp$Biomod.name))
+dim(dat.disp)
+
+## write this table on hard drive
+write.table(dat.disp, file = "../briscahub/data/sp.list_red_tamme_disp.txt", col.names = TRUE, row.names = FALSE, quote = TRUE, sep = "\t")
+
+## --- do some plots to illustarte the results ---------------------------------
 library(ggplot2)
 
 ## MDD ~ species
 gg <- ggplot(data = disp.mod$predictions, aes(x = Species, y = log10MDD, ymin = log10MDD_lwrCL, ymax =  log10MDD_uppCL, col = Family)) + 
   geom_errorbar() + geom_point() + coord_flip()
-gg
+
+png("../figures/species_max_dispersal_distance_tamme.png", width = 800, height = 2000, units = 'px')
+print(gg)
+dev.off()
 
 
 dat.mr.mdd <- disp.mod$predictions %>%
@@ -198,15 +341,13 @@ dat.mr.mdd <- disp.mod$predictions %>%
   filter(!is.na(Mig.rate.m.yr))
 ## MDD ~ migr rate
 gg <- ggplot(data = dat.mr.mdd, aes(x = log10(Mig.rate.m.yr), y = log10MDD, ymin = log10MDD_lwrCL, ymax =  log10MDD_uppCL, col = Family)) + 
-  geom_errorbar(alpha = .3) + geom_point() + geom_smooth(method = 'lm', col = 'black')
+  geom_errorbar(alpha = .3) + geom_point() + 
+#   geom_smooth(method = 'lm', col = 'black') +
+  geom_abline(intercept = 0, slope = 1, linetype = 3)
+
 gg
 
 ## migr rate ~ species
 gg <- ggplot(data = dat.mr.mdd, aes(x = Species, y = log10(Mig.rate.m.yr), col = Family)) + 
   geom_point() + coord_flip()
 gg
-
-## 
-
-
-
