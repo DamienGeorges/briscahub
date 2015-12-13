@@ -119,6 +119,20 @@ names(biointer) <- "biointer"
 ## merge all cliimatic variables
 expl.stk <- stack(ddeg, subset(bio, c(6, 10, 18, 19)), biointer)
 
+## ensure that exactly all the same cells are define in explanatory rasters
+## function to define the intersect of rasters
+intersect_mask <- function(x){
+  values_x <- getValues(x)
+  inter_x <- values_x %*% rep(1,nlayers(x))
+  mask <- setValues(subset(x,1),values = (inter_x>0))
+  return(mask)
+}
+
+## keep only all cells that are defined for all layers
+expl.stk.names <- names(expl.stk)
+expl.stk <- stack(mask(expl.stk, intersect_mask(expl.stk)))
+names(expl.stk) <- expl.stk.names
+
 ## do projections --------------------------------------------------------------
 
 ## do single models projections
