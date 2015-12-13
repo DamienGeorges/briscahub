@@ -53,7 +53,7 @@ out.dir <- "/work/georges/BRISCA/Biomod_biotic_interaction_maps"
 dir.create(out.dir, recursive = TRUE, showWarnings = FALSE)
 briscahub.dir <- "/home/georges/BRISCA/briscahub"
 
-filt.pattern <- '_filt_ch.grd'
+filt.pattern <- '_invdist.grd'
 
 ## -- load th species list -----------------------------------------------------
 sp.tab <- read.table(file.path(briscahub.dir, "data/sp.list_08102015_red.txt"),
@@ -80,8 +80,6 @@ sp.bio.inter <- sp.no.inter <- raster("/data/idiv_sdiv/brisca/Data/no_interactio
 get.filt.prob.map <- function(sp_, mod.dir, pattern = '_filt_ch.grd'){
   ## get all the raster files matching the pattern
   ldir <- list.files(file.path(mod.dir, sp_), "proj_", full.names = TRUE)
-  ##' @note !!!!! TRICKY PART !!!!! => cause some csiro proj have failed.. we will remove them from this version of heigt maps
-  ldir <- grep("csiro_mk360", ldir, value = TRUE, invert = TRUE)
 
   ##cat(ldir)
   prob.filt.files   <- sapply(ldir, function(x) list.files(file.path(x,"individual_projections"), pattern = paste0("EMca.*mergedData", pattern), full.names = TRUE))
@@ -96,20 +94,23 @@ get.filt.prob.map <- function(sp_, mod.dir, pattern = '_filt_ch.grd'){
 }
 
 ## build the biotic interaction maps
-for(sp_ in sp.higher.bmnames){
-  cat("add contib of :", which(sp.higher.bmnames == sp_), "/", length(sp.higher.bmnames), "\n")
-  sp_.compet.contrib <- get.filt.prob.map(sp_, mod.dir, pattern = filt.pattern)
-  sp.bio.inter <- sp.bio.inter + sp_.compet.contrib
+for(disp_ in c("no", "min", "max")){
+  cat("\n> dealing with", disp_, "dipersal limit.\n")
+  sp.bio.inter <- sp.no.inter
+  for(sp_ in sp.higher.bmnames){
+    cat("add contib of :", which(sp.higher.bmnames == sp_), "/", length(sp.higher.bmnames), "\n")
+    full.filt.pattern <- paste0("_filt_", disp_ ,"_disp", filt.pattern)
+    sp_.compet.contrib <- get.filt.prob.map(sp_, mod.dir, 
+                                            pattern = full.filt.pattern)
+    sp.bio.inter <- sp.bio.inter + sp_.compet.contrib
+  }
+  ## update names of stk and save them on the hard drive
+  stk.layer.names <- sub("/.*$", "", sub("^.*proj_pure_climat_", 
+                                         "", list.files(file.path(mod.dir, sp.bmname), paste0("EMca.*mergedData", full.filt.pattern), recursive  = TRUE, full.names = TRUE)))
+  names(sp.bio.inter) <- stk.layer.names
+  writeRaster(sp.bio.inter, filename = file.path(out.dir, paste0(sp.bmname,"_bio_inter", full.filt.pattern)))
 }
 
-## rename the layers of the stack
-
-## update names of stk and save them on the hard drive
-stk.layer.names <- sub("/.*$", "", sub("^.*proj_pure_climat_", 
-                                       "", list.files(file.path(mod.dir, sp.bmname), paste0("EMca.*mergedData", filt.pattern), recursive  = TRUE, full.names = TRUE)))
-stk.layer.names <- grep("csiro_mk360", stk.layer.names, value = TRUE, invert = TRUE) 
-names(sp.bio.inter) <- stk.layer.names
-writeRaster(sp.bio.inter, filename = file.path(out.dir, paste0(sp.bmname,"_bio_inter", filt.pattern)))
 
 cat("\n done!")
 q("no")
@@ -120,13 +121,15 @@ q("no")
 rm(list = ls())
 out.dir <- "/work/georges/BRISCA/Biomod_biotic_interaction_maps"
 briscahub.dir <- "/home/georges/BRISCA/briscahub"
-filt.pattern <- "_filt_ch.grd"
+filt.pattern <- "_filt_no_disp_invdist.grd"
+filt.pattern <- "_filt_min_disp_invdist.grd"
+filt.pattern <- "_filt_max_disp_invdist.grd"
 
 sp.tab <- read.table(file.path(briscahub.dir, "data/sp.list_08102015_red.txt"),
                      sep = "\t", header = TRUE, stringsAsFactors = FALSE)
 sp.bmname <- sp.tab$Biomod.name
 
-filt.files <- (list.files(out.dir, filt.pattern))
+(filt.files <- (list.files(out.dir, filt.pattern)))
 which(!sapply(sp.bmname, function(sp_){any(grepl(sp_, filt.files))}))
 
 ## some graphical representations

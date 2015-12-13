@@ -4,11 +4,12 @@
 # qsub arguments
 # ----------------------------------------------------------------------
 
-#$  -N  spcfbim
+#$  -N  spccif
 #$  -S  /bin/bash
-#$  -l  h_vmem=9999M
-#$  -l  h_rt=24:00:00
-#$  -t  1-189
+#$  -l  h_vmem=3999M
+#$  -l  h_rt=12:00:00
+## #$  -t  1-189
+#$  -t  128-128
 #$  -binding linear:1 ## core binding
 ## #$  -pe smp 1
 ## #$  -pe smp 1 ## this script seems not to work properly in parallel
@@ -50,4 +51,4 @@ module list
 
 export JAVA_OPTS=${JAVA_OPTS:-"-Xmx256M -Xms16M"}
 
-Rscript --no-restore --vanilla ~/BRISCA/briscahub/scripts/2_pure_climate_filtering/shrub_pure_climate_filtered_biotic_inter_maps.R ${params}
+Rscript --no-restore --vanilla ~/BRISCA/briscahub/scripts/2_pure_climate_filtering/shrub_pure_climate_create_invdist_filters.R ${params}

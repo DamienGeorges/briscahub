@@ -39,10 +39,14 @@
 ## -- init the script ----------------------------------------------------------
 rm(list = ls())
 setwd("/work/georges/BRISCA/")
+t.start <- Sys.time()
 
 ## retrieve input arguments ----------------------------------------------------
 args <- commandArgs(trailingOnly = TRUE)
 sp.id <- as.numeric(args[1])
+
+# ## test 
+# sp.id <- 5
 
 ## ## -- load needed packages ----------------------------------------------------- 
 library(raster)
@@ -58,8 +62,6 @@ mod.dir <- "/work/georges/BRISCA/Biomod_pure_climate_invdist"
 out.dir <- "/work/georges/BRISCA/Biomod_dispersal_filters"
 dir.create(out.dir, recursive = TRUE, showWarnings = FALSE)
 briscahub.dir <- "/home/georges/BRISCA/briscahub"
-
-filt.pattern <- '_filt_invdist.grd'
 
 ## -- load th species list -----------------------------------------------------
 sp.tab <- read.table(file.path(briscahub.dir, "data/sp.list_08102015_red.txt"),
@@ -82,10 +84,46 @@ sp.disp.max.dist <- 100 * 10^(disp.tab$log10MDD_uppCL[disp.tab$Biomod.name == sp
 ##' @note !!! this is not at all equivalent to a minimum dispersal disatance !!!
 sp.disp.min.dist <- 100 * 10^(disp.tab$log10MDD_lwrCL[disp.tab$Biomod.name == sp.bmname])
 
+## define the filenames of dispersal mask we want to save
+fn.sp.disp.max <- file.path(out.dir, paste0(sp.bmname, "max_disp_mask_CA_invdist.grd"))
+fn.sp.disp.min <- file.path(out.dir, paste0(sp.bmname, "min_disp_mask_CA_invdist.grd"))
+fn.sp.disp.no <- file.path(out.dir, paste0(sp.bmname, "no_disp_mask_CA_invdist.grd"))
 
 ## load the reference mask dispersal 
 mask.no.disp <- raster(file.path(mod.dir, sp.bmname, "proj_pure_climat_current", 
                                  "individual_projections", paste0(sp.bmname, "_EMcaByTSS_mergedAlgo_mergedRun_mergedData_TSSbin.grd"))) 
 
-## 1. have to save this raster
-## 2. have to apply the 2 buffers and save the rasters
+## compute a mask where all non presence cells are set to NA
+mask.no.disp.na <- reclassify(mask.no.disp, c(-Inf,0,NA))
+mask.area <-  reclassify(mask.no.disp, c(-Inf,Inf,1))
+
+## save the no disp mask
+cat("\n> saving no disp mask...")
+writeRaster(mask.no.disp, filename = fn.sp.disp.no, datatype = 'INT1S', overwrite = TRUE)
+
+## compute the max disp buffer
+mask.max.disp <- buffer(mask.no.disp.na, sp.disp.max.dist)
+## reshape the mask in a correct format
+mask.max.disp[is.na(mask.max.disp[])] <- 0
+mask.max.disp <- mask.max.disp * mask.area 
+## save the produced mask
+cat("\n> saving max disp mask...")
+writeRaster(mask.max.disp, filename = fn.sp.disp.max, datatype = 'INT1S', overwrite = TRUE)
+
+## compute the min disp buffer
+mask.min.disp <- buffer(mask.no.disp.na, sp.disp.min.dist)
+## reshape the mask in a correct format
+mask.min.disp[is.na(mask.min.disp[])] <- 0
+mask.min.disp <- mask.min.disp * mask.area 
+## save the produced mask
+cat("\n> saving min disp mask...")
+writeRaster(mask.min.disp, filename = fn.sp.disp.min, datatype = 'INT1S', overwrite = TRUE)
+
+## done!
+t.stop <- Sys.time()
+cat("> completed on:")
+print(t.stop)
+cat("\n")
+print(difftime(t.stop, t.start))
+
+quit('no')
