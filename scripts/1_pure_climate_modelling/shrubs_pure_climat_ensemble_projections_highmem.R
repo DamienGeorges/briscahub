@@ -61,23 +61,28 @@ if(host == "pinea"){
   ## TODO (Damien)
 } else if (host == "idiv_cluster"){
   # path to the directory where models have been computed
-  in.mod <- "/work/georges/BRISCA/Biomod_pure_climate_final"
+  #in.mod <- "/work/georges/BRISCA/Biomod_pure_climate_final"
   #in.mod <- "/work/georges/BRISCA/Biomod_pure_climate_usgs" ## pure climate models
   # in.mod <- "/work/georges/BRISCA/Biomod_pure_climate_xy" ## pure climate + XY models 
-  # in.mod <- "/work/georges/BRISCA/Biomod_pure_climate_dist" ## pure climate + dist models 
+  in.mod <- "/work/georges/BRISCA/Biomod_pure_climate_invdist" ## pure climate + invdist models 
   # path to parameter table
   ## pure climate models
   #param.file <- "/work/georges/BRISCA/grid_params/params_spcp.txt" ## first run (5G ram)
-#   param.file <- "/work/georges/BRISCA/grid_params/params_spcep.txt" ## second run
-  param.file <- "/work/georges/BRISCA/grid_params/params_csiro.txt" ## second run
+#  param.file <- "/work/georges/BRISCA/grid_params/params_spcep.txt" ## second run
+  # param.file <- "/work/georges/BRISCA/grid_params/params_csiro.txt" ## second run
   ## pure climate + XY models
-#   param.file <- "/work/georges/BRISCA/grid_params/params_spcp_xy.txt"
+  param.file <- "/work/georges/BRISCA/grid_params/params_spcp_xy.txt"
 }
 
 ## define here raster options to limit IO impact of jobs
 
 # rasterOptions(overwrite=TRUE, tmptime=24, chunksize=1e+09, maxmemory=1e+09)
-rasterOptions(overwrite=TRUE, tmptime=24, chunksize=5e+08, maxmemory=1e+09)
+rasterOptions(tmpdir = "/work/georges/R_raster_georges", ## where to store raster tmp files (prevent to fill up /tmp dir)
+              tmptime = 24, ## time after which raster tmp files will be deleted
+              chunksize = 5e+08, ## size of blocks that will be written on hardrive (for I/O optimisation)
+              maxmemory = 1e+09, ## max number of cell loaded in the memory (for I/O optimisation)
+              overwrite = TRUE) ## always overwrite existing rasters on the hard drive
+
 
 cat("\n rasterOptions:\n")
 print(rasterOptions())
