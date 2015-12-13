@@ -8,8 +8,9 @@
 ##' 
 ##' @description 
 ##'   The aim of this script is to build filtered vversion of pure climate 
-##'   models projections. Here we will use convex hull to realise the filtering
-##'   procedure
+##'   models projections. Here we will use the binary models projections
+##'   of models built with inverse distance matrix to filter the pure
+##'   climate projections
 ##'   
 ##' @log
 ##' 
