@@ -46,7 +46,8 @@ rasterOptions(tmpdir = "/work/georges/R_raster_georges", ## where to store raste
               #               maxmemory = 1e+09, ## max number of cell loaded in the memory (for I/O optimisation)
               overwrite = TRUE)
 
-param.file <- "/home/georges/BRISCA/biomod_framework_summary_files.txt"
+# param.file <- "/home/georges/BRISCA/biomod_framework_summary_files.txt"
+param.file <- "/work/georges/BRISCA/grid_params/params_clip_output_maps.txt"
 param.list <- readLines(param.file)
 
 map.files.list <- param.list[file.id]
@@ -114,7 +115,8 @@ copied.files <- lapply(map.files.list, function(f_){
   ## reproject the raster on shapefile system
   r_ <- projectRaster(r_, crs = crs(ref.poly.arctic), filename = f.out_, overwrite = TRUE)
   ## mask it and crop it to shapefile extent
-  r_ <- crop(round(r_ * 1000), ref.poly.arctic, filename = f.out_, overwrite = TRUE)
+  # r_ <- crop(round(r_ * 1000), ref.poly.arctic, filename = f.out_, overwrite = TRUE)
+  r_ <- crop(round(r_), ref.poly.arctic, filename = f.out_, overwrite = TRUE)
   r_ <- mask(r_, ref.poly.arctic, filename = f.out_, overwrite = TRUE, datatype = "INT2U" )
   return(f.out_)
 })
