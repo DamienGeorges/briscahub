@@ -1,6 +1,6 @@
 [general]
 creator=R package 'raster'
-created=2016-05-10 11:11:52
+created=2016-05-10 14:42:43
 [georeference]
 nrows=866
 ncols=872
@@ -14,10 +14,7 @@ datatype=LOG1S
 byteorder=little
 nbands=1
 bandorder=BIL
-categorical=TRUE
-ratnames=ID:Id
-rattypes=integer:integer
-ratvalues=1:0
+categorical=FALSE
 minvalue=1
 maxvalue=1
 nodatavalue=-128
