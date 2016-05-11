@@ -4,14 +4,13 @@
 # qsub arguments
 # ----------------------------------------------------------------------
 
-#$  -N  copy_cliped_maps
+#$  -N  sdmb
 #$  -S  /bin/bash
-#$  -l h_vmem=1999M
-#$  -l  h_rt=00:10:00
-#$  -t  1-234712
-#$  -binding linear:1 ## core binding
-## #$  -pe smp 1
-## #$  -pe smp 1 ## this script seems not to work properly in parallel
+#$  -l  h_vmem=5999M
+#$  -l  h_rt=3:00:00
+#$  -t  1-9
+#$  -pe smp 8-16
+
 
 # ---------------------------------------------------------------------- 
 # output files
@@ -44,7 +43,6 @@ echo
 
 source /etc/profile.d/000-modules.sh
 
-module load R
+module load cairo gdal R
 
-Rscript --no-restore --vanilla ~/BRISCA/briscahub/scripts/misc/copy_cliped_maps.R ${params}
-
+Rscript --no-restore --vanilla ~/BRISCA/briscahub/scripts/4_results_analysis/shrubs_diversity_maps_bis.R  ${params}

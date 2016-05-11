@@ -4,11 +4,11 @@
 # qsub arguments
 # ----------------------------------------------------------------------
 
-#$  -N  copy_cliped_maps
+#$  -N  src
 #$  -S  /bin/bash
-#$  -l h_vmem=1999M
-#$  -l  h_rt=00:10:00
-#$  -t  1-234712
+#$  -l h_vmem=5999M
+#$  -l  h_rt=48:00:00
+#$  -t  1-380
 #$  -binding linear:1 ## core binding
 ## #$  -pe smp 1
 ## #$  -pe smp 1 ## this script seems not to work properly in parallel
@@ -44,7 +44,7 @@ echo
 
 source /etc/profile.d/000-modules.sh
 
-module load R
+module load R/3.1.0-1_gcc_4.8.1
 
-Rscript --no-restore --vanilla ~/BRISCA/briscahub/scripts/misc/copy_cliped_maps.R ${params}
+Rscript --no-restore --vanilla ~/BRISCA/briscahub/scripts/4_results_analysis/species_range_change.R ${params}
 
