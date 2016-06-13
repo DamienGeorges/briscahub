@@ -28,26 +28,52 @@
 
 rm(list=ls())
 
-modelling.dir <- "/work/georges/BRISCA/Biomod_pure_climate_invdist"
+## define the targeted modelling directory
+# modelling.dir <- "/work/georges/BRISCA/Biomod_pure_climate_invdist"
 # modelling.dir <- "/work/georges/BRISCA/Biomod_pure_climate_dist"
-proj.tab <- read.table("/work/georges/BRISCA/grid_params/params_spcp_xy.txt", header = FALSE, sep = " ")
-# proj.tab <- read.table("/work/georges/BRISCA/grid_params/params_csiro.txt", header = FALSE, sep = " ")
-colnames(proj.tab) <- c("job.id", "sp.name", "path.to.expl")
+modelling.dir <- "/work/georges/BRISCA/Biomod_climate_and_biointer"
+
+## read the inout parameters
+# proj.tab <- read.table("/work/georges/BRISCA/grid_params/params_spcp_xy.txt", header = FALSE, sep = " ")
+# # proj.tab <- read.table("/work/georges/BRISCA/grid_params/params_csiro.txt", header = FALSE, sep = " ")
+# colnames(proj.tab) <- c("job.id", "sp.name", "path.to.expl")
+# head(proj.tab)
+# 
+# ## add columns with path to object we want to check exitance
+# proj.objs <- sapply(1:nrow(proj.tab), function(i){
+#   path.to.expl.var <- proj.tab$path.to.expl[i]
+#   ##define the projection name
+#   if(grepl("Current", path.to.expl.var)){
+#     bm.proj.name <- "pure_climat_current"
+#   } else{
+#     bm.proj.name <- paste0("pure_climat_", sub("/", "_", sub("^.*Full_arctic_30_north/", "", path.to.expl.var))) 
+#   }
+#   proj.objs <- file.path(modelling.dir, 
+#                         proj.tab$sp.name[i], 
+#                         paste0("proj_", bm.proj.name),
+#                         paste0(proj.tab$sp.name[i], ".", bm.proj.name, c(".projection.out", ".ensemble.projection.out")))
+#   return(proj.objs)
+# })
+
+proj.tab <- read.table("/work/georges/BRISCA/grid_params/params_scabp.txt", header = FALSE, sep = "\t")
+colnames(proj.tab) <- c("job.id", "sp.name", "path.to.clim", "path.to.biointer")
 head(proj.tab)
 
 ## add columns with path to object we want to check exitance
 proj.objs <- sapply(1:nrow(proj.tab), function(i){
-  path.to.expl.var <- proj.tab$path.to.expl[i]
+  path.to.clim.var <- proj.tab$path.to.clim[i]
+  path.to.biointer.var <- proj.tab$path.to.biointer[i]
+  biointer.str <- sub(".grd", "", sub("^.*_bio_inter_filt", "", path.to.biointer.var))
   ##define the projection name
-  if(grepl("Current", path.to.expl.var)){
-    bm.proj.name <- "pure_climat_current"
+  if(grepl("Current", path.to.clim.var)){
+    bm.proj.name <- paste0("pure_climat_current", biointer.str)
   } else{
-    bm.proj.name <- paste0("pure_climat_", sub("/", "_", sub("^.*Full_arctic_30_north/", "", path.to.expl.var))) 
+    bm.proj.name <- paste0("pure_climat_", sub("/", "_", sub("^.*Full_arctic_30_north/", "", path.to.clim.var)), biointer.str) 
   }
   proj.objs <- file.path(modelling.dir, 
-                        proj.tab$sp.name[i], 
-                        paste0("proj_", bm.proj.name),
-                        paste0(proj.tab$sp.name[i], ".", bm.proj.name, c(".projection.out", ".ensemble.projection.out")))
+                         proj.tab$sp.name[i], 
+                         paste0("proj_", bm.proj.name),
+                         paste0(proj.tab$sp.name[i], ".", bm.proj.name, c(".projection.out", ".ensemble.projection.out")))
   return(proj.objs)
 })
 
@@ -72,6 +98,9 @@ sum(proj.tab$ensmod.proj.ok)
 out.dir <- "/work/georges/BRISCA/grid_params/"
 # write.table(proj.tab[ !proj.tab$mod.proj.ok & is.element(proj.tab$sp.name, c("Spiraea.salicifolia", "Vaccinium.myrtilloides")), 2:3], file = file.path(out.dir, "params_spcp.txt"), sep = " ", 
 #             quote = FALSE, append = FALSE, row.names = TRUE, col.names = FALSE)
+#write.table(proj.tab[!proj.tab$mod.proj.ok, 1:4], file = file.path(out.dir, "params_scabp2.txt"), sep = "\t", 
+#            quote = FALSE, append = FALSE, row.names = FALSE, col.names = FALSE)
+
 
 ## produce the new parameter file
 # write.table(proj.tab[ !proj.tab$ensmod.proj.ok, 2:3], file = file.path(out.dir, "params_spcep.txt"), sep = " ", 
@@ -80,3 +109,21 @@ dim(proj.tab[ !proj.tab$ensmod.proj.ok, 2:3])
 
 which(!proj.tab$mod.proj.ok)
 which(!proj.tab$ensmod.proj.ok)
+
+## produce a priority subset of parmas to run (SHRUBS where Projection were successful)
+briscahub.dir <- "/home/georges/BRISCA/briscahub"
+## -- load th species list -----------------------------------------------------
+sp.tab <- read.table(file.path(briscahub.dir, "data/sp.list_08102015_red.txt"),
+                     sep = "\t", header = TRUE, stringsAsFactors = FALSE)
+shrub.list <- sp.tab$Biomod.name[is.element(sp.tab$Growth.form.height, c('SHRUB'))]
+## ep.params <- proj.tab[ proj.tab$mod.proj.ok & !proj.tab$ensmod.proj.ok & is.element(as.character(proj.tab$sp.name), shrub.list), 1:4]
+
+ep.params <- proj.tab[ proj.tab$mod.proj.ok & is.element(as.character(proj.tab$sp.name), shrub.list), 1:4]
+
+## ep.params <- proj.tab[ is.element(as.character(proj.tab$sp.name), shrub.list), 1:4]
+
+write.table(ep.params, file = file.path(out.dir, "params_scabeph.txt"), sep = "\t", 
+            quote = FALSE, append = FALSE, row.names = FALSE, col.names = FALSE)
+
+
+

@@ -37,6 +37,8 @@ sp.tab <- read.table(file.path(briscahub.dir, "data/sp.list_08102015_red.txt"),
                      sep = "\t", header = TRUE, stringsAsFactors = FALSE)
 sp.tab <- sp.tab[ sp.tab$Growth.form.height == 'SHRUB', ]
 
+cat("\n> sp.tab\n")
+head(sp.tab)
 
 ##' -- read the new ref grid ---------------------------------------------------
 ref.ras.buffer <- raster(file.path(path.to.buffers, "Buffer.grd"))
@@ -48,11 +50,18 @@ ref.ras.from.ha <- raster(file.path(path.to.buffers, "High_Arctic.grd"))
 
 param.list <- read.table(param.file, sep = "\t", header = FALSE, stringsAsFactors=FALSE)
 
+cat("\n> param.list\n")
+head(param.list)
+
 # src.stk <- NULL
 # src.stk.list <- lapply(sp.tab$Biomod.name, function(sp_){
 # for(sp_ in sp.tab$Biomod.name){
 sp_ <- param.list[file.id, 6]
-cat("\n>", sp_)
+cat("\n> sp_:", sp_,"\n")
+
+cat("\n> file.id:", file.id, "\n")
+
+
 fut.file <- paste0(param.list[file.id, 1], "/", sp_, "/", param.list[file.id, 2], "/individual_projections/", sp_, param.list[file.id, 3]) 
 # fut.file <- "/work/georges/BRISCA/Biomod_pure_climate_final/Abies.balsamea/proj_pure_climat_RCP_2.6_2080_cesm1_cam5/individual_projections/Abies.balsamea_EMcaByTSS_mergedAlgo_mergedRun_mergedData_TSSbin.grd"
 
@@ -110,14 +119,16 @@ sp.rc.tab$model <- model
 sp.rc.tab$scenario.clim <- scenario.clim
 sp.rc.tab$scenario.biomod <- scenario.biomod
 sp.rc.tab$file.id <- file.id
-sp.rc.tab$sp.id <- which(sp_ %in% sp.tab$Biomod.name)
+sp.rc.tab$sp.id <- which(sp.tab$Biomod.name %in% sp_)
 
 
 write.table(sp.rc.tab, 
-            file=file.path(output.tab.dir, paste0("src_", sprintf("%03d", file.id), "_", sprintf("%03d", unique(sp.rc.tab$sp.id)), ".txt")),
+            file=file.path(output.tab.dir, paste0("src_", sprintf("%05d", file.id), "_", sprintf("%03d", unique(sp.rc.tab$sp.id)), ".txt")),
             sep = "\t", row.names = FALSE, col.names = FALSE)
-writeRaster(sp.rc$Diff.By.Pixel * ref.ras.buffer, filename = file.path(output.map.dir, paste0("src_", sprintf("%03d", file.id), "_", sprintf("%03d", unique(sp.rc.tab$sp.id)), ".grd")),
+
+writeRaster(sp.rc$Diff.By.Pixel * ref.ras.buffer, filename = file.path(output.map.dir, paste0("src_", sprintf("%05d", file.id), "_", sprintf("%03d", unique(sp.rc.tab$sp.id)), ".grd")),
             datatype = "INT1S",
+	    NAflag = -127,
             overwrite = TRUE)
 
 q("no")

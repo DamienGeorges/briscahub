@@ -54,6 +54,16 @@ job.id <- as.numeric(args[1])
 ## definig the machine where the script will run -------------------------------
 host = "idiv_cluster"
 
+## require libraries -----------------------------------------------------------
+require(biomod2, lib.loc='~/R/biomod2_pkg/biomod2_3.1-73-04') ## version 1.3-73-02 (= the same than 1.3.73 with a trick not to save rasters in tmp dir)
+require(rgdal)
+require(data.table)
+rasterOptions(tmpdir = "/work/georges/R_raster_georges", ## where to store raster tmp files (prevent to fill up /tmp dir)
+              tmptime = 24, ## time after which raster tmp files will be deleted
+              chunksize = 5e+08, ## size of blocks that will be written on hardrive (for I/O optimisation)
+              maxmemory = 1e+09, ## max number of cell loaded in the memory (for I/O optimisation)
+              overwrite = TRUE)
+
 ## input/output directories depending on the host ------------------------------
 if(host == "pinea"){
   ## TODO (Damien)
@@ -70,22 +80,13 @@ if(host == "pinea"){
 setwd(in.mod)
 
 ## get the job parameters ------------------------------------------------------
-param.tab <- read.table(param.file, header = FALSE, sep = "\t")
-sp.name <- as.character(param.tab[job.id, 2])
-path.to.clim.var <- as.character(param.tab[job.id, 3])
-path.to.biointer.stk <- as.character(param.tab[job.id, 4])
-
-
-
-
-## require libraries -----------------------------------------------------------
-require(biomod2, lib.loc='~/R/biomod2_pkg/biomod2_3.1-73-04') ## version 1.3-73-02 (= the same than 1.3.73 with a trick not to save rasters in tmp dir)
-require(rgdal)
-rasterOptions(tmpdir = "/work/georges/R_raster_georges", ## where to store raster tmp files (prevent to fill up /tmp dir)
-              tmptime = 24, ## time after which raster tmp files will be deleted
-              chunksize = 5e+08, ## size of blocks that will be written on hardrive (for I/O optimisation)
-              maxmemory = 1e+09, ## max number of cell loaded in the memory (for I/O optimisation)
-              overwrite = TRUE)
+# param.tab <- read.table(param.file, header = FALSE, sep = "\t")
+param.tab <- fread(param.file, header = FALSE, sep = "\t", nrows = 1, 
+                   skip = job.id - 1,
+                   colClasses=c("integer", "character", "character", "character"))
+sp.name <- as.character(param.tab[[2]])
+path.to.clim.var <- as.character(param.tab[[3]])
+path.to.biointer.stk <- as.character(param.tab[[4]])
 
 
 ## load models outputs and explanatory variables -------------------------------

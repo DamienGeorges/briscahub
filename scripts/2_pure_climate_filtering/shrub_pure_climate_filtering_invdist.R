@@ -35,6 +35,8 @@
 rm(list = ls())
 setwd("/work/georges/BRISCA/")
 
+session.to.filter = 'cab' ## 'pc': Pure climate or 'cab': Climate and biotic inter
+
 ## retrieve input arguments ----------------------------------------------------
 args <- commandArgs(trailingOnly = TRUE)
 sp.id <- as.numeric(args[1])
@@ -52,9 +54,18 @@ rasterOptions(tmpdir = "/work/georges/R_raster_georges", ## where to store raste
 
 
 ## -- define path to models and to output directories --------------------------
-mod.dir <- "/work/georges/BRISCA/Biomod_pure_climate_final"
+
+if(session.to.filter == 'pc'){
+  ## Pure Climate session
+  mod.dir <- "/work/georges/BRISCA/Biomod_pure_climate_final"
+  out.dir <- file.path("/work/georges/BRISCA/Biomod_pure_climate_filtered/")  
+} else if(session.to.filter == 'cab'){
+  ## Climate and Biotic interactions  
+  mod.dir <- "/work/georges/BRISCA/Biomod_climate_and_biointer"
+  out.dir <- file.path("/work/georges/BRISCA/Biomod_climate_and_biointer_filtered/")  
+} 
+
 filt.dir <- "/work/georges/BRISCA/Biomod_dispersal_filters"
-out.dir <- file.path("/work/georges/BRISCA/Biomod_pure_climate_filtered/")
 lapply(out.dir, dir.create, recursive = TRUE, showWarnings = FALSE)
 
 briscahub.dir <- "/home/georges/BRISCA/briscahub"
@@ -125,7 +136,7 @@ briscahub.dir <- "/home/georges/BRISCA/briscahub"
 
 sp.tab <- read.table(file.path(briscahub.dir, "data/sp.list_08102015_red.txt"),
                      sep = "\t", header = TRUE, stringsAsFactors = FALSE)
-sp.bmname <- sp.tab$Biomod.name
+sp.bmname <- sp.tab$Biomod.name[sp.tab$Growth.form.height == 'SHRUB']
 
 sp.nb.filt.files <- sapply(sp.bmname, function(sp_){
   length(list.files(file.path(out.dir, sp_), "invdist.grd$", recursive = TRUE))

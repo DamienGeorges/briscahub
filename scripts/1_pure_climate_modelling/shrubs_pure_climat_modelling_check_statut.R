@@ -7,6 +7,8 @@
 ##' @description 
 ##'   This script will check that all the models succedded
 ##' @log
+##'   - 14/12/2015: adapt the script to handle both pure climate and climate and
+##'       biotic interaction models
 ##' 
 ##' @licencing GPL
 ##'     Copyright (C) 2015  Damien G.
@@ -28,15 +30,24 @@
 
 rm(list=ls())
 
-modelling.dir <- "/work/georges/BRISCA/Biomod_pure_climate_usgs/"
-sp.tab <- read.table("/work/georges/BRISCA/grid_params/params_spcm.txt", header = FALSE, sep = " ")
-sp.list <- as.character(sp.tab[, 2])
+##' Choose the modelling session you want to look at ---------------------------
 
-## update sp.list to fit with the well formated names
-## remove all 'tricky' characters from sp names
-sp.list <- gsub("-", "", sp.list)
-sp.list <- gsub(" ", ".", sp.list, fixed = "TRUE")
-sp.list <- gsub("_", ".", sp.list, fixed = "TRUE")
+# ## Biomod Pure climate modelling session
+# modelling.dir <- "/work/georges/BRISCA/Biomod_pure_climate_usgs/"
+# sp.tab <- read.table("/work/georges/BRISCA/grid_params/params_spcm.txt", header = FALSE, sep = " ")
+# sp.list <- as.character(sp.tab[, 2])
+# 
+# ## update sp.list to fit with the well formated names
+# ## remove all 'tricky' characters from sp names
+# sp.list <- gsub("-", "", sp.list)
+# sp.list <- gsub(" ", ".", sp.list, fixed = "TRUE")
+# sp.list <- gsub("_", ".", sp.list, fixed = "TRUE")
+
+## Biomod climate and biotic interactions modelling session
+modelling.dir <- "/work/georges/BRISCA/Biomod_climate_and_biointer"
+sp.tab <- read.table("/work/georges/BRISCA/grid_params/params_scabm.txt", header = FALSE, sep = "\t")
+sp.list <- as.character(sp.tab[, 3])
+##' End Choose the modelling session you want to look at -----------------------
 
 ## check if species have been completed
 sp.ok <- sapply(sp.list, function(spp){
