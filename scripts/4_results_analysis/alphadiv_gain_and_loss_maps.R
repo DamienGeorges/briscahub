@@ -171,7 +171,7 @@ calculate_alpha_gain_loss_turnover <- function(tab_){
                                                     paste0(unique(tab_$gcm, collapse = "-")), "__",
                                                     paste0(unique(tab_$rcp, collapse = "-")), ".grd"))
   cat("\n> out.stack saved as", stack.file.name_)
-  writeRaster(brick(out.stack_), filename = stack.file.name_)
+  writeRaster(brick(out.stack_), filename = stack.file.name_, overwrite = TRUE)
   
   cat("\n ***")
   return(stack.file.name_)
