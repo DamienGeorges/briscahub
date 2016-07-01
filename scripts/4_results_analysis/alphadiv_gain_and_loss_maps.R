@@ -180,7 +180,7 @@ if(n.cores <= 1){
 } else{
   ## parallel version
   clust <- create_cluster(cores = n.cores, quiet = FALSE)
-  gg.dat.part <- partition(ggdat, scenario.biomod, biotic.inter, dispersal.filter, gcm, rcp)
+  gg.dat.part <- partition(gg.dat, scenario.biomod, biotic.inter, dispersal.filter, gcm, rcp)
   gg.calc <- gg.dat.part %>% do(stack.file.name = calculate_alpha_gain_loss_turnover(.))
 }
 
