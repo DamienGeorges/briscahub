@@ -181,7 +181,7 @@ if(n.cores <= 1){
 } else{
   ## parallel version
   clust <- create_cluster(cores = n.cores, quiet = FALSE)
-  clusterExport(clust,c("calculate_alpha_gain_loss_turnover"))
+  clusterExport(clust,c("calculate_alpha_gain_loss_turnover", "out.dir.path", "src.maps.files"))
   gg.dat.part <- partition(gg.dat, scenario.biomod, biotic.inter, dispersal.filter, gcm, rcp, cluster = clust)
   gg.calc <- gg.dat.part %>% do(stack.file.name = calculate_alpha_gain_loss_turnover(.))
 }
