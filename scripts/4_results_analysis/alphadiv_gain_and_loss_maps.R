@@ -16,6 +16,7 @@ rm(list = ls())
 library(raster)
 library(dplyr)
 library(multidplyr)
+library(parallel)
 library(ggplot2)
 library(tidyr)
 
