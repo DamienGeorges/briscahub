@@ -1,0 +1,51 @@
+#!/bin/bash
+
+# ----------------------------------------------------------------------
+# qsub arguments
+# ----------------------------------------------------------------------
+
+#$  -N  alphadiv_gain_and_loss_maps
+#$  -S  /bin/bash
+#$  -l h_vmem=4999M
+#$  -l  h_rt=48:00:00
+#$  -pe smp 16 
+
+# ---------------------------------------------------------------------- 
+# output files
+#
+# Explanation:
+#
+#   USER          well, that is your user name
+#   JOB_NAME      reference to the name of the job
+#   JOB_ID        the unique ID of the job
+#   TASK_ID       the task ID of the current task
+# ----------------------------------------------------------------------
+
+#$ -o /work/$USER/logfiles/$JOB_NAME-$JOB_ID-$TASK_ID.log
+#$ -j y
+
+# ----------------------------------------------------------------------
+# actual processing
+# ----------------------------------------------------------------------
+
+paramsFile="none"
+params=${SGE_TASK_ID}
+
+echo
+echo "task id: " ${SGE_TASK_ID}
+echo "params file:" ${paramsFile}
+echo "params: " ${params} 
+echo
+echo
+
+
+source /etc/profile.d/000-modules.sh
+
+module load R geos
+#module load geos/3.4.2-1
+#module load proj/4.8.0-2_gcc_4.8.1
+#module load gdal/1.9.2-1_gcc_4.8.1
+#module load R/3.1.0-1_gcc_4.8.1
+
+Rscript --no-restore --vanilla ~/BRISCA/briscahub/scripts/4_results_analysis/alphadiv_gain_and_loss_maps.R
+
