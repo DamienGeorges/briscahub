@@ -119,6 +119,9 @@ gg.dat %>% group_by(scenario.biomod, biotic.inter, dispersal.filter, gcm, rcp) %
 ## define a function that calculates the alpha, SG, SL and turnover maps
 calculate_alpha_gain_loss_turnover <- function(tab_){
   cat("\n ***")
+  library(raster)
+  library(dplyr)
+  cat("\n> libraries loaded")
   src.maps.files_ <- src.maps.files[is.element(as.numeric(sub("_.*$", "", sub("src_baseline_", "", basename(src.maps.files)))), tab_$file.id)] 
   cat("\n> src.maps.file gotten (", length(src.maps.files_), ")")
   src.maps_ <- lapply(src.maps.files_, function(f_ ) raster(f_, RAT = FALSE))
@@ -184,6 +187,7 @@ if(n.cores <= 1){
   clusterExport(clust,c("calculate_alpha_gain_loss_turnover", "out.dir.path", "src.maps.files"))
   gg.dat.part <- partition(gg.dat, scenario.biomod, biotic.inter, dispersal.filter, gcm, rcp, cluster = clust)
   gg.calc <- gg.dat.part %>% do(stack.file.name = calculate_alpha_gain_loss_turnover(.))
+  stopCluster(clust)
 }
 
 
