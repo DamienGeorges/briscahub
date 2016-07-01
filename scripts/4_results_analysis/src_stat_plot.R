@@ -15,11 +15,22 @@ library(dplyr)
 library(ggplot2)
 library(tidyr)
 
+## set some parameters
+same.baseline <- TRUE ## do we consider the same baseline (climate filtered no dispersal) as a baseline or 
+                      ## each scenario current prediction as baseline
+
+
+# ## define the main paths to data
+# briscahub.dir <- "~/Work/BRISCA/briscahub/" ## on leca97
+# src.tab.path <- "~/Work/BRISCA/workdir/_SRC/SRC_tab.txt" ## on leca97
+# param.tab.path <- "~/Work/BRISCA/workdir/_SRC/params_src.txt" ## on leca97
+# out.dir.path <-"~/Work/BRISCA/figures/2016-06-13" ## on leca97
+
 ## define the main paths to data
-briscahub.dir <- "~/Work/BRISCA/briscahub/" ## on leca97
-src.tab.path <- "~/Work/BRISCA/workdir/_SRC/SRC_tab.txt" ## on leca97
-param.tab.path <- "~/Work/BRISCA/workdir/_SRC/params_src.txt" ## on leca97
-out.dir.path <-"~/Work/BRISCA/figures/2016-06-13" ## on leca97
+briscahub.dir <- "~/Work/BRISCA/briscahub/" ## on pinea
+src.tab.path <- paste0("~/Work/BRISCA/workdir/_SRC/", ifelse(same.baseline, "SRC_baseline_tab.txt", "SRC_tab.txt")) ## on pinea
+param.tab.path <- "~/Work/BRISCA/workdir/_SRC/params_src.txt" ## on pinea
+out.dir.path <-"~/Work/BRISCA/figures/2016-06-13" ## on pinea
 
 
 dir.create(out.dir.path, recursive = TRUE, showWarnings = FALSE)
@@ -88,14 +99,15 @@ gg.dat <- gg.dat %>% filter(!(scenario.biomod == "climate_and_biointer_filtered"
                             !(scenario.biomod == "climate_and_biointer_filtered" & biotic.inter == "high" & dispersal.filter == "minimal"))
 
 gg.plot <- ggplot(gg.dat, aes(scenario.biomod, species.range.change, fill = biotic.inter, color = dispersal.filter)) +
-  geom_boxplot(outlier.colour = NA) + facet_grid(gcm ~ rcp) + coord_cartesian(ylim = c(-100, 300)) +
+  geom_boxplot(outlier.colour = NA) + facet_grid(gcm ~ rcp) + 
+  coord_cartesian(ylim = c(-100, ifelse(same.baseline, 4500, 500))) + ## with same baselines or not change graph scale
   scale_fill_brewer(palette = "Blues", guide = guide_legend(title = "biotic interactions")) + 
   scale_color_brewer(palette = "Dark2", guide = guide_legend(title = "dispersal distance")) + 
   xlab("scenario") + ylab("species range change (%)") + 
   gg.theme
 
 
-ggsave(file.path(out.dir.path, "src_stat_from_low_arctic.ps"), gg.plot, width = 297, height = 210, units = 'mm')
+ggsave(file.path(out.dir.path, ifelse(same.baseline, "src_baseline_stat_from_low_arctic.ps", "src_stat_from_low_arctic.ps")), gg.plot, width = 297, height = 210, units = 'mm')
 
 
 
