@@ -171,11 +171,27 @@ calculate_alpha_gain_loss_turnover <- function(tab_){
                                                     paste0(unique(tab_$gcm, collapse = "-")), "__",
                                                     paste0(unique(tab_$rcp, collapse = "-")), ".grd"))
   cat("\n> out.stack saved as", stack.file.name_)
-  writeRaster(brick(out.stack_), filename = stack.file.name_, overwrite = TRUE)
+  writeRaster(out.stack_, filename = stack.file.name_, overwrite = TRUE)
   
   cat("\n ***")
   return(stack.file.name_)
 }
+
+### test
+## sequential version
+tab_ <- gg.dat %>% 
+  filter(scenario.biomod == scenario.biomod[1],
+         biotic.inter == biotic.inter[1],
+         dispersal.filter == dispersal.filter[1],
+         gcm == gcm[1],
+         rcp == rcp[1]) #%>%
+#   group_by(scenario.biomod, biotic.inter, dispersal.filter, gcm, rcp) %>%
+#   do(stack.file.name = calculate_alpha_gain_loss_turnover(.))
+
+
+
+### end of test 
+
 
 if(n.cores <= 1){
   ## sequential version
