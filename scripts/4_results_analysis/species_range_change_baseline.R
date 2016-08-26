@@ -163,3 +163,4 @@ param.list.e <- expand.grid.df(param.list.d, data.frame(sp.bmn = sp.tab$Biomod.n
 
 write.table(param.list.e, file="/work/georges/BRISCA/grid_params/params_src.txt", sep="\t", row.names=FALSE, col.names=FALSE)
 
+

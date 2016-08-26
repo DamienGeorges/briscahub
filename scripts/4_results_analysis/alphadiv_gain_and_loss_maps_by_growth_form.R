@@ -24,36 +24,24 @@ library(tidyr)
 same.baseline <- TRUE ## do we consider the same baseline (climate filtered no dispersal) as a baseline or 
                       ## each scenario current prediction as baseline
 machine <- "leca97" # "sdiv" ## the name of the machine the script will run on
-n.cores <- 15 ## number of resuired cores
+n.cores <- 12 ## number of resuired cores
 
 ## define the main paths to data
 if(machine == "leca97"){
   briscahub.dir <- "~/Work/BRISCA/briscahub/" ## on leca97
   src.maps.path <-  paste0("~/Work/BRISCA/workdir/_SRC/", ifelse(same.baseline, "SRC_baseline_maps", "SRC_maps")) ## on leca97
   param.tab.path <- "~/Work/BRISCA/workdir/_SRC/params_src.txt"
-  out.dir.path <- paste0("~/Work/BRISCA/outputs/2016-08-18/", ifelse(same.baseline, "SRC_baseline", "SRC"), "_alpha_and_turnover_stack") ## on leca97
+  out.dir.path <- paste0("~/Work/BRISCA/outputs/2016-08-18/", ifelse(same.baseline, "SRC_baseline", "SRC"), "_alpha_and_turnover_stack_by_growth_form") ## on leca97
 } else if (machine == "pinea"){
-  briscahub.dir <- "~/Work/BRISCA/briscahub/" ## on pinea
-  src.maps.path <- paste0("~/Work/BRISCA/workdir/_SRC/", ifelse(same.baseline, "SRC_baseline_maps", "SRC_maps")) ## on pinea
-  param.tab.path <- "~/Work/BRISCA/workdir/_SRC/params_src.txt" ## on pinea
-  out.dir.path <-"~/Work/BRISCA/outputs/2016-07-01" ## on pinea
 } else if (machine == "sdiv"){
-  briscahub.dir <- "~/BRISCA/briscahub/" ## on pinea
-  src.maps.path <- paste0("/work/georges/BRISCA/", ifelse(same.baseline, "SRC_baseline_maps", "SRC_maps")) ## on pinea
-  param.tab.path <- "/work/georges/BRISCA/grid_params/params_src.txt" ## on pinea
-  out.dir.path <-"/work/georges/BRISCA/outputs/2016-06-13" ## on pinea
-  rasterOptions(tmpdir = "/work/georges/R_raster_georges", ## where to store raster tmp files (prevent to fill up /tmp dir)
-                tmptime = 24, ## time after which raster tmp files will be deleted
-                overwrite = TRUE)
 } else stop("\n> unknow machine!")
 
 dir.create(out.dir.path, showWarnings = FALSE, recursive =TRUE)
 
 
 ## load species ref table
-sp.tab <- read.table(file.path(briscahub.dir, "data/sp.list_08102015_red.txt"),
+sp.tab <- read.table(file.path(briscahub.dir, "data/shrub.list_22082016.txt"),
                      sep = "\t", header = TRUE, stringsAsFactors = FALSE)
-sp.tab <- sp.tab[ sp.tab$Growth.form.height == 'SHRUB', ]
 
 ## load grid campain parameters table
 param.tab <- read.table(param.tab.path, sep = "\t", header = FALSE, stringsAsFactors = FALSE)
@@ -112,12 +100,16 @@ gg.dat$dispersal.filter <- factor(gg.dat$dispersal.filter, levels =  c("minimal"
 gg.dat <- gg.dat %>% filter(!(scenario.biomod == "climate_and_biointer_filtered" &  dispersal.filter == "no"),
                             !(scenario.biomod == "climate_and_biointer_filtered" & biotic.inter == "low" & dispersal.filter == "maximal"),
                             !(scenario.biomod == "climate_and_biointer_filtered" & biotic.inter == "high" & dispersal.filter == "minimal"))
-
+## add the growth form attribute
+gg.dat <- gg.dat %>% left_join(sp.tab %>% select(Biomod.name, Growth.form.isla) %>% rename(species = Biomod.name, growth.form = Growth.form.isla))
 
 ## 2. compute for each scenario the nb of species lost/gain and the species richness by pixel
 
 ## check that no data is missing
 gg.dat %>% group_by(scenario.biomod, biotic.inter, dispersal.filter, gcm, rcp) %>%
+  summarize(nb.species = n()) %>% select(nb.species)
+
+gg.dat %>% group_by(scenario.biomod, biotic.inter, dispersal.filter, gcm, rcp, growth.form) %>%
   summarize(nb.species = n()) %>% select(nb.species)
 
 ## define a function that calculates the alpha, SG, SL and turnover maps
@@ -127,6 +119,7 @@ calculate_alpha_gain_loss_turnover <- function(tab_){
   library(dplyr)
   cat("\n> libraries loaded")
   src.maps.files_ <- src.maps.files[is.element(as.numeric(sub("_.*$", "", sub("src_baseline_", "", basename(src.maps.files)))), tab_$file.id)] 
+  
   cat("\n> src.maps.file gotten (", length(src.maps.files_), ")")
   src.maps_ <- lapply(src.maps.files_, function(f_ ) raster(f_, RAT = FALSE))
   cat("\n> src.maps loaded")
@@ -173,7 +166,8 @@ calculate_alpha_gain_loss_turnover <- function(tab_){
                                                     paste0(unique(tab_$biotic.inter, collapse = "-")), "__",
                                                     paste0(unique(tab_$dispersal.filter, collapse = "-")), "__",
                                                     paste0(unique(tab_$gcm, collapse = "-")), "__",
-                                                    paste0(unique(tab_$rcp, collapse = "-")), ".grd"))
+                                                    paste0(unique(tab_$rcp, collapse = "-")), "__",
+                                                    paste0(unique(tab_$growth.form, collapse = "-")), ".grd"))
   cat("\n> out.stack saved as", stack.file.name_)
   writeRaster(out.stack_, filename = stack.file.name_, overwrite = TRUE)
   
@@ -193,20 +187,20 @@ calculate_alpha_gain_loss_turnover <- function(tab_){
 
 if(n.cores <= 1){
   ## sequential version
-  gg.calc <- gg.dat %>% group_by(scenario.biomod, biotic.inter, dispersal.filter, gcm, rcp) %>%
+  gg.calc <- gg.dat %>% group_by(scenario.biomod, biotic.inter, dispersal.filter, gcm, rcp, growth.form) %>%
     do(stack.file.name = calculate_alpha_gain_loss_turnover(.))
 } else{
   ## parallel version
   clust <- create_cluster(cores = n.cores, quiet = FALSE)
   clusterExport(clust,c("calculate_alpha_gain_loss_turnover", "out.dir.path", "src.maps.files"))
-  gg.dat.part <- partition(gg.dat, scenario.biomod, biotic.inter, dispersal.filter, gcm, rcp, cluster = clust)
+  gg.dat.part <- partition(gg.dat, scenario.biomod, biotic.inter, dispersal.filter, gcm, rcp, growth.form, cluster = clust)
   gg.calc <- gg.dat.part %>% do(stack.file.name = calculate_alpha_gain_loss_turnover(.))
   stopCluster(clust)
 }
 
 
 
-save(gg.calc, file = file.path(out.dir.path, "gg.calc.RData"))
+# save(gg.calc, file = file.path(out.dir.path, "gg.calc.RData"))
 
 
 ##' @note
