@@ -11,6 +11,7 @@
 rm(list = ls())
 
 ## load needed libraries
+.libPaths("J:/People/Damien/RLIBS") ## on brisca cluster
 library(dplyr)
 library(ggplot2)
 library(tidyr)
@@ -20,17 +21,23 @@ same.baseline <- TRUE ## do we consider the same baseline (climate filtered no d
                       ## each scenario current prediction as baseline
 
 
-## define the main paths to data
-briscahub.dir <- "~/Work/BRISCA/briscahub/" ## on leca97
-src.tab.path <-  paste0("~/Work/BRISCA/workdir/_SRC/", ifelse(same.baseline, "SRC_baseline_tab.txt", "SRC_tab.txt")) ## on leca97
-param.tab.path <- "~/Work/BRISCA/workdir/_SRC/params_src.txt"
-out.dir.path <- "~/Work/BRISCA/figures/2016-08-18" ## on leca97
+# ## define the main paths to data
+# briscahub.dir <- "~/Work/BRISCA/briscahub/" ## on leca97
+# src.tab.path <-  paste0("~/Work/BRISCA/workdir/_SRC/", ifelse(same.baseline, "SRC_baseline_tab.txt", "SRC_tab.txt")) ## on leca97
+# param.tab.path <- "~/Work/BRISCA/workdir/_SRC/params_src.txt"
+# out.dir.path <- "~/Work/BRISCA/figures/2016-08-18" ## on leca97
 
 # ## define the main paths to data
 # briscahub.dir <- "~/Work/BRISCA/briscahub/" ## on pinea
 # src.tab.path <- paste0("~/Work/BRISCA/workdir/_SRC/", ifelse(same.baseline, "SRC_baseline_tab.txt", "SRC_tab.txt")) ## on pinea
 # param.tab.path <- "~/Work/BRISCA/workdir/_SRC/params_src.txt" ## on pinea
 # out.dir.path <-"~/Work/BRISCA/figures/2016-06-13" ## on pinea
+
+## define the main paths to data
+briscahub.dir <- "J:/People/Damien/BRISCA/briscahub/" ## on brisca cluster
+src.tab.path <- paste0("I:/C_Write/Damien/BRISCA/backup_idiv_cluster/", ifelse(same.baseline, "SRC_baseline_tab.txt", "SRC_tab.txt")) ## on pinea
+param.tab.path <- "I:/C_Write/Damien/BRISCA/backup_idiv_cluster/grid_params/params_src.txt" ## on pinea
+out.dir.path <-"I:/C_Write/Damien/BRISCA/figures/2016-10-19" ## on pinea
 
 
 dir.create(out.dir.path, recursive = TRUE, showWarnings = FALSE)
@@ -71,8 +78,8 @@ gg.theme <- theme(axis.text.x = element_text(angle = 20, hjust = 1, vjust = 1),
                   legend.background = element_blank()) 
 
 gg.dat <- src.tab %>% 
-  # filter(area %in% c("from_sub_arctic", "from_low_arctic")) %>% 
-  filter(area %in% c("from_low_arctic")) %>% 
+  filter(area %in% c("from_sub_arctic", "from_low_arctic", "from_high_arctic")) %>%
+  # filter(area %in% c("from_low_arctic")) %>% 
   mutate(rcp = sub("_2080.*$", "", scenario.clim),
          gcm = sub("_(no|max)_disp.*$", "", sub(".*_2080_", "", scenario.clim)),
          biotic.inter = sub(paste0("^.*(", paste(unique(gcm), collapse="|"), ")"), "", scenario.clim),
@@ -84,7 +91,9 @@ gg.dat$dispersal.filter[gg.dat$dispersal.filter == "_filt_ch"] <- "convex_hull"
 gg.dat$dispersal.filter[gg.dat$dispersal.filter == "_filt_no_disp_invdist"] <- "no"
 gg.dat$dispersal.filter[gg.dat$dispersal.filter == "_filt_min_disp_invdist"] <- "minimal"
 gg.dat$dispersal.filter[gg.dat$dispersal.filter == "_filt_max_disp_invdist"] <- "maximal"
-gg.dat <- gg.dat %>% filter(is.element(dispersal.filter, c("minimal", "maximal", "unlimited")))
+# gg.dat <- gg.dat %>% filter(is.element(dispersal.filter, c("minimal", "maximal", "unlimited")))
+gg.dat <- gg.dat %>% filter(is.element(dispersal.filter, c("no", "minimal", "maximal", "unlimited")))
+
 ## change biointeraction labels
 gg.dat$biotic.inter[gg.dat$biotic.inter == ""] <- "no"
 gg.dat$biotic.inter[gg.dat$biotic.inter == "_no_disp_invdist"] <- "low"
@@ -92,22 +101,47 @@ gg.dat$biotic.inter[gg.dat$biotic.inter == "_max_disp_invdist"] <- "high"
 ## change levels order
 gg.dat$biotic.inter <- factor(gg.dat$biotic.inter, levels =  c("no", "low", "high"))
 gg.dat$scenario.biomod <- factor(gg.dat$scenario.biomod, levels = c("pure_climate", "climate_and_biointer", "pure_climate_filtered", "climate_and_biointer_filtered"))
-gg.dat$dispersal.filter <- factor(gg.dat$dispersal.filter, levels =  c("minimal", "maximal", "unlimited"))
-## remove some combination of params we are not interested in
-gg.dat <- gg.dat %>% filter(!(scenario.biomod == "climate_and_biointer_filtered" &  dispersal.filter == "no"),
-                            !(scenario.biomod == "climate_and_biointer_filtered" & biotic.inter == "low" & dispersal.filter == "maximal"),
-                            !(scenario.biomod == "climate_and_biointer_filtered" & biotic.inter == "high" & dispersal.filter == "minimal"))
+gg.dat$dispersal.filter <- factor(gg.dat$dispersal.filter, levels =  c("no", "minimal", "maximal", "unlimited"))
+# ## remove some combination of params we are not interested in
+# gg.dat <- gg.dat %>% filter(!(scenario.biomod == "climate_and_biointer_filtered" &  dispersal.filter == "no"),
+#                             !(scenario.biomod == "climate_and_biointer_filtered" & biotic.inter == "low" & dispersal.filter == "maximal"),
+#                             !(scenario.biomod == "climate_and_biointer_filtered" & biotic.inter == "high" & dispersal.filter == "minimal"))
 
-gg.plot <- ggplot(gg.dat, aes(scenario.biomod, species.range.change, fill = biotic.inter, color = dispersal.filter)) +
-  geom_boxplot(outlier.colour = NA) + facet_grid(gcm ~ rcp) + 
+## check the number of combination computed
+gg.dat %>% ungroup %>% group_by(biotic.inter, dispersal.filter) %>% summarise(n = n())
+gg.dat %>% ungroup %>% filter(!is.na(stable0)) %>% group_by(biotic.inter, dispersal.filter) %>% summarise(n = n())
+
+head(gg.dat)
+
+
+## first version
+# gg.plot <- ggplot(gg.dat, aes(scenario.biomod, species.range.change, fill = biotic.inter, color = dispersal.filter)) +
+#   geom_boxplot(outlier.colour = NA) + facet_grid(gcm ~ rcp) + 
+#   coord_cartesian(ylim = c(-100, ifelse(same.baseline, 4500, 500))) + ## with same baselines or not change graph scale
+#   scale_fill_brewer(palette = "Blues", guide = guide_legend(title = "biotic interactions")) + 
+#   scale_color_brewer(palette = "Dark2", guide = guide_legend(title = "dispersal distance")) + 
+#   xlab("scenario") + ylab("species range change (%)") + 
+#   gg.theme
+# ggsave(file.path(out.dir.path, ifelse(same.baseline, "src_baseline_stat_from_low_arctic.png", "src_stat_from_low_arctic.png")), gg.plot, width = 297, height = 210, units = 'mm')
+
+
+## fig1 asked by Anne and Signe on Oct 3
+## reshape the table to produce the new graph
+gg.dat <- gg.dat %>% gather(metric.name, metric.val, disa, stable0, stable1, gain, perc.loss, perc.gain, species.range.change, current.range.change, future.range.size.no.disp, future.range.size.full.disp) %>%
+  mutate(bp.id = as.numeric(dispersal.filter) * 10 + as.numeric(biotic.inter))
+gg.dat <- gg.dat %>% filter(metric.name %in% c('species.range.change', 'perc.loss', 'perc.gain'))
+
+
+gg.plot <- ggplot(gg.dat, aes(1, metric.val, fill = dispersal.filter, linetype = biotic.inter)) +
+  geom_boxplot(outlier.colour = NA) + facet_grid(metric.name ~ area, scale = 'free_y') + 
   coord_cartesian(ylim = c(-100, ifelse(same.baseline, 4500, 500))) + ## with same baselines or not change graph scale
-  scale_fill_brewer(palette = "Blues", guide = guide_legend(title = "biotic interactions")) + 
-  scale_color_brewer(palette = "Dark2", guide = guide_legend(title = "dispersal distance")) + 
-  xlab("scenario") + ylab("species range change (%)") + 
-  gg.theme
+  scale_fill_brewer(palette = "Blues", guide = guide_legend(title = "Dispersal distance")) + 
+  scale_linetype_discrete(guide = guide_legend(title = "Biotic interaction")) +
+  xlab("") + ylab("") +
+  gg.theme + theme(axis.text.x = element_blank(), axis.ticks.x = element_blank())
+gg.plot
 
-
-ggsave(file.path(out.dir.path, ifelse(same.baseline, "src_baseline_stat_from_low_arctic.png", "src_stat_from_low_arctic.png")), gg.plot, width = 297, height = 210, units = 'mm')
+ggsave(file.path(out.dir.path, "fig1.png"), gg.plot, width = 297, height = 210, units = 'mm')
 
 
 

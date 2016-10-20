@@ -98,5 +98,48 @@ writeRaster(height.max.stk, filename = file.path(out.dir, "pure_climate_height_m
 
 cat("\n done!")
 q("no")
-## qui
+
+## quit ------------------------------------------------------------------------
+
+## produce a height maps traits
+library(raster)
+library(rasterVis)
+
+out.dir <- "J:/People/Damien/BRISCA/workdir/Biomod_pure_climate_final_summary_v2/"
+
+alpha.div.stk <- raster::stack(file.path(out.dir, "pure_climate_alpha_div_stk.grd"))
+height.sum.stk <- raster::stack(file.path(out.dir, "pure_climate_height_sum_stk.grd"))
+height.max.stk <- raster::stack(file.path(out.dir, "pure_climate_height_max_stk.grd"))
+height.mean.stk <- height.sum.stk / alpha.div.stk
+
+crs(alpha.div.stk) <- crs(height.sum.stk) <- crs(height.max.stk) <- crs(height.mean.stk) <- CRS("+proj=laea +lat_0=90.0 +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs") 
+
+
+png(file.path(out.dir, "pure_climate_height_max_stk.png"))
+levelplot(height.max.stk, main = "Pure Climat Max Height", labels = sub("_2080_", "\n", names(height.max.stk)), pretty = TRUE)
+dev.off()
+
+png(file.path(out.dir, "pure_climate_height_mean_stk.png"))
+levelplot(height.mean.stk, main = "Pure Climat Mean Height", labels = sub("_2080_", "\n", names(height.mean.stk)), pretty = TRUE)
+dev.off()
+
+out.dir <- "J:/People/Damien/BRISCA/workdir/Biomod_pure_climate_filtered_final_summary"
+
+alpha.div.stk <- raster::stack(file.path(out.dir, "pure_climate_alpha_div_stk.grd"))
+height.sum.stk <- raster::stack(file.path(out.dir, "pure_climate_height_sum_stk.grd"))
+height.max.stk <- raster::stack(file.path(out.dir, "pure_climate_height_max_stk.grd"))
+height.mean.stk <- height.sum.stk / alpha.div.stk
+
+crs(alpha.div.stk) <- crs(height.sum.stk) <- crs(height.max.stk) <- crs(height.mean.stk) <- CRS("+proj=laea +lat_0=90.0 +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs") 
+
+names(height.max.stk) <- sub("_2080_", "\n", names(height.max.stk))
+names(height.mean.stk) <- sub("_2080_", "\n", names(height.mean.stk))
+
+png(file.path(out.dir, "pure_climate_height_max_stk.png"))
+levelplot(height.max.stk, main = "Pure Climat Max Height", pretty = TRUE)
+dev.off()
+
+png(file.path(out.dir, "pure_climate_height_mean_stk.png"))
+levelplot(height.mean.stk, main = "Pure Climat Mean Height", pretty = TRUE)
+dev.off()
 
