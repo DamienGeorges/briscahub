@@ -16,55 +16,24 @@ library(dplyr)
 library(ggplot2)
 library(tidyr)
 
-## set some parameters
-same.baseline <- TRUE ## do we consider the same baseline (climate filtered no dispersal) as a baseline or 
-                      ## each scenario current prediction as baseline
-
-
-# ## define the main paths to data
-# briscahub.dir <- "~/Work/BRISCA/briscahub/" ## on leca97
-# src.tab.path <-  paste0("~/Work/BRISCA/workdir/_SRC/", ifelse(same.baseline, "SRC_baseline_tab.txt", "SRC_tab.txt")) ## on leca97
-# param.tab.path <- "~/Work/BRISCA/workdir/_SRC/params_src.txt"
-# out.dir.path <- "~/Work/BRISCA/figures/2016-08-18" ## on leca97
-
-# ## define the main paths to data
-# briscahub.dir <- "~/Work/BRISCA/briscahub/" ## on pinea
-# src.tab.path <- paste0("~/Work/BRISCA/workdir/_SRC/", ifelse(same.baseline, "SRC_baseline_tab.txt", "SRC_tab.txt")) ## on pinea
-# param.tab.path <- "~/Work/BRISCA/workdir/_SRC/params_src.txt" ## on pinea
-# out.dir.path <-"~/Work/BRISCA/figures/2016-06-13" ## on pinea
-
 ## define the main paths to data
 briscahub.dir <- "J:/People/Damien/BRISCA/briscahub/" ## on brisca cluster
-src.tab.path <- paste0("I:/C_Write/Damien/BRISCA/backup_idiv_cluster/", ifelse(same.baseline, "SRC_baseline_tab.txt", "SRC_tab.txt")) ## on pinea
-param.tab.path <- "I:/C_Write/Damien/BRISCA/backup_idiv_cluster/grid_params/params_src.txt" ## on pinea
-out.dir.path <-"I:/C_Write/Damien/BRISCA/figures/2016-10-19" ## on pinea
-
+src.tab.path <- "I:/C_Write/Damien/BRISCA/backup_idiv_cluster/src_stat_table_by_area.txt"
+out.dir.path <-"I:/C_Write/Damien/BRISCA/figures/2016-10-27"
 
 dir.create(out.dir.path, recursive = TRUE, showWarnings = FALSE)
 
 ##' ## get and reshape the data
 
 ## laod src scores table
-src.tab <- read.table(src.tab.path, sep = "\t", header = FALSE, stringsAsFactors = FALSE)
-colnames(src.tab) <- c("disa", "stable0", "stable1", "gain", "perc.loss", "perc.gain", "species.range.change", 
-                       "current.range.change", "future.range.size.no.disp", "future.range.size.full.disp",
-                       "area", "species", "model", "scenario.clim", "scenario.biomod", "file.id", "sp.id")
+src.tab <- read.table(src.tab.path, sep = "\t", header = TRUE, stringsAsFactors = FALSE)
 head(src.tab)
+colnames(src.tab) <- sub("^output.table.", "", colnames(src.tab))
 
 ## load species ref table
 sp.tab <- read.table(file.path(briscahub.dir, "data/sp.list_08102015_red.txt"),
                      sep = "\t", header = TRUE, stringsAsFactors = FALSE)
 sp.tab <- sp.tab[ sp.tab$Growth.form.height == 'SHRUB', ]
-
-## load grid campain parameters table
-param.tab <- read.table(param.tab.path, sep = "\t", header = FALSE, stringsAsFactors = FALSE)
-colnames(param.tab) <- c("mod.dir", "proj.dir", "file.pattern", "rcp", "gcm", "species")
-## add the file id column
-param.tab$file.id <- 1:nrow(param.tab)
-
-## merge table in order to get the filtering info
-src.tab <- src.tab %>% left_join(dplyr::select(param.tab, c(file.pattern, species, file.id)))
-
 
 ##' ## produce some graphs
 
@@ -76,10 +45,10 @@ gg.theme <- theme(axis.text.x = element_text(angle = 20, hjust = 1, vjust = 1),
                   panel.background = element_rect(fill = NA),
                   strip.background = element_rect(fill = NA, colour = 'grey80'),
                   legend.background = element_blank()) 
+unique(src.tab$area)
 
 gg.dat <- src.tab %>% 
-  filter(area %in% c("from_sub_arctic", "from_low_arctic", "from_high_arctic")) %>%
-  # filter(area %in% c("from_low_arctic")) %>% 
+  filter(area %in% c("r.from.sa", "r.sa", "r.la", "r.ha")) %>%
   mutate(rcp = sub("_2080.*$", "", scenario.clim),
          gcm = sub("_(no|max)_disp.*$", "", sub(".*_2080_", "", scenario.clim)),
          biotic.inter = sub(paste0("^.*(", paste(unique(gcm), collapse="|"), ")"), "", scenario.clim),
@@ -106,10 +75,14 @@ gg.dat$dispersal.filter <- factor(gg.dat$dispersal.filter, levels =  c("no", "mi
 # gg.dat <- gg.dat %>% filter(!(scenario.biomod == "climate_and_biointer_filtered" &  dispersal.filter == "no"),
 #                             !(scenario.biomod == "climate_and_biointer_filtered" & biotic.inter == "low" & dispersal.filter == "maximal"),
 #                             !(scenario.biomod == "climate_and_biointer_filtered" & biotic.inter == "high" & dispersal.filter == "minimal"))
+## change the area labels and order
+# gg.dat <- gg.dat %>% filter(area %in% c("r.from.sa", "r.sa", "r.la", "r.ha"))
+gg.dat$area <- factor(gg.dat$area, levels =  c("r.from.sa", "r.sa", "r.la", "r.ha"), labels = c("Full arctic", "Sub-arctic", "Low arctic", "High arctic"))
+
 
 ## check the number of combination computed
 gg.dat %>% ungroup %>% group_by(biotic.inter, dispersal.filter) %>% summarise(n = n())
-gg.dat %>% ungroup %>% filter(!is.na(stable0)) %>% group_by(biotic.inter, dispersal.filter) %>% summarise(n = n())
+gg.dat %>% ungroup %>% filter(!is.na(nb.stable0.pix)) %>% group_by(biotic.inter, dispersal.filter) %>% summarise(n = n())
 
 head(gg.dat)
 
@@ -127,19 +100,66 @@ head(gg.dat)
 
 ## fig1 asked by Anne and Signe on Oct 3
 ## reshape the table to produce the new graph
-gg.dat <- gg.dat %>% gather(metric.name, metric.val, disa, stable0, stable1, gain, perc.loss, perc.gain, species.range.change, current.range.change, future.range.size.no.disp, future.range.size.full.disp) %>%
+gg.dat <- gg.dat %>% gather(metric.name, metric.val, nb.lost.pix, nb.stable0.pix, nb.stable1.pix, nb.gain.pix, percent.loss, percent.gain, src, current.range.size, future.range.size.no.disp, future.range.size.full.disp) %>%
   mutate(bp.id = as.numeric(dispersal.filter) * 10 + as.numeric(biotic.inter))
-gg.dat <- gg.dat %>% filter(metric.name %in% c('species.range.change', 'perc.loss', 'perc.gain'))
+gg.dat <- gg.dat %>% filter(metric.name %in% c('src', 'percent.loss', 'percent.gain')) %>%
+  mutate(metric.name = factor(metric.name, levels = c('src', 'percent.loss', 'percent.gain'), labels = c("Species range change", "SR Loss (%)", "SR Gain (%)")))
 
 
-gg.plot <- ggplot(gg.dat, aes(1, metric.val, fill = dispersal.filter, linetype = biotic.inter)) +
-  geom_boxplot(outlier.colour = NA) + facet_grid(metric.name ~ area, scale = 'free_y') + 
-  coord_cartesian(ylim = c(-100, ifelse(same.baseline, 4500, 500))) + ## with same baselines or not change graph scale
+## to deal with the boxplot outliers
+gg.dat.no.ol <- gg.dat %>% group_by(dispersal.filter, biotic.inter, metric.name, area) %>%
+  do(data.frame(t(boxplot.stats(.$metric.val)$stats)))
+
+## to do the sample comparaison
+mutiple.t.test_ <- function(x){
+  x_ <- x %>% select(dispersal.and.biotic, metric.val) %>% spread(dispersal.and.biotic, metric.val)
+  t.test()
+}
+
+
+xx <- gg.dat.t.test_ %>% ungroup %>% group_by(metric.name, area) %>%
+  # summarize(n = n()) 
+  # do(data.frame(table(.[is.finite(.$metric.val), ]$dispersal.and.biotic)))
+  # do(data.frame(species.to.remove = unique(.$species[is.na(.$metric.val)])))
+  do(data.frame(.[!(.$species %in% unique(.$species[is.na(.$metric.val)])), ])) %>%
+  arrange(metric.name, area, metric.name, rcp, gcm, species)
+
+View(xx)
+
+xxx <- xx %>% ungroup %>% group_by(metric.name, area, dispersal.and.biotic) %>%
+  summarize(n = sum(is.finite(metric.val))) 
+View(xxx)
+
+gg.dat.t.test_ <- xx %>% ungroup %>% select(rcp, gcm, species, scenario.biomod, dispersal.filter, biotic.inter, metric.name, area, metric.val) %>%
+  group_by(metric.name, area) %>% mutate(dispersal.and.biotic = factor(paste0(dispersal.filter, "_", biotic.inter))) %>%
+  do(data.frame(pairwise.wilcox.test(.$metric.val, .$dispersal.and.biotic, paired = TRUE)$p.value %>% data.frame %>% 
+                  mutate(var1.name = rownames(.)) %>% gather(var2.name, p.value, - var1.name)))
+
+xxxx <- xx %>% filter(area == "Full arctic", metric.name =="SR Loss (%)")  %>%
+  mutate(dispersal.and.biotic = factor(paste0(dispersal.filter, "_", biotic.inter)))
+table(na.omit(xxxx$dispersal.and.biotic))
+
+pairwise.wilcox.test(xxxx$metric.val, xxxx$dispersal.and.biotic, paired = TRUE)$p.value %>% data.frame %>% 
+  mutate(var1.name = rownames(.)) %>% gather(var2.name, p.value, - var1.name)
+# gg.plot <- ggplot(gg.dat, aes(1, metric.val, fill = dispersal.filter, linetype = biotic.inter)) +
+#   geom_boxplot(outlier.colour = NA) + facet_grid(metric.name ~ area, scale = 'free_y') + 
+#   coord_cartesian(ylim = c(-100, 4500)) + ## with same baselines or not change graph scale
+#   scale_fill_brewer(palette = "Blues", guide = guide_legend(title = "Dispersal distance")) + 
+#   scale_linetype_discrete(guide = guide_legend(title = "Biotic interactions")) +
+#   xlab("") + ylab("") +
+#   gg.theme + theme(axis.text.x = element_blank(), axis.ticks.x = element_blank())
+# gg.plot
+
+gg.plot <- ggplot(gg.dat.no.ol, aes(1, fill = dispersal.filter, linetype = biotic.inter)) +
+  geom_boxplot(aes(lower = X2, middle = X3, upper = X4, ymin = X1, ymax = X5), 
+               stat = "identity", outlier.colour = NA, position = position_dodge(1.5)) + 
+  facet_grid(metric.name ~ area, scale = 'free_y') + 
   scale_fill_brewer(palette = "Blues", guide = guide_legend(title = "Dispersal distance")) + 
-  scale_linetype_discrete(guide = guide_legend(title = "Biotic interaction")) +
+  scale_linetype_discrete(guide = guide_legend(title = "Biotic interactions")) +
   xlab("") + ylab("") +
   gg.theme + theme(axis.text.x = element_blank(), axis.ticks.x = element_blank())
 gg.plot
+
 
 ggsave(file.path(out.dir.path, "fig1.png"), gg.plot, width = 297, height = 210, units = 'mm')
 
