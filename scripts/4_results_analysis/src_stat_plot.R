@@ -111,31 +111,25 @@ gg.dat.no.ol <- gg.dat %>% group_by(dispersal.filter, biotic.inter, metric.name,
   do(data.frame(t(boxplot.stats(.$metric.val)$stats)))
 
 ## to do the sample comparaison
-mutiple.t.test_ <- function(x){
-  x_ <- x %>% select(dispersal.and.biotic, metric.val) %>% spread(dispersal.and.biotic, metric.val)
-  t.test()
-}
-
-
-xx <- gg.dat.t.test_ %>% ungroup %>% group_by(metric.name, area) %>%
+xx <- gg.dat %>% ungroup %>% group_by(metric.name, area) %>%
   # summarize(n = n()) 
   # do(data.frame(table(.[is.finite(.$metric.val), ]$dispersal.and.biotic)))
   # do(data.frame(species.to.remove = unique(.$species[is.na(.$metric.val)])))
-  do(data.frame(.[!(.$species %in% unique(.$species[is.na(.$metric.val)])), ])) %>%
+  do(data.frame(.[!(.$species %in% unique(.$species[!is.finite(.$metric.val)])), ])) %>%
   arrange(metric.name, area, metric.name, rcp, gcm, species)
 
-View(xx)
-
-xxx <- xx %>% ungroup %>% group_by(metric.name, area, dispersal.and.biotic) %>%
-  summarize(n = sum(is.finite(metric.val))) 
-View(xxx)
 
 gg.dat.t.test_ <- xx %>% ungroup %>% select(rcp, gcm, species, scenario.biomod, dispersal.filter, biotic.inter, metric.name, area, metric.val) %>%
   group_by(metric.name, area) %>% mutate(dispersal.and.biotic = factor(paste0(dispersal.filter, "_", biotic.inter))) %>%
-  do(data.frame(pairwise.wilcox.test(.$metric.val, .$dispersal.and.biotic, paired = TRUE)$p.value %>% data.frame %>% 
-                  mutate(var1.name = rownames(.)) %>% gather(var2.name, p.value, - var1.name)))
+  do(data.frame(try(pairwise.wilcox.test(.$metric.val, .$dispersal.and.biotic, paired = TRUE)$p.value %>% data.frame %>% 
+                  mutate(var1.name = rownames(.)) %>% gather(var2.name, p.value, - var1.name))))
 
-xxxx <- xx %>% filter(area == "Full arctic", metric.name =="SR Loss (%)")  %>%
+
+
+gg.dat.t.test_ %>% ungroup %>% group_by(area, metric.name) %>% summarise(n = sum(is.finite(p.value)))
+gg.dat.t.test_ %>% filter(p.value > 0.05) %>% View
+
+xxxx <- xx %>% filter(area == "Full arctic", metric.name =="SR Gain (%)")  %>%
   mutate(dispersal.and.biotic = factor(paste0(dispersal.filter, "_", biotic.inter)))
 table(na.omit(xxxx$dispersal.and.biotic))
 
