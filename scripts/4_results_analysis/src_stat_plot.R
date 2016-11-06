@@ -157,6 +157,22 @@ gg.plot
 
 ggsave(file.path(out.dir.path, "fig1.png"), gg.plot, width = 297, height = 210, units = 'mm')
 
+### make a try with a semilog scale
+## to deal with the boxplot outliers
 
+gg.dat.log.no.ol <- gg.dat %>% group_by(dispersal.filter, biotic.inter, metric.name, area) %>%
+  do(data.frame(t(boxplot.stats(log((.$metric.val + 100) / 100))$stats)))
+
+gg.plot <- ggplot(gg.dat.log.no.ol, aes(1, fill = dispersal.filter, linetype = biotic.inter)) +
+  geom_boxplot(aes(lower = X2, middle = X3, upper = X4, ymin = X1, ymax = X5), 
+               stat = "identity", outlier.colour = NA, position = position_dodge(1.5)) + 
+  facet_grid(metric.name ~ area, scale = 'free_y') + 
+  scale_fill_brewer(palette = "Blues", guide = guide_legend(title = "Dispersal distance")) + 
+  scale_linetype_discrete(guide = guide_legend(title = "Biotic interactions")) +
+  xlab("") + ylab("") +
+  gg.theme + theme(axis.text.x = element_blank(), axis.ticks.x = element_blank())
+gg.plot
+
+ggsave(file.path(out.dir.path, "fig1_pseudo_log.png"), gg.plot, width = 297, height = 210, units = 'mm')
 
 

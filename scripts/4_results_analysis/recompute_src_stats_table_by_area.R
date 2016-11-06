@@ -16,7 +16,7 @@ library(tidyr)
 ## set some parameters
 same.baseline <- TRUE ## do we consider the same baseline (climate filtered no dispersal) as a baseline or 
 ## each scenario current prediction as baseline
-machine <- "leca97" # "sdiv" ## the name of the machine the script will run on
+machine <- "signe_cluster" # "sdiv" ## the name of the machine the script will run on
 n.cores <- 1 ## number of resuired cores
 
 ## define the main paths to data
@@ -27,6 +27,12 @@ if(machine == "leca97"){
   out.dir.path <- paste0("~/Work/BRISCA/outputs/2016-08-18/", ifelse(same.baseline, "SRC_baseline", "SRC"), "_statistic_table") ## on leca97
 } else if (machine == "pinea"){
 } else if (machine == "sdiv"){
+} else if (machine == "signe_cluster"){
+  .libPaths( "J:/People/Damien/RLIBS")
+  briscahub.dir <- "J://People/Damien/BRISCA/briscahub/"
+  src.maps.path <-  paste0("I://C_Write/Damien/BRISCA/backup_idiv_cluster/", ifelse(same.baseline, "SRC_baseline_maps", "SRC_maps")) 
+  param.tab.path <- "I://C_Write/Damien/BRISCA/parameters/grid_params/params_src.txt"
+  out.dir.path <- paste0("I://C_Write/Damien/BRISCA/backup_idiv_cluster/", ifelse(same.baseline, "SRC_baseline", "SRC"), "_alpha_and_turnover_stack_by_growth_form") ## on leca97
 } else stop("\n> unknow machine!")
 
 dir.create(out.dir.path, showWarnings = FALSE, recursive =TRUE)
@@ -58,12 +64,22 @@ param.tab[missing.jobs, ]
 param.tab[is.element(param.tab$file.id, missing.jobs) & !grepl("_filt_ch.grd$", param.tab$file.pattern), ]
 ## at the end only 4 jobs have failed! Let's lunch them again! => DONE
 
-param.tab <- param.tab %>% group_by(file.id) %>%
-  mutate(fut.file = paste0(mod.dir, "/", species, "/", proj.dir, "/individual_projections/", species, file.pattern), 
-         model =  sub("_.*$", "", sub(paste0(species, "_"), "", basename(fut.file))), 
-         scenario.full = sub(paste0(".*", species, "/"), "", dirname(dirname((fut.file)))),
-         scenario.clim = sub(".*RCP_", "RCP_", scenario.full),
-         scenario.biomod = basename(sub(paste0("/", species, ".*"), "", fut.file))
+# param.tab <- param.tab %>% group_by(file.id) %>%
+#   mutate(fut.file = paste0(mod.dir, "/", species, "/", proj.dir, "/individual_projections/", species, file.pattern), 
+#          model =  sub("_.*$", "", sub(paste0(species, "_"), "", basename(fut.file))), 
+#          scenario.full = sub(paste0(".*", species, "/"), "", dirname(dirname((fut.file)))),
+#          scenario.clim = sub(".*RCP_", "RCP_", scenario.full),
+#          scenario.biomod = basename(sub(paste0("/", species, ".*"), "", fut.file))
+#   ) %>% ungroup
+
+
+param.tab <- param.tab %>% rowwise() %>% #group_by(file.id) %>%
+  mutate(
+    fut.file = paste0(mod.dir, "/", species, "/", proj.dir, "/individual_projections/", species, file.pattern), 
+    model =  sub("_.*$", "", sub(paste0(species, "_"), "", tail(unlist(strsplit(fut.file, split = "/")), 1))),
+    scenario.full = sub(paste0(".*", species, "/"), "", head(tail(unlist(strsplit(fut.file, split = "/")), 3),1)),
+    scenario.clim = sub(".*RCP_", "RCP_", scenario.full),
+    scenario.biomod = basename(sub(paste0("/", species, ".*"), "", fut.file))
   ) %>% ungroup
 
 
