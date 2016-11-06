@@ -1,12 +1,18 @@
 ## create raster maps for filtering out unsuitable areas
 
-setwd("~/Work/BRISCA/workdir/")
-output.dir <- "../data/mask_raster_arctic_area_2016-08-22"
+# setwd("~/Work/BRISCA/workdir/")
+.libPaths( "J:/People/Damien/RLIBS")
+briscahub.dir <- "J://People/Damien/BRISCA/briscahub/"
+
+workdir <- file.path(briscahub.dir, "workdir")
+dir.create(workdir, showWarnings = FALSE, recursive = TRUE)
+setwd(workdir)
+
+output.dir <- "I://C_Write/Damien/BRISCA/data/mask_raster_arctic_area_2016-08-22"
 dir.create(output.dir, showWarnings = FALSE, recursive = TRUE)
 
-ref.grid <- raster("../outputs/2016-08-18/SRC_baseline_alpha_and_turnover_stack/summaryStack__climate_and_biointer_filtered__high__maximal__cesm1_cam5__RCP_2.6.grd")
+ref.grid <- raster("I://C_Write/Damien/BRISCA/backup_idiv_cluster/SRC_baseline_alpha_and_turnover_stack_by_growth_form/summaryStack__climate_and_biointer__high__unlimited__cesm1_cam5__RCP_2.6__Dwarf Shrubs.grd")
 plot(ref.grid)
-
 ## load all needed shapefiles
 library(rasterVis)
 library(maptools)
@@ -15,11 +21,11 @@ s_buff <- shapefile(file.path(briscahub.dir, "data/Arctic_buffers/Buffer.shp"))
 s_sa <- shapefile(file.path(briscahub.dir, "data/Arctic_buffers/Sub_Arctic.shp"))
 s_la <- shapefile(file.path(briscahub.dir, "data/Arctic_buffers/Low_Arctic.shp"))
 s_ha <- shapefile(file.path(briscahub.dir, "data/Arctic_buffers/High_Arctic.shp"))
-s_coast <- shapefile("/home/georgeda/Work/BRISCA/data/cp_coast_la.shp")
+s_coast <- shapefile(file.path(briscahub.dir, "data/cp_coast_la/cp_coast_la.shp"))
 ## coastine need to be rotated
 s_coast2 <- elide(s_coast, rotate = 180, center = c(0,0))
 crs(s_coast2) <- crs(s_buff)
-s_ice <- shapefile("/home/georgeda/Work/BRISCA/data/Perm-ice/permaice_glaciers.shp")
+s_ice <- shapefile(file.path(briscahub.dir, "data/Perm-ice/permaice_glaciers.shp"))
 ## ice layer needs to be rotated
 s_ice2 <- elide(s_ice, rotate = 180, center = c(0,0))
 crs(s_ice2) <- crs(s_buff)
