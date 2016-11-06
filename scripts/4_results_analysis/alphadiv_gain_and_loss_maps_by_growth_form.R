@@ -12,19 +12,12 @@
 
 rm(list = ls())
 
-## load needed libraries
-library(raster)
-library(dplyr)
-library(multidplyr)
-library(parallel)
-library(ggplot2)
-library(tidyr)
 
 ## set some parameters
 same.baseline <- TRUE ## do we consider the same baseline (climate filtered no dispersal) as a baseline or 
                       ## each scenario current prediction as baseline
-machine <- "leca97" # "sdiv" ## the name of the machine the script will run on
-n.cores <- 12 ## number of resuired cores
+machine <- "signe_cluster" # "sdiv" ## the name of the machine the script will run on
+n.cores <- 1 ## number of resuired cores
 
 ## define the main paths to data
 if(machine == "leca97"){
@@ -34,7 +27,21 @@ if(machine == "leca97"){
   out.dir.path <- paste0("~/Work/BRISCA/outputs/2016-08-18/", ifelse(same.baseline, "SRC_baseline", "SRC"), "_alpha_and_turnover_stack_by_growth_form") ## on leca97
 } else if (machine == "pinea"){
 } else if (machine == "sdiv"){
+} else if (machine == "signe_cluster"){
+  .libPaths( "J:/People/Damien/RLIBS")
+  briscahub.dir <- "J://People/Damien/BRISCA/briscahub/"
+  src.maps.path <-  paste0("I://C_Write/Damien/BRISCA/backup_idiv_cluster/", ifelse(same.baseline, "SRC_baseline_maps", "SRC_maps")) 
+  param.tab.path <- "I://C_Write/Damien/BRISCA/parameters/grid_params/params_src.txt"
+  out.dir.path <- paste0("I://C_Write/Damien/BRISCA/backup_idiv_cluster/", ifelse(same.baseline, "SRC_baseline", "SRC"), "_alpha_and_turnover_stack_by_growth_form") ## on leca97
 } else stop("\n> unknow machine!")
+
+## load needed libraries
+library(raster)
+library(dplyr)
+library(multidplyr)
+library(parallel)
+library(ggplot2)
+library(tidyr)
 
 dir.create(out.dir.path, showWarnings = FALSE, recursive =TRUE)
 
@@ -65,14 +72,14 @@ param.tab[missing.jobs, ]
 param.tab[is.element(param.tab$file.id, missing.jobs) & !grepl("_filt_ch.grd$", param.tab$file.pattern), ]
 ## at the end only 4 jobs have failed! Let's lunch them again! => DONE
 
-param.tab <- param.tab %>% group_by(file.id) %>%
-  mutate(fut.file = paste0(mod.dir, "/", species, "/", proj.dir, "/individual_projections/", species, file.pattern), 
-         model =  sub("_.*$", "", sub(paste0(species, "_"), "", basename(fut.file))), 
-         scenario.full = sub(paste0(".*", species, "/"), "", dirname(dirname((fut.file)))),
+param.tab <- param.tab %>% rowwise() %>% #group_by(file.id) %>%
+  mutate(
+    fut.file = paste0(mod.dir, "/", species, "/", proj.dir, "/individual_projections/", species, file.pattern), 
+         model =  sub("_.*$", "", sub(paste0(species, "_"), "", tail(unlist(strsplit(fut.file, split = "/")), 1))),
+         scenario.full = sub(paste0(".*", species, "/"), "", head(tail(unlist(strsplit(fut.file, split = "/")), 3),1)),
          scenario.clim = sub(".*RCP_", "RCP_", scenario.full),
          scenario.biomod = basename(sub(paste0("/", species, ".*"), "", fut.file))
   ) %>% ungroup
-
 
 ## keep only the jobs that are interesting for us
 gg.dat <- param.tab %>%  
@@ -129,12 +136,18 @@ calculate_alpha_gain_loss_turnover <- function(tab_){
   #   0 is the given pixel was not occupied, and will not be in the future.
   #   1 if the given pixel was not occupied, and is predicted to be into the future.
   
-  occ.maps_ <- lapply(src.maps_, function(r_) reclassify(r_, c(-2.5, -1.5, 0,
+  fut.occ.maps_ <- lapply(src.maps_, function(r_) reclassify(r_, c(-2.5, -1.5, 0,
                                                                -1.5, -0.5, 1,
                                                                -0.5, 0.5,  0,
                                                                0.5, 1.5, 1)))
+  
+  cur.occ.maps_ <- lapply(src.maps_, function(r_) reclassify(r_, c(-2.5, -1.5, 1,
+                                                                   -1.5, -0.5, 1,
+                                                                   -0.5, 0.5,  0,
+                                                                   0.5, 1.5, 0)))
   cat("\n> occ.maps porduced")
-  alphadiv.map_ <- sum(raster::stack(occ.maps_))
+  fut.alphadiv.map_ <- sum(raster::stack(fut.occ.maps_))
+  cur.alphadiv.map_ <- sum(raster::stack(cur.occ.maps_))
   cat("\n> alphadiv.map porduced")
   
   gain.maps_ <- lapply(src.maps_, function(r_) reclassify(r_, c(-2.5, -1.5, 0,
@@ -151,10 +164,10 @@ calculate_alpha_gain_loss_turnover <- function(tab_){
   lost.map_ <- sum(raster::stack(lost.maps_))
   cat("\n> lost.map produced")
   
-  turnover.map_ <- (lost.map_ + gain.map_) / (gain.map_ + alphadiv.map_)
+  turnover.map_ <- (lost.map_ + gain.map_) / (gain.map_ + cur.alphadiv.map_)
   cat("\n> turnover.map produced")
   
-  out.stack_ <- raster::brick(alphadiv.map_, 
+  out.stack_ <- raster::brick(fut.alphadiv.map_, 
                               gain.map_, 
                               lost.map_, 
                               turnover.map_)
@@ -201,6 +214,8 @@ if(n.cores <= 1){
 
 
 # save(gg.calc, file = file.path(out.dir.path, "gg.calc.RData"))
+gg.calc2 <- gg.dat %>% group_by(scenario.biomod, biotic.inter, dispersal.filter, gcm, rcp, growth.form) %>%
+  summarize(nb.poj = n())
 
 
 ##' @note
