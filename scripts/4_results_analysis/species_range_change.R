@@ -7,6 +7,7 @@
 ##' @licence GPL-2
 ##' ------------------------------------------------
 
+.libPaths("/gpfs0/home/georges/R/x86_64-pc-linux-gnu-library/3.2/")
 library(raster)
 require(pROC, lib.loc = "/gpfs0/home/georges/R/x86_64-pc-linux-gnu-library/3.2/")
 require(rasterVis, lib.loc = "/gpfs0/home/georges/R/x86_64-pc-linux-gnu-library/3.2/")
@@ -25,7 +26,7 @@ file.id <- as.numeric(args[1])
 
 output.tab.dir <- "/work/georges/BRISCA/SRC_tabs_new"
 output.map.dir <- "/work/georges/BRISCA/SRC_maps_new"
-path.to.buffers <- "/home/georges/BRISCA/briscahub/data/Arctic_buffers"
+path.to.buffers <- "/home/georges/BRISCA/briscahub/data/mask_raster_arctic_area_2016-08-22"
 briscahub.dir <- "/home/georges/BRISCA/briscahub"
 param.file <- file.path(briscahub.dir, "data/params_src_new.RData")
 
@@ -38,7 +39,7 @@ sp.tab <- read.table(file.path(briscahub.dir, "data/sp.list_08102015_red.txt"),
 sp.tab <- sp.tab[ sp.tab$Growth.form.height == 'SHRUB', ]
 
 cat("\n> sp.tab\n")
-head(sp.tab)
+#head(sp.tab)
 
 ##' -- read the new ref grid ---------------------------------------------------
 # ref.ras.buffer <- raster(file.path(path.to.buffers, "Buffer.grd"))
@@ -86,7 +87,7 @@ if(!file.exists(cur.file)){
 species <- param.list$species[file.id]
 model <-  param.list$model[file.id]
 scenario.full <- param.list$scenario.full[file.id]
-scenario.clim <- param.list$scenario.clim[file.id])
+scenario.clim <- param.list$scenario.clim[file.id]
 scenario.biomod <- param.list$scenario.biomod[file.id]
 
 ## load the species rasters
@@ -140,21 +141,16 @@ sp.rc.la.tab$area <- "low_arctic"
 
 
 cat("\n src on high arctic")
-sp.rc.from.ha <- biomod2::BIOMOD_RangeSize(CurrentPred = r.cur * r.from.ha, 
-                                      FutureProj = r.fut * r.from.ha)
-sp.rc.from.ha.tab <- as.data.frame(sp.rc.from.ha$Compt.By.Models)
-sp.rc.from.ha.tab$area <- "from_high_arctic"
-
 sp.rc.ha <- biomod2::BIOMOD_RangeSize(CurrentPred = r.cur * r.ha, 
                                       FutureProj = r.fut * r.ha)
 sp.rc.ha.tab <- as.data.frame(sp.rc.ha$Compt.By.Models)
 sp.rc.ha.tab$area <- "high_arctic"
 
 
-
 sp.rc.tab <- rbind(sp.rc.tab, sp.rc.sa.tab, sp.rc.la.tab, sp.rc.ha.tab,
-                   sp.rc.from.sa.tab, sp.rc.from.la.tab, sp.rc.from.ha.tab)
-sp.rc.tab <- cbind(param.list$species[file.id,,drop=FALSE], sp.rc.tab)
+                   sp.rc.from.sa.tab, sp.rc.from.la.tab)
+sp.rc.tab <- cbind(param.list[file.id,,drop=FALSE], sp.rc.tab)
+
 # sp.rc.tab$species <- species
 # sp.rc.tab$model <- model
 # sp.rc.tab$scenario.clim <- scenario.clim
