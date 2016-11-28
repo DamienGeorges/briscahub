@@ -24,8 +24,8 @@ args <- commandArgs(trailingOnly = TRUE)
 file.id <- as.numeric(args[1])
 ## file.id <- 7646
 
-output.tab.dir <- "/work/georges/BRISCA/SRC_tabs_new"
-output.map.dir <- "/work/georges/BRISCA/SRC_maps_new"
+output.tab.dir <- "/work/georges/BRISCA/SRC_baseline_tabs_new"
+output.map.dir <- "/work/georges/BRISCA/SRC_baseline_maps_new"
 path.to.buffers <- "/home/georges/BRISCA/briscahub/data/mask_raster_arctic_area_2016-08-22"
 briscahub.dir <- "/home/georges/BRISCA/briscahub"
 param.file <- file.path(briscahub.dir, "data/params_src_new.RData")
@@ -74,21 +74,26 @@ cat("\n> sp_:", sp_,"\n")
 
 cat("\n> file.id:", file.id, "\n")
 
-
-fut.file <- paste0(param.list[file.id, 1], "/", sp_, "/", param.list[file.id, 2], "/individual_projections/", sp_, param.list[file.id, 3]) 
-# fut.file <- "/work/georges/BRISCA/Biomod_pure_climate_final/Abies.balsamea/proj_pure_climat_RCP_2.6_2080_cesm1_cam5/individual_projections/Abies.balsamea_EMcaByTSS_mergedAlgo_mergedRun_mergedData_TSSbin.grd"
-
-cur.file <- sub("RCP_.*/individual_projections", "current/individual_projections", fut.file)
-if(!file.exists(cur.file)){
-  if(grepl("_no_disp_invdist", fut.file)) cur.file <- sub("current", "current_no_disp_invdist", cur.file)
-  if(grepl("_max_disp_invdist", fut.file)) cur.file <- sub("current", "current_max_disp_invdist", cur.file)
-}
-
 species <- param.list$species[file.id]
 model <-  param.list$model[file.id]
 scenario.full <- param.list$scenario.full[file.id]
 scenario.clim <- param.list$scenario.clim[file.id]
 scenario.biomod <- param.list$scenario.biomod[file.id]
+
+fut.file <- paste0(param.list[file.id, 1], "/", sp_, "/", param.list[file.id, 2], "/individual_projections/", sp_, param.list[file.id, 3]) 
+# fut.file <- "/work/georges/BRISCA/Biomod_pure_climate_final/Abies.balsamea/proj_pure_climat_RCP_2.6_2080_cesm1_cam5/individual_projections/Abies.balsamea_EMcaByTSS_mergedAlgo_mergedRun_mergedData_TSSbin.grd"
+# 
+
+## not the same baseline
+# cur.file <- sub("RCP_.*/individual_projections", "current/individual_projections", fut.file)
+# if(!file.exists(cur.file)){
+#   if(grepl("_no_disp_invdist", fut.file)) cur.file <- sub("current", "current_no_disp_invdist", cur.file)
+#   if(grepl("_max_disp_invdist", fut.file)) cur.file <- sub("current", "current_max_disp_invdist", cur.file)
+# }
+
+## the same baseline
+## load the projection baseline
+cur.file <- paste0("/work/georges/BRISCA/Biomod_pure_climate_filtered/", species, "/proj_pure_climat_current/individual_projections/", species, "_EMcaByTSS_mergedAlgo_mergedRun_mergedData_TSSbin_filt_no_disp_invdist.grd") 
 
 ## load the species rasters
 r.cur <- raster(cur.file)
