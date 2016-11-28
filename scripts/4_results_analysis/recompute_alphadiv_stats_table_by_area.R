@@ -139,11 +139,68 @@ bp_stat_alphadiv <- function(x){
   return(out.tab)
 }
 
-gg.bp.stat <- gg.mean.alphadiv %>% ungroup %>% group_by(scenario.biomod, biotic.inter, dispersal.filter) %>%
-  do(data.frame(bp_stat_alphadiv(.)))
+# gg.bp.stat <- gg.mean.alphadiv %>% ungroup %>% group_by(scenario.biomod, biotic.inter, dispersal.filter) %>%
+#   do(data.frame(bp_stat_alphadiv(.)))
+# 
+# gg.bp.stat %>% data.frame %>% head
+# save(gg.bp.stat, file = file.path(mean.alpha.div.dir, "gg.bp.stat.RData"))
 
-gg.bp.stat %>% data.frame %>% head
-save(gg.bp.stat, file = file.path(mean.alpha.div.dir, "gg.bp.stat.RData"))
+## do teh same by growth form
+bp_stat_alphadiv_gf <- function(x){
+  scenario.biomod_ <- unique(x$scenario.biomod)
+  biotic.inter_ <- unique(x$biotic.inter)
+  dispersal.filter_ <- unique(x$dispersal.filter)
+  growth.form_ <- unique(x$growth.form)
+  cat("\n ----------------------------------")
+  cat("\n> scenario.biomod_ : ", scenario.biomod_)
+  cat("\n> biotic.inter_ : ", biotic.inter_)
+  cat("\n> dispersal.filter_ : ", dispersal.filter_)
+  cat("\n> growth.form_ : ", growth.form_)
+  
+  ## do the sum of alphadiv, gain and loss maps (note: sum of turnover has no sens here)
+  stk.files_ <- x$stk.name
+  n.stk_ <- length(stk.files_)
+  cat("\n> n.stk_ : ", n.stk_)
+  stk.list_ <- lapply(stk.files_, stack, RAT = FALSE)
+  ## add the alphadiv.change layer
+  stk.list_ <- lapply(stk.list_, function(s_){ s_[['alphadiv.change']] <-  s_[['gain']] - s_[['lost']]; return(s_)})
+  ## add the %loss and %gain layers
+  stk.list_ <- lapply(stk.list_, function(s_){ 
+    cur.alpha_ <- s_[['alphadiv']] - s_[['alphadiv.change']]
+    s_[['pc.gain']] <-  (s_[['gain']] / cur.alpha_) * 100
+    s_[['pc.lost']] <-  (s_[['lost']] / cur.alpha_) * 100
+    return(s_)})
+  stk.sum_ <- stk.list_[[1]]
+  cat("\n> length(stk.list_) : ", length(stk.list_))
+  if(length(stk.list_) > 1){
+    for(l in 2:n.stk_) stk.sum_ <- stk.sum_ + stk.list_[[l]]
+  }
+  ## compute the boxplot stats by area
+  out.list <- vector(length = length(mask.ids), mode = 'list')
+  names(out.list) <- mask.ids
+  for(m_ in names(out.list)){ ## test m_ <- "r.sa"
+    stk.tmp_ <- mask(stk.sum_, get(m_))
+    bp_stat_ <- boxplot(stk.tmp_, na.rm = TRUE)
+    out_tab_ <- data.frame(t(bp_stat_$stats))
+    colnames(out_tab_) <- c("ymin", "lower", "middle", "upper", "ymax")
+    out_tab_$area <- m_
+    out_tab_$n <- bp_stat_$n
+    out_tab_$metric <- bp_stat_$names
+    ## remove the turnover that has no sens here
+    out_tab_ <- out_tab_ %>% filter(metric != "turnover")
+    out.list[[m_]] <- out_tab_
+  }
+  out.tab <- bind_rows(out.list)
+  return(out.tab)
+}
 
+try_bp_stat_alphadiv_gf <- function(x){
+  out <- try(bp_stat_alphadiv_gf(x))
+  if(inherits(out, 'try-error')) out <- NULL
+  return(out)
+}
+gg.bp.gf.stat <- gg.mean.alphadiv %>% ungroup %>% group_by(scenario.biomod, biotic.inter, dispersal.filter, growth.form) %>%
+  do(data.frame(try_bp_stat_alphadiv_gf(.)))
 
-
+gg.bp.gf.stat %>% data.frame %>% head
+save(gg.bp.gf.stat, file = file.path(mean.alpha.div.dir, "gg.bp.gf.stat.RData"))

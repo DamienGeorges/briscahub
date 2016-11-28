@@ -82,7 +82,7 @@ param.tab <- param.tab %>% rowwise() %>% #group_by(file.id) %>%
     scenario.biomod = basename(sub(paste0("/", species, ".*"), "", fut.file))
   ) %>% ungroup
 
-
+# param.tab %>% data.frame %>% head 
 ## keep only the jobs that are interesting for us
 gg.dat <- param.tab %>%  
   mutate(rcp = sub("_2080.*$", "", scenario.clim),

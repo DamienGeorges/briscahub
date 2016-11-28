@@ -190,23 +190,33 @@ calculate_alpha_gain_loss_turnover <- function(tab_){
 #          rcp == rcp[1])
 # ### end of test 
 
+# 
+# if(n.cores <= 1){
+#   ## sequential version
+#   gg.calc <- gg.dat %>% group_by(scenario.biomod, biotic.inter, dispersal.filter, gcm, rcp) %>%
+#     do(stack.file.name = calculate_alpha_gain_loss_turnover(.))
+# } else{
+#   ## parallel version
+#   clust <- create_cluster(cores = n.cores, quiet = FALSE)
+#   clusterExport(clust,c("calculate_alpha_gain_loss_turnover", "out.dir.path", "src.maps.files"))
+#   gg.dat.part <- partition(gg.dat, scenario.biomod, biotic.inter, dispersal.filter, gcm, rcp, cluster = clust)
+#   gg.calc <- gg.dat.part %>% do(stack.file.name = calculate_alpha_gain_loss_turnover(.))
+#   stopCluster(clust)
+# }
+
+
+## do the same table grouped by growth form
 
 if(n.cores <= 1){
   ## sequential version
-  gg.calc <- gg.dat %>% group_by(scenario.biomod, biotic.inter, dispersal.filter, gcm, rcp) %>%
+  gg.calc.gf <- gg.dat %>% group_by(scenario.biomod, biotic.inter, dispersal.filter, gcm, rcp, growth.form) %>%
     do(stack.file.name = calculate_alpha_gain_loss_turnover(.))
-} else{
-  ## parallel version
-  clust <- create_cluster(cores = n.cores, quiet = FALSE)
-  clusterExport(clust,c("calculate_alpha_gain_loss_turnover", "out.dir.path", "src.maps.files"))
-  gg.dat.part <- partition(gg.dat, scenario.biomod, biotic.inter, dispersal.filter, gcm, rcp, cluster = clust)
-  gg.calc <- gg.dat.part %>% do(stack.file.name = calculate_alpha_gain_loss_turnover(.))
-  stopCluster(clust)
+} else {
+
 }
 
 
-
-save(gg.calc, file = file.path(out.dir.path, "gg.calc.RData"))
+save(gg.calc.gf, file = file.path(out.dir.path, "gg.calc.gf.RData"))
 
 
 ##' @note

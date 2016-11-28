@@ -46,6 +46,7 @@ gg.theme <- theme(axis.text.x = element_text(angle = 20, hjust = 1, vjust = 1),
                   strip.background = element_rect(fill = NA, colour = 'grey80'),
                   legend.background = element_blank()) 
 unique(src.tab$area)
+unique(src.tab$growth.form)
 
 gg.dat <- src.tab %>% 
   filter(area %in% c("r.from.sa", "r.sa", "r.la", "r.ha")) %>%
@@ -105,9 +106,14 @@ gg.dat <- gg.dat %>% gather(metric.name, metric.val, nb.lost.pix, nb.stable0.pix
 gg.dat <- gg.dat %>% filter(metric.name %in% c('src', 'percent.loss', 'percent.gain')) %>%
   mutate(metric.name = factor(metric.name, levels = c('src', 'percent.loss', 'percent.gain'), labels = c("Species range change", "SR Loss (%)", "SR Gain (%)")))
 
+## !!! the species that arrive in the high arctic have a infinite gain %
+## that is kind of problematic for the boxplots.. lets try to remove non finite values
+# gg.dat <- gg.dat %>% filter(is.finite(metric.val))
 
 ## to deal with the boxplot outliers
-gg.dat.no.ol <- gg.dat %>% group_by(dispersal.filter, biotic.inter, metric.name, area) %>%
+gg.dat.no.ol <- gg.dat %>% 
+  filter(is.finite(metric.val)) %>%
+  group_by(dispersal.filter, biotic.inter, metric.name, area) %>%
   do(data.frame(t(boxplot.stats(.$metric.val)$stats)))
 
 ## to do the sample comparaison
@@ -155,12 +161,14 @@ gg.plot <- ggplot(gg.dat.no.ol, aes(1, fill = dispersal.filter, linetype = bioti
 gg.plot
 
 
-ggsave(file.path(out.dir.path, "fig1.png"), gg.plot, width = 297, height = 210, units = 'mm')
+ggsave(file.path(out.dir.path, "fig1a.png"), gg.plot, width = 297, height = 210, units = 'mm')
 
 ### make a try with a semilog scale
 ## to deal with the boxplot outliers
 
-gg.dat.log.no.ol <- gg.dat %>% group_by(dispersal.filter, biotic.inter, metric.name, area) %>%
+gg.dat.log.no.ol <- gg.dat %>% 
+  filter(is.finite(metric.val)) %>% 
+  group_by(dispersal.filter, biotic.inter, metric.name, area) %>%
   do(data.frame(t(boxplot.stats(log((.$metric.val + 100) / 100))$stats)))
 
 gg.plot <- ggplot(gg.dat.log.no.ol, aes(1, fill = dispersal.filter, linetype = biotic.inter)) +
@@ -173,6 +181,44 @@ gg.plot <- ggplot(gg.dat.log.no.ol, aes(1, fill = dispersal.filter, linetype = b
   gg.theme + theme(axis.text.x = element_blank(), axis.ticks.x = element_blank())
 gg.plot
 
-ggsave(file.path(out.dir.path, "fig1_pseudo_log.png"), gg.plot, width = 297, height = 210, units = 'mm')
+ggsave(file.path(out.dir.path, "fig1a_pseudo_log.png"), gg.plot, width = 297, height = 210, units = 'mm')
 
+### produce the same 2 graph but grouping by growth form -----------------------
+
+## to deal with the boxplot outliers
+gg.dat.gf.no.ol <- gg.dat %>% 
+  filter(is.finite(metric.val)) %>%
+  group_by(dispersal.filter, biotic.inter, metric.name, area, growth.form) %>%
+  do(data.frame(t(boxplot.stats(.$metric.val)$stats)))
+
+gg.dat.gf.log.no.ol <- gg.dat %>% 
+  filter(is.finite(metric.val)) %>% 
+  group_by(dispersal.filter, biotic.inter, metric.name, area, growth.form) %>%
+  do(data.frame(t(boxplot.stats(log((.$metric.val + 100) / 100))$stats)))
+
+gg.plot <- ggplot(gg.dat.gf.no.ol, aes(growth.form, fill = dispersal.filter, linetype = biotic.inter)) +
+  geom_boxplot(aes(lower = X2, middle = X3, upper = X4, ymin = X1, ymax = X5), 
+               stat = "identity", outlier.colour = NA, position = position_dodge(.9), varwidth=0.5) + 
+  facet_grid(metric.name ~ area, scale = 'free_y') + 
+  scale_fill_brewer(palette = "Blues", guide = guide_legend(title = "Dispersal distance")) + 
+  scale_linetype_discrete(guide = guide_legend(title = "Biotic interactions")) +
+  xlab("") + ylab("") +
+  gg.theme + theme(axis.text.x = element_text(angle = 0, hjust = .5, vjust = .5))
+gg.plot
+
+
+ggsave(file.path(out.dir.path, "figXa.png"), gg.plot, width = 320, height = 210, units = 'mm')
+
+### make a try with a semilog scale
+gg.plot <- ggplot(gg.dat.gf.log.no.ol, aes(growth.form, fill = dispersal.filter, linetype = biotic.inter)) +
+  geom_boxplot(aes(lower = X2, middle = X3, upper = X4, ymin = X1, ymax = X5), 
+               stat = "identity", outlier.colour = NA, position = position_dodge(0.9)) + 
+  facet_grid(metric.name ~ area, scale = 'free_y') + 
+  scale_fill_brewer(palette = "Blues", guide = guide_legend(title = "Dispersal distance")) + 
+  scale_linetype_discrete(guide = guide_legend(title = "Biotic interactions")) +
+  xlab("") + ylab("") +
+  gg.theme + theme(axis.text.x = element_text(angle = 0, hjust = .5, vjust = .5))
+gg.plot
+
+ggsave(file.path(out.dir.path, "figXa_pseudo_log.png"), gg.plot, width = 320, height = 210, units = 'mm')
 

@@ -82,8 +82,15 @@ r.cur <- raster(cur.file)
 r.fut <- raster(fut.file)
 
 ## resahpe the rasters
-r.cur <- projectRaster(r.cur, ref.ras.buffer)
-r.fut <- projectRaster(r.fut, ref.ras.buffer)
+## Fucking trick to cheet with R GIS projection coordinates issue (e.g make a 180° rotatin)
+proj.ref1 <- "+proj=laea +lat_0=90 +lon_0=180 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs +ellps=WGS84 +towgs84=0,0,0"
+proj.ref2 <- "+proj=laea +lat_0=90 +lon_0=0 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs +ellps=WGS84 +towgs84=0,0,0"
+
+r.cur <- projectRaster(r.cur, crs = CRS(proj.ref2))
+r.fut <- projectRaster(r.fut, crs = CRS(proj.ref2))
+projection(r.cur) <- proj.ref1
+projection(r.fut) <- proj.ref1
+
 
 r.cur[is.na(r.cur[])] <- 0
 r.fut[is.na(r.fut[])] <- 0

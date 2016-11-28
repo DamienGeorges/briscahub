@@ -49,7 +49,7 @@ gg.dat <- alphadiv.tab %>% mutate(metric.name = metric) %>%
          metric.name %in% c("alphadiv.change", "gain", "lost"))
 
 gg.dat$area <- factor(gg.dat$area, levels =  c("r.from.sa", "r.sa", "r.la", "r.ha"), labels = c("Full arctic", "Sub-arctic", "Low arctic", "High arctic"))
-gg.dat$metric.name = factor(gg.dat$metric.name, levels = c("alphadiv.change", "gain", "lost"), labels = c("AlphaDiv Change", "Nb Species Gained", "Nb Species Lost"))
+gg.dat$metric.name = factor(gg.dat$metric.name, levels = c("alphadiv.change", "lost", "gain"), labels = c("AlphaDiv Change", "Nb Species Lost", "Nb Species Gained"))
 
 ## check the number of combination computed
 gg.dat %>% ungroup %>% group_by(biotic.inter, dispersal.filter) %>% summarise(n = n())
@@ -101,9 +101,7 @@ gg.dat2 <- alphadiv.tab %>% mutate(metric.name = metric) %>%
          metric.name %in% c("alphadiv", "gain", "lost"))
 
 gg.dat2$area <- factor(gg.dat2$area, levels =  c("r.from.sa", "r.sa", "r.la", "r.ha"), labels = c("Full arctic", "Sub-arctic", "Low arctic", "High arctic"))
-gg.dat2$metric.name = factor(gg.dat2$metric.name, levels = c("alphadiv", "gain", "lost"), labels = c("AlphaDiv", "Nb Species Gained", "Nb Species Lost"))
-
-
+gg.dat2$metric.name = factor(gg.dat2$metric.name, levels = c("alphadiv", "lost", "gain"), labels = c("AlphaDiv", "Nb Species Lost", "Nb Species Gained"))
 
 gg.plot <- ggplot(gg.dat2, aes(1, fill = dispersal.filter, linetype = biotic.inter)) +
   geom_boxplot(aes(lower = lower, middle = middle, upper = upper, ymin = ymin, ymax = ymax), 
@@ -116,7 +114,7 @@ gg.plot <- ggplot(gg.dat2, aes(1, fill = dispersal.filter, linetype = biotic.int
 gg.plot
 
 
-ggsave(file.path(out.dir.path, "fig1c.png"), gg.plot, width = 297, height = 210, units = 'mm')
+ggsave(file.path(out.dir.path, "fig1b3.png"), gg.plot, width = 297, height = 210, units = 'mm')
 
 ## try to replace the alpha.div change by the raw alphadiv
 gg.dat2 <- alphadiv.tab %>% mutate(metric.name = metric) %>% 
@@ -124,9 +122,7 @@ gg.dat2 <- alphadiv.tab %>% mutate(metric.name = metric) %>%
          metric.name %in% c("alphadiv.change", "pc.gain", "pc.lost"))
 
 gg.dat2$area <- factor(gg.dat2$area, levels =  c("r.from.sa", "r.sa", "r.la", "r.ha"), labels = c("Full arctic", "Sub-arctic", "Low arctic", "High arctic"))
-gg.dat2$metric.name = factor(gg.dat2$metric.name, levels = c("alphadiv.change", "pc.gain", "pc.lost"), labels = c("AlphaDiv Change", "Species Gained (%)", "Species Lost (%)"))
-
-
+gg.dat2$metric.name = factor(gg.dat2$metric.name, levels = c("alphadiv.change", "pc.lost", "pc.gain"), labels = c("AlphaDiv Change", "Species Lost (%)", "Species Gained (%)"))
 
 gg.plot <- ggplot(gg.dat2, aes(1, fill = dispersal.filter, linetype = biotic.inter)) +
   geom_boxplot(aes(lower = lower, middle = middle, upper = upper, ymin = ymin, ymax = ymax), 
