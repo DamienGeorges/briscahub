@@ -23,11 +23,11 @@ args <- commandArgs(trailingOnly = TRUE)
 file.id <- as.numeric(args[1])
 ## file.id <- 7646
 
-output.tab.dir <- "/work/georges/BRISCA/SRC_tabs"
-output.map.dir <- "/work/georges/BRISCA/SRC_maps"
+output.tab.dir <- "/work/georges/BRISCA/SRC_tabs_new"
+output.map.dir <- "/work/georges/BRISCA/SRC_maps_new"
 path.to.buffers <- "/home/georges/BRISCA/briscahub/data/Arctic_buffers"
-param.file <- "/work/georges/BRISCA/grid_params/params_src.txt"
 briscahub.dir <- "/home/georges/BRISCA/briscahub"
+param.file <- file.path(briscahub.dir, "data/params_src_new.RData")
 
 dir.create(output.tab.dir, recursive=TRUE, showWarnings=FALSE)
 dir.create(output.map.dir, recursive=TRUE, showWarnings=FALSE)
@@ -41,14 +41,26 @@ cat("\n> sp.tab\n")
 head(sp.tab)
 
 ##' -- read the new ref grid ---------------------------------------------------
-ref.ras.buffer <- raster(file.path(path.to.buffers, "Buffer.grd"))
-ref.ras.from.sa <- raster(file.path(path.to.buffers, "Sub_Arctic.grd"))
-ref.ras.from.la <- raster(file.path(path.to.buffers, "Low_Arctic.grd"))
-ref.ras.from.ha <- raster(file.path(path.to.buffers, "High_Arctic.grd"))
+# ref.ras.buffer <- raster(file.path(path.to.buffers, "Buffer.grd"))
+# ref.ras.from.sa <- raster(file.path(path.to.buffers, "Sub_Arctic.grd"))
+# ref.ras.from.la <- raster(file.path(path.to.buffers, "Low_Arctic.grd"))
+# ref.ras.from.ha <- raster(file.path(path.to.buffers, "High_Arctic.grd"))
+## load couple of masks to compute stats locally
+r.full.area <- raster(file.path(path.to.buffers, "mask_full_area_no_ice.grd"))
+r.from.sa <- raster(file.path(path.to.buffers, "mask_from_subarctic_area_no_ice.grd"))
+r.sa <- raster(file.path(path.to.buffers, "mask_subarctic_area_no_ice.grd"))
+r.from.la <- raster(file.path(path.to.buffers, "mask_from_lowarctic_area_no_ice.grd"))
+r.la <- raster(file.path(path.to.buffers, "mask_lowarctic_area_no_ice.grd"))
+r.ha <- raster(file.path(path.to.buffers, "mask_higharctic_area_no_ice.grd"))
+
+mask.ids <- c('r.full.area', 'r.from.sa', 'r.sa', 'r.from.la', 'r.la', 'r.ha')
+
+
 
 # ref.poly@data$WATER <- factor(ref.poly@data$WATER, levels = c(0,1,2), labels = c("water", "arctic", "sub-arctic") )
 
-param.list <- read.table(param.file, sep = "\t", header = FALSE, stringsAsFactors=FALSE)
+# param.list <- read.table(param.file, sep = "\t", header = FALSE, stringsAsFactors=FALSE)
+param.list <- get(load(param.file))
 
 cat("\n> param.list\n")
 head(param.list)
@@ -71,11 +83,11 @@ if(!file.exists(cur.file)){
   if(grepl("_max_disp_invdist", fut.file)) cur.file <- sub("current", "current_max_disp_invdist", cur.file)
 }
 
-species <- sub("_.*$", "", basename(fut.file))
-model <-  sub("_.*$", "", sub(paste0(species, "_"), "", basename(fut.file)))
-scenario.full <- sub(paste0(".*", species, "/"), "", dirname(dirname((fut.file))))
-scenario.clim <- sub(".*RCP_", "RCP_", scenario.full)
-scenario.biomod <- basename(sub(paste0("/", species, ".*"), "", fut.file))
+species <- param.list$species[file.id]
+model <-  param.list$model[file.id]
+scenario.full <- param.list$scenario.full[file.id]
+scenario.clim <- param.list$scenario.clim[file.id])
+scenario.biomod <- param.list$scenario.biomod[file.id]
 
 ## load the species rasters
 r.cur <- raster(cur.file)
@@ -94,46 +106,68 @@ projection(r.fut) <- proj.ref1
 
 r.cur[is.na(r.cur[])] <- 0
 r.fut[is.na(r.fut[])] <- 0
-r.cur <- crop(r.cur, ref.ras.buffer) * ref.ras.buffer
-r.fut <- crop(r.fut, ref.ras.buffer) * ref.ras.buffer
+r.cur <- crop(r.cur, r.full.area) * r.full.area
+r.fut <- crop(r.fut, r.full.area) * r.full.area
 
 cat("\n src on full area")
 sp.rc <- biomod2::BIOMOD_RangeSize(CurrentPred = r.cur ,FutureProj = r.fut)
 sp.rc.tab <- as.data.frame(sp.rc$Compt.By.Models)
 sp.rc.tab$area <- "full"
 
+
 cat("\n src on sub arctic")
-sp.rc.sa <- biomod2::BIOMOD_RangeSize(CurrentPred = r.cur * ref.ras.from.sa, 
-                                      FutureProj = r.fut * ref.ras.from.sa)
+sp.rc.from.sa <- biomod2::BIOMOD_RangeSize(CurrentPred = r.cur * r.from.sa, 
+                                      FutureProj = r.fut * r.from.sa)
+sp.rc.from.sa.tab <- as.data.frame(sp.rc.from.sa$Compt.By.Models)
+sp.rc.from.sa.tab$area <- "from_sub_arctic"
+
+sp.rc.sa <- biomod2::BIOMOD_RangeSize(CurrentPred = r.cur * r.sa, 
+                                      FutureProj = r.fut * r.sa)
 sp.rc.sa.tab <- as.data.frame(sp.rc.sa$Compt.By.Models)
-sp.rc.sa.tab$area <- "from_sub_arctic"
+sp.rc.sa.tab$area <- "sub_arctic"
+
 
 cat("\n src on low arctic")
-sp.rc.la <- biomod2::BIOMOD_RangeSize(CurrentPred = r.cur * ref.ras.from.la, 
-                                      FutureProj = r.fut * ref.ras.from.la)
+sp.rc.from.la <- biomod2::BIOMOD_RangeSize(CurrentPred = r.cur * r.from.la, 
+                                           FutureProj = r.fut * r.from.la)
+sp.rc.from.la.tab <- as.data.frame(sp.rc.from.la$Compt.By.Models)
+sp.rc.from.la.tab$area <- "from_low_arctic"
+
+sp.rc.la <- biomod2::BIOMOD_RangeSize(CurrentPred = r.cur * r.la, 
+                                      FutureProj = r.fut * r.la)
 sp.rc.la.tab <- as.data.frame(sp.rc.la$Compt.By.Models)
-sp.rc.la.tab$area <- "from_low_arctic"
+sp.rc.la.tab$area <- "low_arctic"
+
 
 cat("\n src on high arctic")
-sp.rc.ha <- biomod2::BIOMOD_RangeSize(CurrentPred = r.cur * ref.ras.from.ha, 
-                                      FutureProj = r.fut * ref.ras.from.ha)
-sp.rc.ha.tab <- as.data.frame(sp.rc.ha$Compt.By.Models)
-sp.rc.ha.tab$area <- "from_high_arctic"
+sp.rc.from.ha <- biomod2::BIOMOD_RangeSize(CurrentPred = r.cur * r.from.ha, 
+                                      FutureProj = r.fut * r.from.ha)
+sp.rc.from.ha.tab <- as.data.frame(sp.rc.from.ha$Compt.By.Models)
+sp.rc.from.ha.tab$area <- "from_high_arctic"
 
-sp.rc.tab <- rbind(sp.rc.tab, sp.rc.sa.tab, sp.rc.la.tab, sp.rc.ha.tab)
-sp.rc.tab$species <- species
-sp.rc.tab$model <- model
-sp.rc.tab$scenario.clim <- scenario.clim
-sp.rc.tab$scenario.biomod <- scenario.biomod
-sp.rc.tab$file.id <- file.id
-sp.rc.tab$sp.id <- which(sp.tab$Biomod.name %in% sp_)
+sp.rc.ha <- biomod2::BIOMOD_RangeSize(CurrentPred = r.cur * r.ha, 
+                                      FutureProj = r.fut * r.ha)
+sp.rc.ha.tab <- as.data.frame(sp.rc.ha$Compt.By.Models)
+sp.rc.ha.tab$area <- "high_arctic"
+
+
+
+sp.rc.tab <- rbind(sp.rc.tab, sp.rc.sa.tab, sp.rc.la.tab, sp.rc.ha.tab,
+                   sp.rc.from.sa.tab, sp.rc.from.la.tab, sp.rc.from.ha.tab)
+sp.rc.tab <- cbind(param.list$species[file.id,,drop=FALSE], sp.rc.tab)
+# sp.rc.tab$species <- species
+# sp.rc.tab$model <- model
+# sp.rc.tab$scenario.clim <- scenario.clim
+# sp.rc.tab$scenario.biomod <- scenario.biomod
+# sp.rc.tab$file.id <- file.id
+# sp.rc.tab$sp.id <- which(sp.tab$Biomod.name %in% sp_)
 
 
 write.table(sp.rc.tab, 
             file=file.path(output.tab.dir, paste0("src_", sprintf("%05d", file.id), "_", sprintf("%03d", unique(sp.rc.tab$sp.id)), ".txt")),
             sep = "\t", row.names = FALSE, col.names = FALSE)
 
-writeRaster(sp.rc$Diff.By.Pixel * ref.ras.buffer, filename = file.path(output.map.dir, paste0("src_", sprintf("%05d", file.id), "_", sprintf("%03d", unique(sp.rc.tab$sp.id)), ".grd")),
+writeRaster(sp.rc$Diff.By.Pixel * r.full.area, filename = file.path(output.map.dir, paste0("src_", sprintf("%05d", file.id), "_", sprintf("%03d", unique(sp.rc.tab$sp.id)), ".grd")),
             datatype = "INT1S",
 	    NAflag = -127,
             overwrite = TRUE)
@@ -142,30 +176,38 @@ q("no")
 
 ##' parameters creation
 
-xx <- readLines("/work/georges/BRISCA/grid_params/params_clip_output_maps.txt")
-xx <- grep(".grd$", xx, value=TRUE) ## keep only grd files
-xx <- grep("_TSSbin", xx, value=TRUE) ## keep only binaries
-xx <- grep("_EMcaByTSS", xx, value=TRUE) ## keep only models based on CA
-param.list.b <- data.frame(path.to.mod = sapply(xx, function(p_){paste0(unlist(strsplit(x=p_, split="/"))[1:5], collapse = "/")}),
-                           rcp_gcm = sapply(xx, function(p_){paste0(unlist(strsplit(x=p_, split="/"))[7], collapse = "/")}),
-                           file_pattern = sapply(xx, function(p_){sub(".*_EMcaByTSS", "_EMcaByTSS", unlist(strsplit(x=p_, split="/"))[9])}))
-param.list.b$merged_pattern <- paste(param.list.b$path.to.mod, param.list.b$rcp_gcm, param.list.b$file_pattern, sep = "_")
-param.list.c <- param.list.b[!duplicated(param.list.b$merged_pattern), ]
-rownames(param.list.c) <- NULL
-
-param.list.d <- param.list.c[, 1:3]
-param.list.d$rcp <- paste0("RCP_", sub("_.*", "", sub(".*RCP_", "", param.list.d$rcp_gcm)))
-param.list.d$gcm <- sub(".*2080_", "", param.list.d$rcp_gcm)
-
-## remove the current files
-param.list.d <- param.list.d[!grepl("current", param.list.d$rcp_gcm),]
-
-## add the species line
-sp.tab <- read.table(file.path(briscahub.dir, "data/sp.list_08102015_red.txt"),
-                     sep = "\t", header = TRUE, stringsAsFactors = FALSE)
-sp.tab <- sp.tab[ sp.tab$Growth.form.height == 'SHRUB', ]
-param.list.e <- expand.grid.df(param.list.d, data.frame(sp.bmn = sp.tab$Biomod.name))
+### SEE create_new_src_params.R ###
 
 
-write.table(param.list.e, file="/work/georges/BRISCA/grid_params/params_src.txt", sep="\t", row.names=FALSE, col.names=FALSE)
 
+
+
+
+# 
+# xx <- readLines("/work/georges/BRISCA/grid_params/params_clip_output_maps.txt")
+# xx <- grep(".grd$", xx, value=TRUE) ## keep only grd files
+# xx <- grep("_TSSbin", xx, value=TRUE) ## keep only binaries
+# xx <- grep("_EMcaByTSS", xx, value=TRUE) ## keep only models based on CA
+# param.list.b <- data.frame(path.to.mod = sapply(xx, function(p_){paste0(unlist(strsplit(x=p_, split="/"))[1:5], collapse = "/")}),
+#                            rcp_gcm = sapply(xx, function(p_){paste0(unlist(strsplit(x=p_, split="/"))[7], collapse = "/")}),
+#                            file_pattern = sapply(xx, function(p_){sub(".*_EMcaByTSS", "_EMcaByTSS", unlist(strsplit(x=p_, split="/"))[9])}))
+# param.list.b$merged_pattern <- paste(param.list.b$path.to.mod, param.list.b$rcp_gcm, param.list.b$file_pattern, sep = "_")
+# param.list.c <- param.list.b[!duplicated(param.list.b$merged_pattern), ]
+# rownames(param.list.c) <- NULL
+# 
+# param.list.d <- param.list.c[, 1:3]
+# param.list.d$rcp <- paste0("RCP_", sub("_.*", "", sub(".*RCP_", "", param.list.d$rcp_gcm)))
+# param.list.d$gcm <- sub(".*2080_", "", param.list.d$rcp_gcm)
+# 
+# ## remove the current files
+# param.list.d <- param.list.d[!grepl("current", param.list.d$rcp_gcm),]
+# 
+# ## add the species line
+# sp.tab <- read.table(file.path(briscahub.dir, "data/sp.list_08102015_red.txt"),
+#                      sep = "\t", header = TRUE, stringsAsFactors = FALSE)
+# sp.tab <- sp.tab[ sp.tab$Growth.form.height == 'SHRUB', ]
+# param.list.e <- expand.grid.df(param.list.d, data.frame(sp.bmn = sp.tab$Biomod.name))
+# 
+# 
+# write.table(param.list.e, file="/work/georges/BRISCA/grid_params/params_src.txt", sep="\t", row.names=FALSE, col.names=FALSE)
+# 
