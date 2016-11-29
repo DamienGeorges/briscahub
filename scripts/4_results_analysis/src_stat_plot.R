@@ -19,7 +19,7 @@ library(tidyr)
 ## define the main paths to data
 briscahub.dir <- "J:/People/Damien/BRISCA/briscahub/" ## on brisca cluster
 src.tab.path <- "I:/C_Write/Damien/BRISCA/backup_idiv_cluster/SRC_baseline_tabs_new.RData"
-out.dir.path <-"I:/C_Write/Damien/BRISCA/figures/2016-11-2_"
+out.dir.path <-"I:/C_Write/Damien/BRISCA/figures/2016-11-29"
 
 dir.create(out.dir.path, recursive = TRUE, showWarnings = FALSE)
 
@@ -232,7 +232,7 @@ src.tab <- src.tab %>% mutate(dispersal.filter = replace(dispersal.filter, grepl
 
 ## check the trends due to dispersal filter and biotic interactions
 src.tab %>% group_by(species, rcp, gcm, area, biotic.inter, dispersal.filter) %>%
-  select(src) %>% mutate(n = n()) %>% data.frame %>% head
+  select(src, as.numeric(file.id)) %>% mutate(n = n()) %>% data.frame %>% head
 
 # get_dispersal_rank <- function(x){
 #   xx_ <- c(x$no, x$minimal, x$maximal, x$unlimited)
