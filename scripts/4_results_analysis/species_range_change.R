@@ -93,7 +93,7 @@ fut.file <- paste0(param.list[file.id, 1], "/", sp_, "/", param.list[file.id, 2]
 
 ## the same baseline
 ## load the projection baseline
-cur.file <- paste0("/work/georges/BRISCA/Biomod_pure_climate_filtered/", species, "/proj_pure_climat_current/individual_projections/", species, "_EMcaByTSS_mergedAlgo_mergedRun_mergedData_TSSbin_filt_no_disp_invdist.grd") 
+cur.file <- paste0("/data/idiv_sdiv/brisca/results/Biomod_pure_climate_filtered/", species, "/proj_pure_climat_current/individual_projections/", species, "_EMcaByTSS_mergedAlgo_mergedRun_mergedData_TSSbin_filt_no_disp_invdist.grd") 
 
 ## load the species rasters
 r.cur <- raster(cur.file)
