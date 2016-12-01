@@ -72,7 +72,7 @@ if(host == "pinea"){
   ## TODO (Damien)
 } else if (host == "idiv_cluster"){
   # path to the directory where models have been computed
-  in.mod <- "/work/georges/BRISCA/Biomod_climate_and_biointer"
+  in.mod <- "/work/georges/BRISCA/Biomod_climate_and_biointer_test"
   # path to parameter table
   param.file <- "/work/georges/BRISCA/grid_params/params_scabp_test.txt" ## first run (10G ram)
 }
