@@ -74,7 +74,7 @@ if(host == "pinea"){
   # path to the directory where models have been computed
   in.mod <- "/work/georges/BRISCA/Biomod_climate_and_biointer"
   # path to parameter table
-  param.file <- "/work/georges/BRISCA/grid_params/params_scabp.txt" ## first run (10G ram)
+  param.file <- "/work/georges/BRISCA/grid_params/params_scabp_test.txt" ## first run (10G ram)
 }
 
 ## create the output directory and change the working directory ----------------
@@ -117,6 +117,8 @@ biointer <- stack(path.to.biointer.stk)
 ## select the oppropriate layer
 biointer <- subset(biointer, sub(biointer.str, "", sub("pure_climat_", "", bm.proj.name)))
 ## added for the testing session of biointeraction maps
+### !!! TO BE REMOVED !!! ###
+projection(biointer) <- projection(bio)
 biointer <- projectRaster(biointer, bio)
 names(biointer) <- "biointer"
 

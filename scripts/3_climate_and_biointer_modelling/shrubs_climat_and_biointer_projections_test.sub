@@ -4,7 +4,7 @@
 # qsub arguments
 # ----------------------------------------------------------------------
 
-#$  -N  scabp
+#$  -N  scabpt
 #$  -S  /bin/bash
 ## #$  -l  h_vmem=5999M
 ## #$  -l  h_vmem=9999M
@@ -51,4 +51,4 @@ module load geos gdal R
 
 export JAVA_OPTS=${JAVA_OPTS:-"-Xmx256M -Xms16M"}
 
-Rscript --no-restore --vanilla ~/BRISCA/briscahub/scripts/3_climate_and_biointer_modelling/shrubs_climat_and_biointer_projections.R  ${params}
+Rscript --no-restore --vanilla ~/BRISCA/briscahub/scripts/3_climate_and_biointer_modelling/shrubs_climat_and_biointer_projections_test.R  ${params}

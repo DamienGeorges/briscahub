@@ -104,10 +104,10 @@ ddeg <- raster(file.path(in.gdd, "ddeg"), crs = proj)
 ## biotic interaction
 biointer <- stack(file.path(in.biot,  paste0(sp.bmname, "_bio_inter_filt_no_disp_invdist.grd")))
 biointer <- subset(biointer, "current")
-## added for the testing session of biointeraction maps
-### !!! TO BE REMOVED !!! ###
-projection(biointer) <- projection(bio)
-biointer <- projectRaster(biointer, bio)
+# ## added for the testing session of biointeraction maps
+# ### !!! TO BE REMOVED !!! ###
+# projection(biointer) <- projection(bio)
+# biointer <- projectRaster(biointer, bio)
 names(biointer) <- "biointer"
 ## merge all cliimatic variables
 expl.stk <- stack(ddeg, subset(bio, c(6, 10, 18, 19)), biointer)
