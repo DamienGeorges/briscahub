@@ -18,23 +18,15 @@ library(tidyr)
 
 ## define the main paths to data
 briscahub.dir <- "J:/People/Damien/BRISCA/briscahub/" ## on brisca cluster
-src.tab.path <- "I:/C_Write/Damien/BRISCA/backup_idiv_cluster/src_stat_table_by_area.txt"
-out.dir.path <-"I:/C_Write/Damien/BRISCA/figures/2016-10-27"
+src.tab.path <- "I:/C_Write/Damien/BRISCA/backup_idiv_cluster/SRC_baseline_tabs_new.RData"
+out.dir.path <-"I:/C_Write/Damien/BRISCA/figures/2016-11-29"
 
 dir.create(out.dir.path, recursive = TRUE, showWarnings = FALSE)
 
 ##' ## get and reshape the data
 
 ## laod src scores table
-src.tab <- read.table(src.tab.path, sep = "\t", header = TRUE, stringsAsFactors = FALSE)
-head(src.tab)
-colnames(src.tab) <- sub("^output.table.", "", colnames(src.tab))
-
-## load species ref table
-sp.tab <- read.table(file.path(briscahub.dir, "data/sp.list_08102015_red.txt"),
-                     sep = "\t", header = TRUE, stringsAsFactors = FALSE)
-sp.tab <- sp.tab[ sp.tab$Growth.form.height == 'SHRUB', ]
-
+load(src.tab.path)
 ##' ## produce some graphs
 
 ## define an article fig friendly theme
@@ -48,37 +40,45 @@ gg.theme <- theme(axis.text.x = element_text(angle = 20, hjust = 1, vjust = 1),
 unique(src.tab$area)
 unique(src.tab$growth.form)
 
-gg.dat <- src.tab %>% 
-  filter(area %in% c("r.from.sa", "r.sa", "r.la", "r.ha")) %>%
-  mutate(rcp = sub("_2080.*$", "", scenario.clim),
-         gcm = sub("_(no|max)_disp.*$", "", sub(".*_2080_", "", scenario.clim)),
-         biotic.inter = sub(paste0("^.*(", paste(unique(gcm), collapse="|"), ")"), "", scenario.clim),
-         dispersal.filter = sub("^.*TSSbin", "", tools::file_path_sans_ext(file.pattern)),
-         scenario.biomod = sub("_final", "", sub("Biomod_", "", scenario.biomod)))
-## change dispersal filter labels
-gg.dat$dispersal.filter[gg.dat$dispersal.filter == ""] <- "unlimited"
-gg.dat$dispersal.filter[gg.dat$dispersal.filter == "_filt_ch"] <- "convex_hull"
-gg.dat$dispersal.filter[gg.dat$dispersal.filter == "_filt_no_disp_invdist"] <- "no"
-gg.dat$dispersal.filter[gg.dat$dispersal.filter == "_filt_min_disp_invdist"] <- "minimal"
-gg.dat$dispersal.filter[gg.dat$dispersal.filter == "_filt_max_disp_invdist"] <- "maximal"
-# gg.dat <- gg.dat %>% filter(is.element(dispersal.filter, c("minimal", "maximal", "unlimited")))
-gg.dat <- gg.dat %>% filter(is.element(dispersal.filter, c("no", "minimal", "maximal", "unlimited")))
+# gg.dat <- src.tab %>% 
+#   filter(area %in% c("r.from.sa", "r.sa", "r.la", "r.ha")) %>%
+#   mutate(rcp = sub("_2080.*$", "", scenario.clim),
+#          gcm = sub("_(no|max)_disp.*$", "", sub(".*_2080_", "", scenario.clim)),
+#          biotic.inter = sub(paste0("^.*(", paste(unique(gcm), collapse="|"), ")"), "", scenario.clim),
+#          dispersal.filter = sub("^.*TSSbin", "", tools::file_path_sans_ext(file.pattern)),
+#          scenario.biomod = sub("_final", "", sub("Biomod_", "", scenario.biomod)))
+# ## change dispersal filter labels
+# gg.dat$dispersal.filter[gg.dat$dispersal.filter == ""] <- "unlimited"
+# gg.dat$dispersal.filter[gg.dat$dispersal.filter == "_filt_ch"] <- "convex_hull"
+# gg.dat$dispersal.filter[gg.dat$dispersal.filter == "_filt_no_disp_invdist"] <- "no"
+# gg.dat$dispersal.filter[gg.dat$dispersal.filter == "_filt_min_disp_invdist"] <- "minimal"
+# gg.dat$dispersal.filter[gg.dat$dispersal.filter == "_filt_max_disp_invdist"] <- "maximal"
+# # gg.dat <- gg.dat %>% filter(is.element(dispersal.filter, c("minimal", "maximal", "unlimited")))
+# gg.dat <- gg.dat %>% filter(is.element(dispersal.filter, c("no", "minimal", "maximal", "unlimited")))
+# 
+# ## change biointeraction labels
+# gg.dat$biotic.inter[gg.dat$biotic.inter == ""] <- "no"
+# gg.dat$biotic.inter[gg.dat$biotic.inter == "_no_disp_invdist"] <- "low"
+# gg.dat$biotic.inter[gg.dat$biotic.inter == "_max_disp_invdist"] <- "high"
+# ## change levels order
+# gg.dat$biotic.inter <- factor(gg.dat$biotic.inter, levels =  c("no", "low", "high"))
+# gg.dat$scenario.biomod <- factor(gg.dat$scenario.biomod, levels = c("pure_climate", "climate_and_biointer", "pure_climate_filtered", "climate_and_biointer_filtered"))
+# gg.dat$dispersal.filter <- factor(gg.dat$dispersal.filter, levels =  c("no", "minimal", "maximal", "unlimited"))
 
-## change biointeraction labels
-gg.dat$biotic.inter[gg.dat$biotic.inter == ""] <- "no"
-gg.dat$biotic.inter[gg.dat$biotic.inter == "_no_disp_invdist"] <- "low"
-gg.dat$biotic.inter[gg.dat$biotic.inter == "_max_disp_invdist"] <- "high"
-## change levels order
-gg.dat$biotic.inter <- factor(gg.dat$biotic.inter, levels =  c("no", "low", "high"))
-gg.dat$scenario.biomod <- factor(gg.dat$scenario.biomod, levels = c("pure_climate", "climate_and_biointer", "pure_climate_filtered", "climate_and_biointer_filtered"))
+gg.dat <- src.tab %>% mutate(dispersal.filter = replace(dispersal.filter, which(is.na(dispersal.filter)), "no"))
 gg.dat$dispersal.filter <- factor(gg.dat$dispersal.filter, levels =  c("no", "minimal", "maximal", "unlimited"))
-# ## remove some combination of params we are not interested in
-# gg.dat <- gg.dat %>% filter(!(scenario.biomod == "climate_and_biointer_filtered" &  dispersal.filter == "no"),
+gg.dat$biotic.inter <- factor(gg.dat$biotic.inter, levels =  c("no", "low", "high"))
+
+## remove some combination of params we are not interested in
+# gg.dat <- gg.dat %>% filter(!(scenario.biomod == "climate_and_biointer_filtered" &  dispersal.filter == ""),
 #                             !(scenario.biomod == "climate_and_biointer_filtered" & biotic.inter == "low" & dispersal.filter == "maximal"),
-#                             !(scenario.biomod == "climate_and_biointer_filtered" & biotic.inter == "high" & dispersal.filter == "minimal"))
+#                             !(scenario.biomod == "climate_and_biointer_filtered" & biotic.inter == "high" & dispersal.filter == "no"))
+
+
 ## change the area labels and order
-# gg.dat <- gg.dat %>% filter(area %in% c("r.from.sa", "r.sa", "r.la", "r.ha"))
-gg.dat$area <- factor(gg.dat$area, levels =  c("r.from.sa", "r.sa", "r.la", "r.ha"), labels = c("Full arctic", "Sub-arctic", "Low arctic", "High arctic"))
+gg.dat <- gg.dat %>% filter(area %in% c("from_sub_arctic", "sub_arctic", "low_arctic", "high_arctic"))
+gg.dat$area <- factor(gg.dat$area, levels =  c("from_sub_arctic", "sub_arctic", "low_arctic", "high_arctic"),
+                      labels = c("Full arctic", "Sub-arctic", "Low arctic", "High arctic"))
 
 
 ## check the number of combination computed
@@ -158,7 +158,9 @@ gg.plot <- ggplot(gg.dat.no.ol, aes(1, fill = dispersal.filter, linetype = bioti
   scale_linetype_discrete(guide = guide_legend(title = "Biotic interactions")) +
   xlab("") + ylab("") +
   gg.theme + theme(axis.text.x = element_blank(), axis.ticks.x = element_blank())
+
 gg.plot
+x11()
 
 
 ggsave(file.path(out.dir.path, "fig1a.png"), gg.plot, width = 297, height = 210, units = 'mm')
@@ -221,4 +223,46 @@ gg.plot <- ggplot(gg.dat.gf.log.no.ol, aes(growth.form, fill = dispersal.filter,
 gg.plot
 
 ggsave(file.path(out.dir.path, "figXa_pseudo_log.png"), gg.plot, width = 320, height = 210, units = 'mm')
+
+
+### extra tests to check that 
+load(src.tab.path)
+## add the no disp pattern
+src.tab <- src.tab %>% mutate(dispersal.filter = replace(dispersal.filter, grepl("_filt_no_disp_invdist.grd", file.pattern), "no"))
+
+## check the trends due to dispersal filter and biotic interactions
+src.tab %>% group_by(species, rcp, gcm, area, biotic.inter, dispersal.filter) %>%
+  select(src, as.numeric(file.id)) %>% mutate(n = n()) %>% data.frame %>% head
+
+# get_dispersal_rank <- function(x){
+#   xx_ <- c(x$no, x$minimal, x$maximal, x$unlimited)
+#   df <- data.frame(r_no = NA, r_minimal = NA, r_maximal = NA, r_unlimited = NA)
+#   if(all(!is.na(xx_))) df[1,] <- rank(xx_)
+#   return(df)
+# }
+# 
+# dip_rank_tab <- src.tab %>% mutate(dispersal.filter = factor(dispersal.filter, levels =  c("no", "minimal", "maximal", "unlimited"))) %>%
+#   group_by(species, rcp, gcm, area, biotic.inter) %>%
+#   select(src, dispersal.filter) %>% spread(dispersal.filter, src) %>% 
+#   rowwise() %>% do(get_dispersal_rank(.))
+
+disp_rank_tab <- src.tab %>% mutate(dispersal.filter = factor(dispersal.filter, levels =  c("no", "minimal", "maximal", "unlimited"))) %>%
+  group_by(species, rcp, gcm, area, biotic.inter) %>%
+  select(src, dispersal.filter) %>% do(data.frame(src = .$src, 
+                                                  dispersal.filter= .$dispersal.filter, 
+                                                  src_rank = rank(.$src, ties.method = "random", na.last = "keep")))
+ggplot(data = disp_rank_tab) +
+  geom_bar(aes(x = dispersal.filter, fill = factor(src_rank))) +
+  scale_fill_brewer()
+
+biotic_rank_tab <- src.tab %>% mutate(dispersal.filter = factor(dispersal.filter, levels =  c("no", "minimal", "maximal", "unlimited"))) %>%
+  group_by(species, rcp, gcm, area, dispersal.filter) %>%
+  select(src, biotic.inter) %>% do(data.frame(src = .$src, 
+                                              biotic.inter= .$biotic.inter,
+                                              src_rank = rank(.$src, ties.method = "random", na.last = "keep")))
+
+
+ggplot(data = biotic_rank_tab) +
+  geom_bar(aes(x = biotic.inter, fill = factor(src_rank))) +
+  scale_fill_brewer()
 
