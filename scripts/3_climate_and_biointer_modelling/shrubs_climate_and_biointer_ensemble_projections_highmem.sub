@@ -4,15 +4,14 @@
 # qsub arguments
 # ----------------------------------------------------------------------
 
-#$  -N  scabm
+#$  -N  scabeph
 #$  -S  /bin/bash
-#$  -l h_vmem=32G,highmem
-#$  -l  h_rt=17:00:00
-## #$  -t  135-189
-#$  -t  35-35
+## #$  -l  h_vmem=9999M
+#$  -l  h_vmem=16G,highmem
+#$  -l  h_rt=24:00:00
+#$  -t  1-6582
+## #$  -tc 500
 #$  -binding linear:1 ## core binding
-## #$  -pe smp 1
-## #$  -pe smp 1 ## this script seems not to work properly in parallel
 
 # ---------------------------------------------------------------------- 
 # output files
@@ -45,12 +44,10 @@ echo
 
 source /etc/profile.d/000-modules.sh
 
-## module load gdal geos R/3.1.0-3
-## module unload cairo
-## module list
-
-module load gdal geos R
+module load gdal R/3.1.0-3
+module unload cairo
+module list
 
 export JAVA_OPTS=${JAVA_OPTS:-"-Xmx256M -Xms16M"}
 
-Rscript --no-restore --vanilla ~/BRISCA/briscahub/scripts/3_climate_and_biointer_modelling/shrubs_climat_and_biointer_modelling.R  ${params}
+Rscript --no-restore --vanilla ~/BRISCA/briscahub/scripts/3_climate_and_biointer_modelling/shrubs_climate_and_biointer_ensemble_projections_highmem.R ${params}

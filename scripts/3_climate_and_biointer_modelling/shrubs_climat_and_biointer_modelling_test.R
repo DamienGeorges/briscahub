@@ -68,11 +68,11 @@ if(host == "pinea"){
   # GDD layer
   in.gdd <- "/data/idiv_sdiv/brisca/Data/Climate/Macroclimate/Current/Processed/Projected/tave10_esri"
   # biotic interaction maps
-  in.biot <- "/work/georges/BRISCA/Biomod_biotic_interaction_maps_new"
+  in.biot <- "/work/georges/BRISCA/Biomod_biotic_interaction_maps"
   # path to maxent.jar file  
   path_to_maxent.jar <- "/data/idiv_sdiv/brisca/SDM_sessions/Maxent"
   
-  out.dir <- "/work/georges/BRISCA/Biomod_climate_and_biointer"
+  out.dir <- "/work/georges/BRISCA/Biomod_climate_and_biointer_test"
 
   params.tab <- read.table("/work/georges/BRISCA/grid_params/params_scabm.txt", header = FALSE, sep = "\t")
   sp.name <- as.character(params.tab[job.id, 2])
@@ -105,6 +105,8 @@ ddeg <- raster(file.path(in.gdd, "ddeg"), crs = proj)
 biointer <- stack(file.path(in.biot,  paste0(sp.bmname, "_bio_inter_filt_no_disp_invdist.grd")))
 biointer <- subset(biointer, "current")
 ## added for the testing session of biointeraction maps
+### !!! TO BE REMOVED !!! ###
+projection(biointer) <- projection(bio)
 biointer <- projectRaster(biointer, bio)
 names(biointer) <- "biointer"
 ## merge all cliimatic variables
