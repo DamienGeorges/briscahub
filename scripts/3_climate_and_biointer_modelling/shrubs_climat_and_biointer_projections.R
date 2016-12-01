@@ -202,10 +202,10 @@ quit('no')
 #             quote = FALSE, append = FALSE, row.names = TRUE, col.names = FALSE)
 # 
 
-# 
-# ## create the parameter files for the grid -------------------------------------
-# ## test mode
-# 
+
+## create the parameter files for the grid -------------------------------------
+## test mode
+
 # ## on idiv_cluster
 # out.dir <- "/work/georges/BRISCA/grid_params/"
 # dir.create(out.dir, showWarnings = FALSE, recursive = TRUE)
@@ -226,20 +226,26 @@ quit('no')
 # 
 # params.no.disp.biointer <- params.min.disp.biointer <- params.max.disp.biointer <- params 
 # 
-# params.max.disp.biointer$path.to.biointer.stk <- paste0("/work/georges/BRISCA/Biomod_biotic_interaction_maps/", params.no.disp.biointer$sp.list, "_bio_inter_filt_max_disp_invdist.grd")
+# params.no.disp.biointer$path.to.biointer.stk <- paste0("/work/georges/BRISCA/Biomod_biotic_interaction_maps_new/", params.no.disp.biointer$sp.list, "_bio_inter_filt_no_disp_invdist.grd")
+# params.min.disp.biointer$path.to.biointer.stk <- paste0("/work/georges/BRISCA/Biomod_biotic_interaction_maps_new/", params.no.disp.biointer$sp.list, "_bio_inter_filt_min_disp_invdist.grd")
+# params.max.disp.biointer$path.to.biointer.stk <- paste0("/work/georges/BRISCA/Biomod_biotic_interaction_maps_new/", params.no.disp.biointer$sp.list, "_bio_inter_filt_max_disp_invdist.grd")
 # 
 # ## remove all the non no dispersal based biotic interaction for current condition
+# params.min.disp.biointer <- params.min.disp.biointer[!grepl('current', params.min.disp.biointer$path.to.clim.var), ] 
 # params.max.disp.biointer <- params.max.disp.biointer[!grepl('current', params.max.disp.biointer$path.to.clim.var), ] 
-# params <- params.max.disp.biointer
 # 
-# ## subselect a part of params?
-# params <- params[!grepl("_min_disp", params$path.to.biointer.stk), ]
+# 
+# params <- rbind(params.no.disp.biointer, params.max.disp.biointer, params.min.disp.biointer)
+# 
+# # ## subselect a part of params?
+# # params <- params[!grepl("_min_disp", params$path.to.biointer.stk), ]
 # 
 # ## reorder the table by species names
-# params <- params[2, , drop = FALSE]
+# params <- params[order(params$sp.list), ]
+# params <- params[c(2,4,6), ]
 # rownames(params) <- NULL
 # 
-# write.table(params, file = file.path(out.dir, "params_scabp_test.txt"), sep = "\t", 
+# write.table(params, file = file.path(out.dir, "params_scabp.txt"), sep = "\t", 
 #             quote = FALSE, append = FALSE, row.names = TRUE, col.names = FALSE)
 # 
-# 
+
