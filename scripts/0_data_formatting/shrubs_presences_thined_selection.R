@@ -4,7 +4,7 @@
 rm(list = ls())
 setwd("I:\\C_Write\\Signe\\aa_BRISCA\\Data\\StudySpecies\\Processed\\R_workspace")
 #setwd("~/SHRUBS/WORKDIR/SDM/")
-.libPaths("J:\\People\\Damien\\R")
+.libPaths("J:\\People\\Damien\\RLIBS")
 ##install.packages("dplyr", lib = "J:\\People\\Damien\\R")
 library(raster)
 library(dplyr)
@@ -14,8 +14,9 @@ inras <- c("I:\\C_Write\\Signe\\aa_BRISCA\\Data\\StudySpecies\\Processed\\bb_HUL
            "I:\\C_Write\\Signe\\aa_BRISCA\\Data\\StudySpecies\\Processed\\bb_HULTEN\\hult.spp.data\\Hulten.rasters.trees\\Rasters.combi.reclass.img\\", ## hultens for trees
            "I:\\C_Write\\Signe\\aa_BRISCA\\Data\\StudySpecies\\Processed\\bb_USGS\\usgs.spp.data\\USGS.rasters.trees\\Rasters.raw.img\\" ) ## usgs for trees
  
-inpath <- "I:\\C_Write\\Signe\\aa_BRISCA\\Data\\StudySpecies\\Processed\\Species.list\\Occurrence.tables.combined.all.sources\\"
-outpath <- "I:\\C_Write\\Signe\\aa_BRISCA\\Data\\StudySpecies\\Processed\\Species.list\\Occurrence.tables.combined.all.sources.hult_usgs.masked\\" 
+# inpath <- "I:\\C_Write\\Signe\\aa_BRISCA\\Data\\StudySpecies\\Processed\\Species.list\\Occurrence.tables.combined.all.sources\\"
+inpath <- "I:\\C_Write\\Signe\\aa_BRISCA\\Data\\StudySpecies\\Processed\\Species.list\\Occurrence.tables.combined.all.sources.no.flaws\\"
+outpath <- "I:\\C_Write\\Signe\\aa_BRISCA\\Data\\StudySpecies\\Processed\\Species.list\\Occurrence.tables.combined.all.sources.no.flaws.hult_usgs.masked\\" 
 
 ## define a couple of constant that will be used latter on
 buff.dist.hult = 50000 ## the distance use to filter Hulten rasters (hulten points too close to 'TRUE' occurrences will be removed)
@@ -23,9 +24,11 @@ buff.dist.thin = 50000 ## the distance use to apply thining procedure
 nb.run.thin = 10 ## the nuber of thining repetition perform 
 
 ## we will consider the shrub and tree species in the Arctic (PAF ==1) that have not been processed yet (Rerun == 1)
-dataset <- read.table("I:\\C_Write\\Signe\\aa_BRISCA\\Data\\StudySpecies\\Processed\\Species.list\\sp.list_06102015.txt", sep="\t", header = TRUE, stringsAsFactors = FALSE)
+# dataset <- read.table("I:\\C_Write\\Signe\\aa_BRISCA\\Data\\StudySpecies\\Processed\\Species.list\\sp.list_06102015.txt", sep="\t", header = TRUE, stringsAsFactors = FALSE)
+dataset <- read.table("I:\\C_Write\\Signe\\aa_BRISCA\\Data\\StudySpecies\\Processed\\Species.list\\sp.list_22.12.2016.txt", sep="\t", header = TRUE, stringsAsFactors = FALSE)
+
 # Subset to only wiev the species with at least one source data
-data <- dataset %>% filter(data == 1, Rerun == 1)
+data <- dataset %>% filter(data == 1, rerun1.leave.out0 == 1)
 
 #Extract the species list for which we need to rerun some processes
 sp.list <- data %>% select(Genus.species) %>% distinct %>% unlist
@@ -130,11 +133,16 @@ thining.raster <- function(ras, buff.dist = 50000, nb.pts = 100, as.raster = FAL
 ## parallel version
 library(foreach)
 library(doParallel)
-cl <- makeCluster(20)
+cl <- makeCluster(22)
 registerDoParallel(cl)
+# pass libPath to workers, NOTE THIS LINE
+clusterCall(cl, function(x) .libPaths(x), .libPaths())
+
 foreach(k = 1:length(sp.list), .packages = c('raster', 'dplyr')) %dopar% {
 ## end parallel version
-  
+  # .libPaths("J:\\People\\Damien\\RLIBS")
+  # library('raster')
+  # library('dplyr')
   ## does the species has hulten or usgs data?
   has.hulten.usgs <- any(grepl(paste0(sp.list[k], ".img"), ras.files))
  
@@ -204,5 +212,6 @@ foreach(k = 1:length(sp.list), .packages = c('raster', 'dplyr')) %dopar% {
   write.csv(thin.pts, file.name, row.names = FALSE)
 }
 
+stopCluster(cl)
 ## exit the script
 # q('no')

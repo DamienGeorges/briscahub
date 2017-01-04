@@ -18,8 +18,8 @@ library(tidyr)
 
 ## define the main paths to data
 briscahub.dir <- "J:/People/Damien/BRISCA/briscahub/" ## on brisca cluster
-alphadiv.tab.path <- "I://C_Write/Damien/BRISCA/backup_idiv_cluster/SRC_baseline_alpha_and_turnover_stack_by_growth_form_stat/mean_rcp_gcm_alphadiv_ras/gg.bp.stat.RData"
-out.dir.path <-"I:/C_Write/Damien/BRISCA/figures/2016-10-27"
+alphadiv.tab.path <- "I://C_Write/Damien/BRISCA/backup_idiv_cluster/SRC_baseline_alpha_and_turnover_stack_by_growth_form_stat_new/mean_rcp_gcm_alphadiv_ras/gg.bp.gf.stat.RData"
+out.dir.path <-"I:/C_Write/Damien/BRISCA/figures/2016-11-29"
 
 dir.create(out.dir.path, recursive = TRUE, showWarnings = FALSE)
 
@@ -27,6 +27,7 @@ dir.create(out.dir.path, recursive = TRUE, showWarnings = FALSE)
 
 ## laod alphadiv scores table
 alphadiv.tab <- get(load(alphadiv.tab.path))
+
 
 ## load species ref table
 sp.tab <- read.table(file.path(briscahub.dir, "data/sp.list_08102015_red.txt"),
@@ -50,6 +51,15 @@ gg.dat <- alphadiv.tab %>% mutate(metric.name = metric) %>%
 
 gg.dat$area <- factor(gg.dat$area, levels =  c("r.from.sa", "r.sa", "r.la", "r.ha"), labels = c("Full arctic", "Sub-arctic", "Low arctic", "High arctic"))
 gg.dat$metric.name = factor(gg.dat$metric.name, levels = c("alphadiv.change", "lost", "gain"), labels = c("AlphaDiv Change", "Nb Species Lost", "Nb Species Gained"))
+gg.dat$dispersal.filter <- factor(gg.dat$dispersal.filter, levels =  c("no", "minimal", "maximal", "unlimited"))
+gg.dat$biotic.inter <- factor(gg.dat$biotic.inter, levels =  c("no", "low", "high"))
+
+## !!!! NOTE !!!!
+## because we have some species that appearson the high arctic the percentage of gain is
+## unlimited
+## !!!! END NOTE !!!!
+
+
 
 ## check the number of combination computed
 gg.dat %>% ungroup %>% group_by(biotic.inter, dispersal.filter) %>% summarise(n = n())
@@ -79,21 +89,21 @@ gg.dat %>% ungroup %>% group_by(biotic.inter, dispersal.filter) %>% summarise(n 
 #   scale_fill_brewer(palette = "Blues", guide = guide_legend(title = "Dispersal distance")) + 
 #   scale_linetype_discrete(guide = guide_legend(title = "Biotic interactions")) +
 #   xlab("") + ylab("") +
-#   gg.theme + theme(axis.text.x = element_blank(), axis.ticks.x = element_blank())
+#   gg.theme + theme(axis.text.x = element_text(angle = 0, hjust = .5, vjust = .5))
 # gg.plot
 
-gg.plot <- ggplot(gg.dat, aes(1, fill = dispersal.filter, linetype = biotic.inter)) +
+gg.plot <- ggplot(gg.dat, aes(growth.form, fill = dispersal.filter, linetype = biotic.inter)) +
   geom_boxplot(aes(lower = lower, middle = middle, upper = upper, ymin = ymin, ymax = ymax), 
-               stat = "identity", outlier.colour = NA, position = position_dodge(1.5)) + 
+               stat = "identity", outlier.colour = NA, position = position_dodge(.9)) + 
   facet_grid(metric.name ~ area, scale = 'free_y') + 
-  scale_fill_brewer(palette = "Blues", guide = guide_legend(title = "Dispersal distance")) + 
   scale_linetype_discrete(guide = guide_legend(title = "Biotic interactions")) +
+  scale_fill_brewer(palette = "Blues", guide = guide_legend(title = "Dispersal distance")) + 
   xlab("") + ylab("") +
-  gg.theme + theme(axis.text.x = element_blank(), axis.ticks.x = element_blank())
+  gg.theme + theme(axis.text.x = element_text(angle = 0, hjust = .5, vjust = .5))
 gg.plot
 
 
-ggsave(file.path(out.dir.path, "fig1b2.png"), gg.plot, width = 297, height = 210, units = 'mm')
+ggsave(file.path(out.dir.path, "figXb2.png"), gg.plot, width = 297, height = 210, units = 'mm')
 
 ## try to replace the alpha.div change by the raw alphadiv
 gg.dat2 <- alphadiv.tab %>% mutate(metric.name = metric) %>% 
@@ -103,18 +113,18 @@ gg.dat2 <- alphadiv.tab %>% mutate(metric.name = metric) %>%
 gg.dat2$area <- factor(gg.dat2$area, levels =  c("r.from.sa", "r.sa", "r.la", "r.ha"), labels = c("Full arctic", "Sub-arctic", "Low arctic", "High arctic"))
 gg.dat2$metric.name = factor(gg.dat2$metric.name, levels = c("alphadiv", "lost", "gain"), labels = c("AlphaDiv", "Nb Species Lost", "Nb Species Gained"))
 
-gg.plot <- ggplot(gg.dat2, aes(1, fill = dispersal.filter, linetype = biotic.inter)) +
+gg.plot <- ggplot(gg.dat2, aes(growth.form, fill = dispersal.filter, linetype = biotic.inter)) +
   geom_boxplot(aes(lower = lower, middle = middle, upper = upper, ymin = ymin, ymax = ymax), 
-               stat = "identity", outlier.colour = NA, position = position_dodge(1.5)) + 
+               stat = "identity", outlier.colour = NA, position = position_dodge(.9)) + 
   facet_grid(metric.name ~ area, scale = 'free_y') + 
-  scale_fill_brewer(palette = "Blues", guide = guide_legend(title = "Dispersal distance")) + 
   scale_linetype_discrete(guide = guide_legend(title = "Biotic interactions")) +
+  scale_fill_brewer(palette = "Blues", guide = guide_legend(title = "Dispersal distance")) + 
   xlab("") + ylab("") +
-  gg.theme + theme(axis.text.x = element_blank(), axis.ticks.x = element_blank())
+  gg.theme + theme(axis.text.x = element_text(angle = 0, hjust = .5, vjust = .5))
 gg.plot
 
 
-ggsave(file.path(out.dir.path, "fig1b3.png"), gg.plot, width = 297, height = 210, units = 'mm')
+ggsave(file.path(out.dir.path, "figXb3.png"), gg.plot, width = 297, height = 210, units = 'mm')
 
 ## try to replace the alpha.div change by the raw alphadiv
 gg.dat2 <- alphadiv.tab %>% mutate(metric.name = metric) %>% 
@@ -124,18 +134,18 @@ gg.dat2 <- alphadiv.tab %>% mutate(metric.name = metric) %>%
 gg.dat2$area <- factor(gg.dat2$area, levels =  c("r.from.sa", "r.sa", "r.la", "r.ha"), labels = c("Full arctic", "Sub-arctic", "Low arctic", "High arctic"))
 gg.dat2$metric.name = factor(gg.dat2$metric.name, levels = c("alphadiv.change", "pc.lost", "pc.gain"), labels = c("AlphaDiv Change", "Species Lost (%)", "Species Gained (%)"))
 
-gg.plot <- ggplot(gg.dat2, aes(1, fill = dispersal.filter, linetype = biotic.inter)) +
+gg.plot <- ggplot(gg.dat2, aes(growth.form, fill = dispersal.filter, linetype = biotic.inter)) +
   geom_boxplot(aes(lower = lower, middle = middle, upper = upper, ymin = ymin, ymax = ymax), 
-               stat = "identity", outlier.colour = NA, position = position_dodge(1.5)) + 
+               stat = "identity", outlier.colour = NA, position = position_dodge(.9)) + 
   facet_grid(metric.name ~ area, scale = 'free_y') + 
-  scale_fill_brewer(palette = "Blues", guide = guide_legend(title = "Dispersal distance")) + 
   scale_linetype_discrete(guide = guide_legend(title = "Biotic interactions")) +
+  scale_fill_brewer(palette = "Blues", guide = guide_legend(title = "Dispersal distance")) + 
   xlab("") + ylab("") +
-  gg.theme + theme(axis.text.x = element_blank(), axis.ticks.x = element_blank())
+  gg.theme + theme(axis.text.x = element_text(angle = 0, hjust = .5, vjust = .5))
 gg.plot
 
 
-ggsave(file.path(out.dir.path, "fig1b.png"), gg.plot, width = 297, height = 210, units = 'mm')
+ggsave(file.path(out.dir.path, "figXb.png"), gg.plot, width = 297, height = 210, units = 'mm')
 
 # ### make a try with a semilog scale
 # ## to deal with the boxplot outliers
@@ -145,12 +155,12 @@ ggsave(file.path(out.dir.path, "fig1b.png"), gg.plot, width = 297, height = 210,
 # 
 # gg.plot <- ggplot(gg.dat.log.no.ol, aes(1, fill = dispersal.filter, linetype = biotic.inter)) +
 #   geom_boxplot(aes(lower = X2, middle = X3, upper = X4, ymin = X1, ymax = X5), 
-#                stat = "identity", outlier.colour = NA, position = position_dodge(1.5)) + 
+#                stat = "identity", outlier.colour = NA, position = position_dodge(.9)) + 
 #   facet_grid(metric.name ~ area, scale = 'free_y') + 
 #   scale_fill_brewer(palette = "Blues", guide = guide_legend(title = "Dispersal distance")) + 
 #   scale_linetype_discrete(guide = guide_legend(title = "Biotic interactions")) +
 #   xlab("") + ylab("") +
-#   gg.theme + theme(axis.text.x = element_blank(), axis.ticks.x = element_blank())
+#   gg.theme + theme(axis.text.x = element_text(angle = 0, hjust = .5, vjust = .5))
 # gg.plot
 # 
 # ggsave(file.path(out.dir.path, "fig1_pseudo_log.png"), gg.plot, width = 297, height = 210, units = 'mm')
