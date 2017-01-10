@@ -24,7 +24,7 @@
 ##' @log
 ##'   - 09/09/2015: update the script to fit with idiv cluster
 ##'   - 06/10/2015: update paths to be able to models the new set of species
-##' 
+##'   - 05/01/2017: rerun a couple of species that have false positive presences. That implies tochange paths to datd
 ##' 
 ##' @licencing GPL
 ##'     Copyright (C) 2015  Damien G.
@@ -85,23 +85,26 @@ if(host == "pinea"){
   # path to maxent.jar file  
   path_to_maxent.jar <- "I:\\C_Write\\Signe\\aa_BRISCA\\SDM_sessions\\Maxent"
 } else if (host == "idiv_cluster"){
+  .libPaths("/home/georges/R/x86_64-pc-linux-gnu-library/3.2/")
   # presences-absences tables
 #   in.spp <- "/data/idiv_sdiv/brisca/SDM_sessions/Presence-PseudoAbsence_thinned/Data_output/gbif_biosc_hult_thined_10000" 
-  in.spp <- "/data/idiv_sdiv/brisca/SDM_sessions/Presence-PseudoAbsence_thinned/Data_output/gbif_biosc_hult_usgs_thined_10000" 
-  # worldclim layers
+  # in.spp <- "/data/idiv_sdiv/brisca/SDM_sessions/Presence-PseudoAbsence_thinned/Data_output/gbif_biosc_hult_usgs_thined_10000" 
+  in.spp <-  "/data/idiv_sdiv/brisca/Data/january_session/Presence-PseudoAbsence_thinned/Data_output.no.flaws/gbif_biosc_hult_usgs_thined_10000.no.flaws"
+  
+    # worldclim layers
   in.clim <- "/data/idiv_sdiv/brisca/Data/Climate/Macroclimate/Current/Processed/Projected/bio"
   # GDD layer
   in.gdd <- "/data/idiv_sdiv/brisca/Data/Climate/Macroclimate/Current/Processed/Projected/tave10_esri"
   # output directory (= workking directory)
 #   out.dir <- "/work/georges/BRISCA/Biomod_pure_climate"
-  out.dir <- "/work/georges/BRISCA/Biomod_pure_climate_usgs"
+  out.dir <- "/work/georges/BRISCA/Biomod_pure_climate_usgs_no_flaws"
   # path to maxent.jar file  
   path_to_maxent.jar <- "/data/idiv_sdiv/brisca/SDM_sessions/Maxent"
   ##' @note beacause of the the job manager installed in this cluster (qsub)
   ##'   the input argument is the species ID not the species name so we need 
   ##'   to recover species name manually
   sp.id <- as.numeric(sp.name)
-  sp.tab <- read.table("/work/georges/BRISCA/grid_params/params_spcm.txt", header = FALSE, sep = " ")
+  sp.tab <- read.table("/work/georges/BRISCA/grid_params/params_spcmJ.txt", header = FALSE, sep = " ")
   sp.name <- as.character(sp.tab[sp.id, 2])
 }
 
@@ -122,7 +125,8 @@ proj <- CRS("+proj=laea +lat_0=90.0 +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +towgs84
 ## bioclimatic variables
 bio <- stack(file.path(in.clim, "bioproj.grd"))
 ## degree day
-ddeg <- raster(file.path(in.gdd, "ddeg"), crs = proj)
+# ddeg <- raster(file.path(in.gdd, "ddeg"), crs = proj)
+ddeg <- raster(file.path(in.gdd, "ddeg.grd"))
 ## merge all cliimatic variables
 clim.cur <- stack(ddeg, subset(bio, c(6, 10, 18, 19)))
 
@@ -316,7 +320,7 @@ quit("no")
 # 
 # params <- data.frame(sp.name = sp.list)
 # 
-# write.table(params, file = file.path(out.dir, "params_spcm.txt"), sep = " ", 
+# write.table(params, file = file.path(out.dir, "params_spcmJ.txt"), sep = " ",
 #             quote = FALSE, append = FALSE, row.names = TRUE, col.names = FALSE)
 
 

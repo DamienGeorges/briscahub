@@ -20,6 +20,7 @@
 ##'   climatique condition given as input to enhance parallel processing of the 
 ##'   projections.
 ##' @log
+##'  - 09/01/2017: adapt path for January session
 ##' 
 ##' @licencing GPL
 ##'     Copyright (C) 2015  Damien G.
@@ -63,16 +64,21 @@ if(host == "pinea"){
   # path to the directory where models have been computed
   #in.mod <- "/work/georges/BRISCA/Biomod_pure_climate_final"
   #in.mod <- "/work/georges/BRISCA/Biomod_pure_climate_usgs" ## pure climate models
-  # in.mod <- "/work/georges/BRISCA/Biomod_pure_climate_xy" ## pure climate + XY models 
-  in.mod <- "/work/georges/BRISCA/Biomod_pure_climate_invdist" ## pure climate + invdist models 
+  #in.mod <- "/work/georges/BRISCA/Biomod_pure_climate_xy" ## pure climate + XY models  #in.mod <- "/work/georges/BRISCA/Biomod_pure_climate_invdist" ## pure climate + invdist models 
+  in.mod <- "/work/georges/BRISCA/Biomod_pure_climate_usgs_no_flaws"
   # path to parameter table
   ## pure climate models
-  #param.file <- "/work/georges/BRISCA/grid_params/params_spcp.txt" ## first run (5G ram)
+  param.file <- "/work/georges/BRISCA/grid_params/params_spcp.txt" ## first run (5G ram)
 #  param.file <- "/work/georges/BRISCA/grid_params/params_spcep.txt" ## second run
   # param.file <- "/work/georges/BRISCA/grid_params/params_csiro.txt" ## second run
   ## pure climate + XY models
-  param.file <- "/work/georges/BRISCA/grid_params/params_spcp_xy.txt"
+  #param.file <- "/work/georges/BRISCA/grid_params/params_spcp_xy.txt"
 }
+
+
+## require libraries -----------------------------------------------------------
+.libPaths("~/R/x86_64-pc-linux-gnu-library/3.2/")
+require(biomod2, lib.loc='~/R/biomod2_pkg/biomod2_3.1-73-04') ## version 1.3-73-02 (= the same than 1.3.73 with a trick not to save rasters in tmp dir)
 
 ## define here raster options to limit IO impact of jobs
 

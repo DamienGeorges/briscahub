@@ -7,12 +7,12 @@
 ## #$  -N  shrub_pure_climat_projections
 #$  -N  spcp_5G
 #$  -S  /bin/bash
-#$  -l  h_vmem=5999M
+## #$  -l  h_vmem=5999M
 ## #$  -l  h_vmem=9999M
-## #$  -l  h_vmem=20G,highmem
+#$  -l  h_vmem=20G,highmem
 #$  -l  h_rt=24:00:00
 ## #$  -t  1-4900
-#$  -t 1-756
+#$  -t 447
 #$  -binding linear:1 ## core binding
 
 # ---------------------------------------------------------------------- 
@@ -46,7 +46,7 @@ echo
 
 source /etc/profile.d/000-modules.sh
 
-module load gdal R/3.1.0-3
+module load gdal geos R
 module unload cairo
 module list
 

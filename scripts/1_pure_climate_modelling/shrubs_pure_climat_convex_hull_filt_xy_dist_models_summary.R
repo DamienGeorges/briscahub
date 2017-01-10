@@ -57,12 +57,12 @@ sp.tab <- read.table(file.path(briscahub.dir, "data/sp.list_08102015_red.txt"),
                      sep = "\t", header = TRUE, stringsAsFactors = FALSE)
 
 ## -- define how we will split our final graph ---------------------------------
-panel.ncol <- 4
+panel.ncol <- 3
 panel.nrow <- 20
 img.width <- panel.ncol * 300
 img.height <- panel.nrow * 300
 
-for(sp.id in 21:189){
+for(sp.id in 1:189){
   cat("\n> sp:", sp.id, "/189 ---------------------------------------------\n")
   
   ## -- create a new png file each 20 species ----------------------------------
@@ -70,7 +70,7 @@ for(sp.id in 21:189){
   if(is.new.graph){
     graph.id <- (sp.id %/% (panel.nrow)) + 1
     ## open a png device
-    file.name <- file.path(out.dir, paste0("spcm_convex_hull_full_filt_xy_dist_models_test", graph.id, ".png"))
+    file.name <- file.path(out.dir, paste0("spcm_convex_hull_full_filt_invdist_models_test", graph.id, ".png"))
     cat("\n> Creating", file.name)
     png(file.name, 
         width = img.width, height = img.height, res = 80, type = 'cairo')
@@ -97,19 +97,19 @@ for(sp.id in 21:189){
   assign(paste0("pres.pts", sp.panel.pos), pres.pts)
   
   ## -- load models with coordinates as predictor projections --------------------
-  proj.xy.bin <- raster(file.path("/work/georges/BRISCA/Biomod_pure_climate_xy", 
-                                  sp.name.bm, "proj_pure_climat_current",
-                                  "individual_projections",
-                                  paste0(sp.name.bm, "_EMwmeanByTSS_mergedAlgo_mergedRun_mergedData_TSSbin.grd")))
+#   proj.xy.bin <- raster(file.path("/work/georges/BRISCA/Biomod_pure_climate_xy", 
+#                                   sp.name.bm, "proj_pure_climat_current",
+#                                   "individual_projections",
+#                                   paste0(sp.name.bm, "_EMwmeanByTSS_mergedAlgo_mergedRun_mergedData_TSSbin.grd")))
   
   ## -- load models with distance to occurance as predictor projections ----------
-  proj.dist.bin <- try(raster(file.path("/work/georges/BRISCA/Biomod_pure_climate_dist", 
+  proj.inv.dist.bin <- try(raster(file.path("/work/georges/BRISCA/Biomod_pure_climate_invdist", 
                                   sp.name.bm, "proj_pure_climat_current",
                                   "individual_projections",
                                   paste0(sp.name.bm, "_EMwmeanByTSS_mergedAlgo_mergedRun_mergedData_TSSbin.grd"))))
   ##' @note curently the species 38 distance model has failed so we will make a
   ##'   trick not to block the computation 
-  if(inherits(proj.dist.bin, "try-error")){proj.dist.bin <- proj.xy.bin; proj.dist.bin[] <- NA}
+  if(inherits(proj.inv.dist.bin, "try-error")){proj.inv.dist.bin <- raster("/data/idiv_sdiv/brisca/Data/no_interaction_mask.grd"); proj.dist.bin[] <- NA}
   
   ## -- load current projections -------------------------------------------------
   proj.cur <- raster(file.path(mod.dir, sp.name.bm, "proj_pure_climat_current",
@@ -151,25 +151,28 @@ for(sp.id in 21:189){
   lis.args[[(sp.panel.pos-1) * panel.ncol + 2]] <- pp
   
   ## third graph is for the XY models
-  pp <- levelplot(proj.xy.bin, par.settings = ras.theme,
-                  margin = FALSE, colorkey = FALSE) + 
-    eval(parse(text = paste0("layer(sp.points(pres.pts", sp.panel.pos, ", col = 'yellow', alpha = .01 ))")))
-  if(sp.panel.pos == 1) pp$main <- "current proj XY mod\n+ pts"
-  ## add the graph in the list
-  lis.args[[(sp.panel.pos-1) * panel.ncol + 3]] <- pp
+#   pp <- levelplot(proj.xy.bin, par.settings = ras.theme,
+#                   margin = FALSE, colorkey = FALSE) + 
+#     eval(parse(text = paste0("layer(sp.points(pres.pts", sp.panel.pos, ", col = 'yellow', alpha = .01 ))")))
+#   if(sp.panel.pos == 1) pp$main <- "current proj XY mod\n+ pts"
+#   ## add the graph in the list
+#   lis.args[[(sp.panel.pos-1) * panel.ncol + 3]] <- pp
   
   ## fourth graph is for the dist models
-  pp <- levelplot(proj.dist.bin, par.settings = ras.theme,
+  pp <- levelplot(proj.inv.dist.bin, par.settings = ras.theme,
                   margin = FALSE, colorkey = FALSE) + 
     eval(parse(text = paste0("layer(sp.points(pres.pts", sp.panel.pos, ", col = 'yellow', alpha = .01 ))")))
   if(sp.panel.pos == 1) pp$main <- "current proj dist mod\n+ pts"
   ## add the graph in the list
-  lis.args[[(sp.panel.pos-1) * panel.ncol + 4]] <- pp
+  lis.args[[(sp.panel.pos-1) * panel.ncol + 3]] <- pp
    
   is.last.panel <- (sp.panel.pos == (panel.nrow) | sp.id == 189)
   if(is.last.panel){
-    lis.args <- c( lis.args, ncol = panel.ncol, main = list(textGrob(paste0("\nConvex Hull vs XY modelling filtering test",
-                                                                            "\nbased on pure climate and models weighted mean"), 
+    ## debug
+#     save.image("/work/georges/BRISCA/workdir/spcchfxdms.RData")
+    ## end ddebug
+    lis.args <- c( lis.args, ncol = panel.ncol, main = list(textGrob(paste0("\nConvex Hull vs invdist modelling filtering test",
+                                                                            "\nbased on pure climate and models committee averaging"), 
                                                                      gp=gpar(fontsize=20,font=3))))
     cat("\n> Producing the graph...")
     do.call(grid.arrange, lis.args)

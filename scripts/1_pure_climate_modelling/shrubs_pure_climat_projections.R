@@ -22,6 +22,7 @@
 ##'   A piece of code to generate parameters is available at the end of this script.
 ##' 
 ##' @log
+##'  - 06/01/2016: launch the projection procedure for the corrected version of the 22 shru
 ##' 
 ##' @licencing GPL
 ##'     Copyright (C) 2015  Damien G.
@@ -62,11 +63,11 @@ if(host == "pinea"){
 } else if (host == "idiv_cluster"){
   # path to the directory where models have been computed
 #   in.mod <- "/work/georges/BRISCA/Biomod_pure_climate"
-  in.mod <- "/work/georges/BRISCA/Biomod_pure_climate_final"
+  in.mod <- "/work/georges/BRISCA/Biomod_pure_climate_usgs_no_flaws"
   # path to parameter table
 #   param.file <- "/work/georges/BRISCA/grid_params/params_spcp.txt" ## first run (10G ram)
 #    param.file <- "/work/georges/BRISCA/grid_params/params_spcp20G.txt" ## second run (20G ram)
-  param.file <- "/work/georges/BRISCA/grid_params/params_csiro.txt" ## first run (10G ram)
+  param.file <- "/work/georges/BRISCA/grid_params/params_spcp.txt" ## first run (10G ram)
 }
 
 ## create the output directory and change the working directory ----------------
@@ -80,7 +81,14 @@ path.to.expl.var <- as.character(param.tab[job.id, 3])
 
 
 ## require libraries -----------------------------------------------------------
+.libPaths("~/R/x86_64-pc-linux-gnu-library/3.2/")
 require(biomod2, lib.loc='~/R/biomod2_pkg/biomod2_3.1-73-04') ## version 1.3-73-02 (= the same than 1.3.73 with a trick not to save rasters in tmp dir)
+rasterOptions(tmpdir = "/work/georges/R_raster_georges", ## where to store raster tmp files (prevent to fill up /tmp dir)
+              tmptime = 24, ## time after which raster tmp files will be deleted
+              chunksize = 5e+08, ## size of blocks that will be written on hardrive (for I/O optimisation)
+              maxmemory = 1e+09, ## max number of cell loaded in the memory (for I/O optimisation)
+              overwrite = TRUE)
+
 
 ## load models outputs and explanatory variables -------------------------------
 ## load models
@@ -136,14 +144,15 @@ quit('no')
 
 ## end of script ---------------------------------------------------------------
 
-## create the parameter files for the grid -------------------------------------
-
+# ## create the parameter files for the grid -------------------------------------
+# 
 # ## on idiv_cluster
 # out.dir <- "/work/georges/BRISCA/grid_params/"
 # dir.create(out.dir, showWarnings = FALSE, recursive = TRUE)
-# sp.list <- read.table("~/BRISCA/briscahub/data/sp.list_08102015_red.txt",
-#                       sep = "\t", stringsAsFactors = FALSE, header  = TRUE)
-# sp.list <- sp.list$Biomod.name
+# # sp.list <- read.table("~/BRISCA/briscahub/data/sp.list_08102015_red.txt",
+# #                       sep = "\t", stringsAsFactors = FALSE, header  = TRUE)
+# # sp.list <- sp.list$Biomod.name
+# sp.list <- list.files("/work/georges/BRISCA/Biomod_pure_climate_usgs_no_flaws/")
 # 
 # ## define the gcm and rcp we want to consider
 # rcp.list <- c("RCP_2.6_2080", "RCP_4.5_2080", "RCP_6.0_2080", "RCP_8.5_2080")
@@ -159,7 +168,7 @@ quit('no')
 # params <- expand.grid(sp.list = sp.list,
 #                       path.to.expl.var = path.to.expl.var)
 # 
-# write.table(params, file = file.path(out.dir, "params_spcp.txt"), sep = " ", 
+# write.table(params, file = file.path(out.dir, "params_spcp.txt"), sep = " ",
 #             quote = FALSE, append = FALSE, row.names = TRUE, col.names = FALSE)
 # 
 # ## subselect a part of params?

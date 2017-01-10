@@ -11,6 +11,7 @@
 ##'   our full model.
 ##'   
 ##' @log
+##' - 16nov 2016: update the file path to recompute the 
 ##' 
 ##' @licencing GPL
 ##'     Copyright (C) 2015  Damien G.
@@ -48,8 +49,8 @@ rasterOptions(tmpdir = "/work/georges/R_raster_georges", ## where to store raste
 
 
 ## -- define path to models and to output directories --------------------------
-mod.dir <- "/work/georges/BRISCA/Biomod_pure_climate_filtered"
-out.dir <- "/work/georges/BRISCA/Biomod_biotic_interaction_maps"
+mod.dir <- "/data/idiv_sdiv/brisca/results/Biomod_pure_climate_filtered"
+out.dir <- "/work/georges/BRISCA/Biomod_biotic_interaction_maps_new"
 dir.create(out.dir, recursive = TRUE, showWarnings = FALSE)
 briscahub.dir <- "/home/georges/BRISCA/briscahub"
 
@@ -71,7 +72,7 @@ sp.height <- sp.tab$All.height.median[sp.id]
 sp.higher.bmnames <- sp.tab$Biomod.name[sp.tab$All.height.median > sp.height]
 
 ## define an empty default biotic interaction map
-sp.bio.inter <- sp.no.inter <- raster("/data/idiv_sdiv/brisca/Data/no_interaction_mask.grd")
+sp.bio.inter <- sp.no.inter <- raster("/data/idiv_sdiv/brisca/Data/no_interaction_mask_new.grd")
 
 # sp_ <- sp.higher.bmnames[1]
 # mod.dir <- "/work/georges/BRISCA/Biomod_pure_climate_filtered"
