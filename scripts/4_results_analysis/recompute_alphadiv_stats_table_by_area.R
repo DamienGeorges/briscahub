@@ -25,9 +25,10 @@ if(machine == "leca97"){
 } else if (machine == "signe_cluster"){
   .libPaths( "J:/People/Damien/RLIBS")
   briscahub.dir <- "J://People/Damien/BRISCA/briscahub/"
-  alpha.div.map.path <-  paste0("I://C_Write/Damien/BRISCA/backup_idiv_cluster/", ifelse(same.baseline, "SRC_baseline", "SRC"), "_alpha_and_turnover_stack_by_growth_form")
-  param.tab.path <- paste0("I://C_Write/Damien/BRISCA/backup_idiv_cluster/", ifelse(same.baseline, "SRC_baseline", "SRC"), "_alpha_and_turnover_stack_by_growth_form/gg.calc.RData")
-  out.dir.path <- paste0("I://C_Write/Damien/BRISCA/backup_idiv_cluster/", ifelse(same.baseline, "SRC_baseline", "SRC"), "_alpha_and_turnover_stack_by_growth_form_stat")
+  alpha.div.map.path <-  "I://C_Write/Damien/BRISCA/backup_idiv_cluster/SRC_baseline_alpha_and_turnover_stack_by_growth_form_new"
+  # param.tab.path <- paste0("I://C_Write/Damien/BRISCA/backup_idiv_cluster/", ifelse(same.baseline, "SRC_baseline", "SRC"), "_alpha_and_turnover_stack_by_growth_form/gg.calc.RData")
+  param.tab.path <- file.path(alpha.div.map.path, "gg.calc.RData")#file.path(briscahub.dir, "data/params_src_new.RData")
+  out.dir.path <- "I://C_Write/Damien/BRISCA/backup_idiv_cluster/SRC_baseline_alpha_and_turnover_stack_by_growth_form_stat_new"
 } else stop("\n> unknow machine!")
 
 setwd(file.path(briscahub.dir, "workdir"))
@@ -80,6 +81,7 @@ mean_alphadiv <- function(x){
   n.stk_ <- length(stk.files_)
   stk.name_ <- file.path(mean.alpha.div.dir, paste0("mean_alphadiv_stk_across_rcp_gcm__", scenario.biomod_, "__", biotic.inter_, "__", dispersal.filter_, "__", growth.form_, ".grd"))
   stk.list_ <- lapply(stk.files_, stack, RAT = FALSE)
+  cat("\n> stack loaded!")
   # stk.list_$fun <- mean
   # stk.list_$filename <- stk.name_
   # stk.mean_ <- do.call(overlay, tail(stk.list_, 5)) 
@@ -87,12 +89,31 @@ mean_alphadiv <- function(x){
   for(l in 2:n.stk_) stk.sum_ <- stk.sum_ + stk.list_[[l]]
   stk.mean_ <- stk.sum_ / n.stk_
   writeRaster(stk.mean_, filename = stk.name_, overwrite = TRUE)
+  cat("\n> raster written!")
   return(data.frame(stk.name = stk.name_))
 }
 
 ## do the mean of stack across gcm and rcps
-gg.mean.alphadiv <- gg.calc %>% ungroup %>% group_by(scenario.biomod, biotic.inter, dispersal.filter, growth.form) %>%
-  do(data.frame(mean_alphadiv(.)))
+n.cores <- 24
+if(n.cores > 1){
+  ## parallel version
+  clust <- create_cluster(cores = n.cores, quiet = FALSE)
+  clusterExport(clust,c("mean_alphadiv", "out.dir.path", "mean.alpha.div.dir"))
+  clusterEvalQ(clust, {
+    .libPaths( "J:/People/Damien/RLIBS")
+    library(raster)
+    library(dplyr, lib.loc = "J:/People/Damien/RLIBS")
+    NULL
+  })
+  gg.dat.part <- partition(gg.calc %>% ungroup, scenario.biomod, biotic.inter, dispersal.filter, growth.form, cluster = clust)
+  gg.mean.alphadiv <- gg.dat.part %>% do(data.frame(mean_alphadiv(.)))
+  stopCluster(clust)
+  gg.mean.alphadiv <- gg.calc %>% ungroup %>% group_by(scenario.biomod, biotic.inter, dispersal.filter, growth.form) %>%
+    summarize(stk.name = file.path(mean.alpha.div.dir, paste0("mean_alphadiv_stk_across_rcp_gcm__", unique(scenario.biomod), "__", unique(biotic.inter), "__", unique(dispersal.filter), "__", unique(growth.form), ".grd")))
+} else {
+  gg.mean.alphadiv <- gg.calc %>% ungroup %>% group_by(scenario.biomod, biotic.inter, dispersal.filter, growth.form) %>%
+    do(data.frame(mean_alphadiv(.)))
+}
 
 save(gg.mean.alphadiv, file = file.path(mean.alpha.div.dir, "gg.mean.alphadiv.RData"))
 

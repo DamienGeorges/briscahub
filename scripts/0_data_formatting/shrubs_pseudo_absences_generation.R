@@ -54,7 +54,7 @@ setwd("I:\\C_Write\\Signe\\aa_BRISCA\\Data\\StudySpecies\\Processed\\Species.lis
 
 
 # load libraries and useful functions -------------------------------------
-
+.libPaths("J:\\People\\Damien\\RLIBS")
 library(raster)
 library(tools)
 source("thining_raster.R")
@@ -65,8 +65,8 @@ source("thining_raster.R")
 ## define the path to directory where all presences thined csv are stored
 # pres.thin.dir <- c("I:\\C_Write\\Signe\\aa_BRISCA\\Data\\StudySpecies\\Processed\\Species.list\\Occurrence.tables.combined_hult_masked\\gbif_biosc_hultBuff_thinned\\",
 #                    "I:\\C_Write\\Signe\\aa_BRISCA\\Data\\StudySpecies\\Processed\\Species.list\\Occurrence.tables.combined_hult_masked_trees\\gbif_biosc_hultBuff_thinned\\")
-pres.thin.dir <- c("I:\\C_Write\\Signe\\aa_BRISCA\\Data\\StudySpecies\\Processed\\Species.list\\Occurrence.tables.combined.all.sources.hult_usgs.masked\\gbif_biosc_hultBuff_thinned")
-outpath <- "I:\\C_Write\\Signe\\aa_BRISCA\\Data\\StudySpecies\\Processed\\Species.list\\Presence-PseudoAbsence_thinned\\Data_output\\"
+pres.thin.dir <- c("I:\\C_Write\\Signe\\aa_BRISCA\\Data\\StudySpecies\\Processed\\Species.list\\Occurrence.tables.combined.all.sources.no.flaws.hult_usgs.masked\\gbif_biosc_hultBuff_thinned")
+outpath <- "I:\\C_Write\\Signe\\aa_BRISCA\\Data\\StudySpecies\\Processed\\Species.list\\Presence-PseudoAbsence_thinned\\Data_output.no.flaws\\"
 # pres.thin.dir <- "."
 # outpath <- "."
 
@@ -88,7 +88,7 @@ PA.thin.dist <- 50000 ## the minimal distance btw 2 PA
 ## define a output directory that fits with PA samppling parameters define above
 ## here some proposition
 # out.dir <- "gbif_biosc_hult_random" ## presences + 10000 random PA
-out.dir <- "gbif_biosc_hult_usgs_thined_10000" ## presences + 10000 thined PA
+out.dir <- "gbif_biosc_hult_usgs_thined_10000.no.flaws" ## presences + 10000 thined PA
 # out.dir <- "gbif_biosc_hultBuff" ## presences + 10 times the number of presences PA
 
 ## define a file prefix
@@ -181,9 +181,11 @@ generate.pseudo.abs <- function(pres.xy, ref.grid, dist.min.from.pres, dist.max.
 ## parallel version
 library(foreach)
 library(doParallel)
-cl <- makeCluster(27)
+cl <- makeCluster(22)
 registerDoParallel(cl)
-foreach(k = 1:length(sp.list)) %dopar% {
+# pass libPath to workers, NOTE THIS LINE
+clusterCall(cl, function(x) .libPaths(x), .libPaths())
+foreach(k = 1:length(sp.list), .packages = c('raster', 'tools'), .export = 'generate.pseudo.abs') %dopar% {
 ## end parallel version
 
   ## read the occurence table for the species
@@ -208,3 +210,4 @@ foreach(k = 1:length(sp.list)) %dopar% {
   write.csv(thin.pts.all, file.name, row.names = FALSE)
   NULL ## for parallel version only
 }
+stopCluster(cl)

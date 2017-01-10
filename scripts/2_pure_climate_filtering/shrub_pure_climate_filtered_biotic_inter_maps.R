@@ -32,7 +32,8 @@
 
 ## -- init the script ----------------------------------------------------------
 rm(list = ls())
-setwd("/work/georges/BRISCA/")
+# setwd("/work/georges/BRISCA/")
+setwd("J://People/Damien/BRISCA/workdir/")
 
 ## retrieve input arguments ----------------------------------------------------
 args <- commandArgs(trailingOnly = TRUE)
@@ -41,7 +42,7 @@ sp.id <- as.numeric(args[1])
 
 ## -- load needed packages ----------------------------------------------------- 
 library(raster)
-rasterOptions(tmpdir = "/work/georges/R_raster_georges", ## where to store raster tmp files (prevent to fill up /tmp dir)
+rasterOptions(tmpdir = "J://People/Damien/BRISCA/workdir/", ## where to store raster tmp files (prevent to fill up /tmp dir)
               tmptime = 24, ## time after which raster tmp files will be deleted
               chunksize = 5e+08, ## size of blocks that will be written on hardrive (for I/O optimisation)
               maxmemory = 1e+09, ## max number of cell loaded in the memory (for I/O optimisation)
@@ -49,10 +50,22 @@ rasterOptions(tmpdir = "/work/georges/R_raster_georges", ## where to store raste
 
 
 ## -- define path to models and to output directories --------------------------
+<<<<<<< HEAD
 mod.dir <- "/data/idiv_sdiv/brisca/results/Biomod_pure_climate_filtered"
 out.dir <- "/work/georges/BRISCA/Biomod_biotic_interaction_maps_new"
+# ## on idiv
+# mod.dir <- "/work/georges/BRISCA/Biomod_pure_climate_filtered"
+# out.dir <- "/work/georges/BRISCA/Biomod_biotic_interaction_maps"
+# dir.create(out.dir, recursive = TRUE, showWarnings = FALSE)
+# briscahub.dir <- "/home/georges/BRISCA/briscahub"
+## on signe clust
+# mod.dir <- "I://C_Write/Damien/BRISCA/backup_idiv_cluster/Biomod_pure_climate_filtered"
+# out.dir <- "I://C_Write/Damien/BRISCA/Biomod_biotic_interaction_maps"
+>>>>>>> d4d1917b57f75368d59108841cbffa6ddbc9e388
 dir.create(out.dir, recursive = TRUE, showWarnings = FALSE)
-briscahub.dir <- "/home/georges/BRISCA/briscahub"
+briscahub.dir <- "J://People/Damien/BRISCA/briscahub"
+
+
 
 filt.pattern <- '_invdist.grd'
 
@@ -73,6 +86,7 @@ sp.higher.bmnames <- sp.tab$Biomod.name[sp.tab$All.height.median > sp.height]
 
 ## define an empty default biotic interaction map
 sp.bio.inter <- sp.no.inter <- raster("/data/idiv_sdiv/brisca/Data/no_interaction_mask_new.grd")
+sp.bio.inter <- sp.no.inter <- raster("I://C_Write/Damien/BRISCA/backup_idiv_cluster/no_interaction_mask/no_interaction_mask.grd")
 
 # sp_ <- sp.higher.bmnames[1]
 # mod.dir <- "/work/georges/BRISCA/Biomod_pure_climate_filtered"

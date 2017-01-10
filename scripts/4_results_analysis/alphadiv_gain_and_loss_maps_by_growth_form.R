@@ -30,10 +30,14 @@ if(machine == "leca97"){
 } else if (machine == "signe_cluster"){
   .libPaths( "J:/People/Damien/RLIBS")
   briscahub.dir <- "J://People/Damien/BRISCA/briscahub/"
-  src.maps.path <-  paste0("I://C_Write/Damien/BRISCA/backup_idiv_cluster/", ifelse(same.baseline, "SRC_baseline_maps", "SRC_maps")) 
-  param.tab.path <- "I://C_Write/Damien/BRISCA/parameters/grid_params/params_src.txt"
-  out.dir.path <- paste0("I://C_Write/Damien/BRISCA/backup_idiv_cluster/", ifelse(same.baseline, "SRC_baseline", "SRC"), "_alpha_and_turnover_stack_by_growth_form") ## on leca97
-} else stop("\n> unknow machine!")
+  src.maps.path <-  "I://C_Write/Damien/BRISCA/backup_idiv_cluster/SRC_baseline_maps_new" 
+  param.tab.path <- file.path(briscahub.dir, "data/params_src_new.RData")
+  out.dir.path <- "I://C_Write/Damien/BRISCA/backup_idiv_cluster/SRC_baseline_alpha_and_turnover_stack_by_growth_form_new"
+  # src.maps.path <-  paste0("I://C_Write/Damien/BRISCA/backup_idiv_cluster/", ifelse(same.baseline, "SRC_baseline_maps", "SRC_maps")) 
+  # param.tab.path <- "I://C_Write/Damien/BRISCA/parameters/grid_params/params_src.txt"
+  # out.dir.path <- paste0("I://C_Write/Damien/BRISCA/backup_idiv_cluster/", ifelse(same.baseline, "SRC_baseline", "SRC"), "_alpha_and_turnover_stack_by_growth_form") ## on leca97
+  
+  } else stop("\n> unknow machine!")
 
 ## load needed libraries
 library(raster)
@@ -51,81 +55,27 @@ sp.tab <- read.table(file.path(briscahub.dir, "data/shrub.list_22082016.txt"),
                      sep = "\t", header = TRUE, stringsAsFactors = FALSE)
 
 ## load grid campain parameters table
-param.tab <- read.table(param.tab.path, sep = "\t", header = FALSE, stringsAsFactors = FALSE)
-colnames(param.tab) <- c("mod.dir", "proj.dir", "file.pattern", "rcp", "gcm", "species")
-## add the file id column
-param.tab$file.id <- 1:nrow(param.tab)
-
-
+param.tab <- get(load(param.tab.path))
+  
 ## 1. get the filenames of the SRC maps for each scenario that interest us
 src.maps.files <- list.files(src.maps.path, ".grd$", full.names = TRUE)
 
 ## check if some maps are missing
-computed.jobs <- as.numeric(sub("_.*$", "", sub("src_baseline_", "", basename(src.maps.files))))
+computed.jobs <- as.numeric(sub("_.*$", "", sub("src_", "", basename(src.maps.files))))
 missing.jobs <- setdiff(param.tab$file.id, computed.jobs)
 param.tab[missing.jobs, ]
 
-## what we see here is that most of missing files are the one where we tried to
-## filter the projections using convexhull. => because we decided not
-## to consider this scenario anymore this is not a big deal!
-
-param.tab[is.element(param.tab$file.id, missing.jobs) & !grepl("_filt_ch.grd$", param.tab$file.pattern), ]
-## at the end only 4 jobs have failed! Let's lunch them again! => DONE
-
-param.tab <- param.tab %>% rowwise() %>% #group_by(file.id) %>%
-  mutate(
-    fut.file = paste0(mod.dir, "/", species, "/", proj.dir, "/individual_projections/", species, file.pattern), 
-         model =  sub("_.*$", "", sub(paste0(species, "_"), "", tail(unlist(strsplit(fut.file, split = "/")), 1))),
-         scenario.full = sub(paste0(".*", species, "/"), "", head(tail(unlist(strsplit(fut.file, split = "/")), 3),1)),
-         scenario.clim = sub(".*RCP_", "RCP_", scenario.full),
-         scenario.biomod = basename(sub(paste0("/", species, ".*"), "", fut.file))
-  ) %>% ungroup
-
-## keep only the jobs that are interesting for us
-gg.dat <- param.tab %>%  
-  mutate(rcp = sub("_2080.*$", "", scenario.clim),
-         gcm = sub("_(no|max)_disp.*$", "", sub(".*_2080_", "", scenario.clim)),
-         biotic.inter = sub(paste0("^.*(", paste(unique(gcm), collapse="|"), ")"), "", scenario.clim),
-         dispersal.filter = sub("^.*TSSbin", "", tools::file_path_sans_ext(file.pattern)),
-         scenario.biomod = sub("_final", "", sub("Biomod_", "", scenario.biomod)))
-## change dispersal filter labels
-gg.dat$dispersal.filter[gg.dat$dispersal.filter == ""] <- "unlimited"
-gg.dat$dispersal.filter[gg.dat$dispersal.filter == "_filt_ch"] <- "convex_hull"
-gg.dat$dispersal.filter[gg.dat$dispersal.filter == "_filt_no_disp_invdist"] <- "no"
-gg.dat$dispersal.filter[gg.dat$dispersal.filter == "_filt_min_disp_invdist"] <- "minimal"
-gg.dat$dispersal.filter[gg.dat$dispersal.filter == "_filt_max_disp_invdist"] <- "maximal"
-gg.dat <- gg.dat %>% filter(is.element(dispersal.filter, c("minimal", "maximal", "unlimited")))
-## change biointeraction labels
-gg.dat$biotic.inter[gg.dat$biotic.inter == ""] <- "no"
-gg.dat$biotic.inter[gg.dat$biotic.inter == "_no_disp_invdist"] <- "low"
-gg.dat$biotic.inter[gg.dat$biotic.inter == "_max_disp_invdist"] <- "high"
-## change levels order
-gg.dat$biotic.inter <- factor(gg.dat$biotic.inter, levels =  c("no", "low", "high"))
-gg.dat$scenario.biomod <- factor(gg.dat$scenario.biomod, levels = c("pure_climate", "climate_and_biointer", "pure_climate_filtered", "climate_and_biointer_filtered"))
-gg.dat$dispersal.filter <- factor(gg.dat$dispersal.filter, levels =  c("minimal", "maximal", "unlimited"))
-## remove some combination of params we are not interested in
-gg.dat <- gg.dat %>% filter(!(scenario.biomod == "climate_and_biointer_filtered" &  dispersal.filter == "no"),
-                            !(scenario.biomod == "climate_and_biointer_filtered" & biotic.inter == "low" & dispersal.filter == "maximal"),
-                            !(scenario.biomod == "climate_and_biointer_filtered" & biotic.inter == "high" & dispersal.filter == "minimal"))
-## add the growth form attribute
-gg.dat <- gg.dat %>% left_join(sp.tab %>% select(Biomod.name, Growth.form.isla) %>% rename(species = Biomod.name, growth.form = Growth.form.isla))
-
-## 2. compute for each scenario the nb of species lost/gain and the species richness by pixel
-
-## check that no data is missing
-gg.dat %>% group_by(scenario.biomod, biotic.inter, dispersal.filter, gcm, rcp) %>%
-  summarize(nb.species = n()) %>% select(nb.species)
-
-gg.dat %>% group_by(scenario.biomod, biotic.inter, dispersal.filter, gcm, rcp, growth.form) %>%
-  summarize(nb.species = n()) %>% select(nb.species)
+param.tab %>% group_by(scenario.biomod, biotic.inter, dispersal.filter, gcm, rcp, growth.form) %>%
+  summarize(nb.species = n()) %>% select(nb.species) %>% data.frame %>% head(50)
 
 ## define a function that calculates the alpha, SG, SL and turnover maps
 calculate_alpha_gain_loss_turnover <- function(tab_){
   cat("\n ***")
+  .libPaths( "J:/People/Damien/RLIBS")
   library(raster)
-  library(dplyr)
+  library(dplyr, lib.loc = "J:/People/Damien/RLIBS")
   cat("\n> libraries loaded")
-  src.maps.files_ <- src.maps.files[is.element(as.numeric(sub("_.*$", "", sub("src_baseline_", "", basename(src.maps.files)))), tab_$file.id)] 
+  src.maps.files_ <- src.maps.files[is.element(as.numeric(sub("_.*$", "", sub("src_", "", basename(src.maps.files)))), tab_$file.id)] 
   
   cat("\n> src.maps.file gotten (", length(src.maps.files_), ")")
   src.maps_ <- lapply(src.maps.files_, function(f_ ) raster(f_, RAT = FALSE))
@@ -189,34 +139,49 @@ calculate_alpha_gain_loss_turnover <- function(tab_){
 }
 
 # ### test
-# tab_ <- gg.dat %>% 
+# tab_ <- param.tab %>%
 #   filter(scenario.biomod == scenario.biomod[1],
 #          biotic.inter == biotic.inter[1],
 #          dispersal.filter == dispersal.filter[1],
 #          gcm == gcm[1],
 #          rcp == rcp[1])
-# ### end of test 
+# ### end of test
 
-
+n.cores = 24
 if(n.cores <= 1){
   ## sequential version
-  gg.calc <- gg.dat %>% group_by(scenario.biomod, biotic.inter, dispersal.filter, gcm, rcp, growth.form) %>%
+  gg.calc <- param.tab %>% group_by(scenario.biomod, biotic.inter, dispersal.filter, gcm, rcp, growth.form) %>%
     do(stack.file.name = calculate_alpha_gain_loss_turnover(.))
 } else{
   ## parallel version
   clust <- create_cluster(cores = n.cores, quiet = FALSE)
   clusterExport(clust,c("calculate_alpha_gain_loss_turnover", "out.dir.path", "src.maps.files"))
-  gg.dat.part <- partition(gg.dat, scenario.biomod, biotic.inter, dispersal.filter, gcm, rcp, growth.form, cluster = clust)
+  clusterEvalQ(clust, {
+    .libPaths( "J:/People/Damien/RLIBS")
+    library(raster)
+    library(dplyr, lib.loc = "J:/People/Damien/RLIBS")
+    NULL
+  })
+  gg.dat.part <- partition(param.tab, scenario.biomod, biotic.inter, dispersal.filter, gcm, rcp, growth.form, cluster = clust)
   gg.calc <- gg.dat.part %>% do(stack.file.name = calculate_alpha_gain_loss_turnover(.))
   stopCluster(clust)
 }
 
+if(n.cores > 1){
+  gg.calc.out <- param.tab %>% ungroup %>% group_by(scenario.biomod, biotic.inter, dispersal.filter, gcm, rcp, growth.form) %>%
+    summarize(stack.file.name = 
+             file.path(out.dir.path,paste0("summaryStack__", 
+                                    paste0(unique(scenario.biomod, collapse = "-")), "__",
+                                    paste0(unique(biotic.inter, collapse = "-")), "__",
+                                    paste0(unique(dispersal.filter, collapse = "-")), "__",
+                                    paste0(unique(gcm, collapse = "-")), "__",
+                                    paste0(unique(rcp, collapse = "-")), "__",
+                                    paste0(unique(growth.form, collapse = "-")), ".grd"))
+    )
+  gg.calc <- gg.calc.out
+}
 
-
-# save(gg.calc, file = file.path(out.dir.path, "gg.calc.RData"))
-gg.calc2 <- gg.dat %>% group_by(scenario.biomod, biotic.inter, dispersal.filter, gcm, rcp, growth.form) %>%
-  summarize(nb.poj = n())
-
+save(gg.calc, file = file.path(out.dir.path, "gg.calc.RData"))
 
 ##' @note
 ##'  - has to be designed in parallel way with multidplyr package
