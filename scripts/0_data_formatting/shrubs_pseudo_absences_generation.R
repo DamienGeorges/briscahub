@@ -26,6 +26,7 @@
 ##'     erase the PA generated for species we have already do modelling)
 ##'   - 14/09/2015 (damien): deal with both shrubs and trees
 ##'   - 06/10/2015 (damien): adapt the script to deal with the new master file
+##'   - 17/02/2015 (damien): adapt the script to be run on my Lyon PC
 ##' 
 ##' 
 ##' @licencing GPL
@@ -49,12 +50,19 @@
 # init the workspace ------------------------------------------------
 
 rm(list = ls())
-setwd("I:\\C_Write\\Signe\\aa_BRISCA\\Data\\StudySpecies\\Processed\\Species.list\\Presence-PseudoAbsence_thinned\\Functions\\")
 # setwd("~/Work/SHRUBS/WORKDIR/SDM/")
+
+## on Damien's IARC PC
+nb_cores <- 4
+path.to.C_write <- "Z:\\"
+path.to.Rlibs <-  "C:/Program Files/R/R-3.3.1/library"
+
+setwd(paste0(path.to.C_write, "Signe\\aa_BRISCA\\Data\\StudySpecies\\Processed\\Species.list\\Presence-PseudoAbsence_thinned\\Functions\\"))
+#setwd("~/SHRUBS/WORKDIR/SDM/")
 
 
 # load libraries and useful functions -------------------------------------
-.libPaths("J:\\People\\Damien\\RLIBS")
+.libPaths(path.to.Rlibs)
 library(raster)
 library(tools)
 source("thining_raster.R")
@@ -63,10 +71,10 @@ source("thining_raster.R")
 # define paths to data and parameters -------------------------------------
 
 ## define the path to directory where all presences thined csv are stored
-# pres.thin.dir <- c("I:\\C_Write\\Signe\\aa_BRISCA\\Data\\StudySpecies\\Processed\\Species.list\\Occurrence.tables.combined_hult_masked\\gbif_biosc_hultBuff_thinned\\",
-#                    "I:\\C_Write\\Signe\\aa_BRISCA\\Data\\StudySpecies\\Processed\\Species.list\\Occurrence.tables.combined_hult_masked_trees\\gbif_biosc_hultBuff_thinned\\")
-pres.thin.dir <- c("I:\\C_Write\\Signe\\aa_BRISCA\\Data\\StudySpecies\\Processed\\Species.list\\Occurrence.tables.combined.all.sources.no.flaws.hult_usgs.masked\\gbif_biosc_hultBuff_thinned")
-outpath <- "I:\\C_Write\\Signe\\aa_BRISCA\\Data\\StudySpecies\\Processed\\Species.list\\Presence-PseudoAbsence_thinned\\Data_output.no.flaws\\"
+# pres.thin.dir <- c(paste0(path.to.C_write, "Signe\\aa_BRISCA\\Data\\StudySpecies\\Processed\\Species.list\\Occurrence.tables.combined_hult_masked\\gbif_biosc_hultBuff_thinned\\"),
+#                    paste0(path.to.C_write, "Signe\\aa_BRISCA\\Data\\StudySpecies\\Processed\\Species.list\\Occurrence.tables.combined_hult_masked_trees\\gbif_biosc_hultBuff_thinned\\"))
+pres.thin.dir <- c(paste0(path.to.C_write, "Signe\\aa_BRISCA\\Data\\StudySpecies\\Processed\\Species.list\\Occurrence.tables.combined.all.sources.no.flaws.hult_usgs.masked\\gbif_biosc_hultBuff_thinned"))
+outpath <- paste0(path.to.C_write, "Signe\\aa_BRISCA\\Data\\StudySpecies\\Processed\\Species.list\\Presence-PseudoAbsence_thinned\\Data_output.no.flaws\\")
 # pres.thin.dir <- "."
 # outpath <- "."
 
@@ -181,7 +189,7 @@ generate.pseudo.abs <- function(pres.xy, ref.grid, dist.min.from.pres, dist.max.
 ## parallel version
 library(foreach)
 library(doParallel)
-cl <- makeCluster(22)
+cl <- makeCluster(nb_cores)
 registerDoParallel(cl)
 # pass libPath to workers, NOTE THIS LINE
 clusterCall(cl, function(x) .libPaths(x), .libPaths())

@@ -1,0 +1,18 @@
+---
+title: "BRISCA_WorkFlow"
+author: "Damien G."
+date: "17 February 2017"
+output: html_document
+---
+
+Here is described the script workflow that have been used for BRISCA project as a kind of log file.
+
+This is the new 2017 workflow cause we discovered some glitch in species occ definition and almost
+everithing have to be done from scratch!
+
+
+## January 2017
+
+
+
+## February 2017
