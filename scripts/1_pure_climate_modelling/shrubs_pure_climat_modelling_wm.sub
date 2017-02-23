@@ -8,7 +8,7 @@
 #$  -S  /bin/bash
 #$  -l h_vmem=32G,highmem
 #$  -l  h_rt=24:00:00
-#$  -t  1-54
+#$  -t  1-22
 #$  -binding linear:1 ## core binding
 ## #$  -pe smp 1
 ## #$  -pe smp 1 ## this script seems not to work properly in parallel
@@ -44,10 +44,10 @@ echo
 
 source /etc/profile.d/000-modules.sh
 
-module load gdal R/3.1.0-3
+module load geos gdal R
 module unload cairo
 module list
 
 export JAVA_OPTS=${JAVA_OPTS:-"-Xmx256M -Xms16M"}
 
-Rscript --no-restore --vanilla ~/BRISCA/briscahub/scripts/shrubs_pure_climat_modelling_wm.R  ${params}
+Rscript --no-restore --vanilla /home/georges/BRISCA/briscahub/scripts/1_pure_climate_modelling/shrubs_pure_climat_modelling_wm.R  ${params}
