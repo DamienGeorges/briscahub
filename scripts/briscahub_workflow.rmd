@@ -13,6 +13,16 @@ everithing have to be done from scratch!
 
 ## January 2017
 
-
+1. Anne has corrected input data for 22 species that have fake presences (xx/01/2017)
 
 ## February 2017
+
+1. run the Thining process for the 22 species on presences (13/02/2017)
+
+2. generate the thined pseudo absences for our 22 species (14/02/2017)
+
+3. do the pure climate modelling, projection and ensemble projections for our 22 species (15/02/2017 to 22/02/2017)
+
+4. produce some graphs to check the validity of projected models and send it to Anne and Signe for a visual check (23/02/2017)
+
+5. copy the pure climate models outputs in /data/idiv_sdiv/
