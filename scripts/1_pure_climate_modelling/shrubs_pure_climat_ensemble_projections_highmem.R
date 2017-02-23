@@ -42,7 +42,7 @@
 start.time <- Sys.time()
 cat("\njob started on:", strftime(start.time, "%m/%d/%y - %H:%M:%S"))
 
-library(biomod2, lib.loc = "~/R/biomod2_pkg/biomod2_3.1-73-04")
+#library(biomod2, lib.loc = "~/R/biomod2_pkg/biomod2_3.1-73-04")
 
 ## retrieve input arguments ----------------------------------------------------
 args <- commandArgs(trailingOnly = TRUE)
