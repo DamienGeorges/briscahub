@@ -47,7 +47,7 @@ rm(list=ls())
 
 ## retrieve input arguments ----------------------------------------------------
 args <- commandArgs(trailingOnly = TRUE)
-sp.name <- as.character(args[1])
+sp.id <- as.character(args[1])
 
 ## test ===
 ## sp.name <- "Alnus_incana"
@@ -59,37 +59,12 @@ sp.name <- as.character(args[1])
 host = "idiv_cluster"
 
 ## input/output directories depending on the host ------------------------------
-if(host == "pinea"){
-  # presences-absences tables
-  in.spp <- "~/Work/SHRUBS/WORKDIR/SDM/Damien_ModellingData"
-  # worldclim layers
-  in.clim <- "~/Work/SHRUBS/WORKDIR/SDM/Damien_ModellingData" 
-  # GDD layer
-  in.gdd <- "~/Work/SHRUBS/WORKDIR/SDM/Damien_ModellingData"
-  # output directory (= workking directory)
-  out.dir <- "~/Work/SHRUBS/WORKDIR/SDM/Biomod_pure_climate_highmem"
-  # path to maxent.jar file
-  path_to_maxent.jar <- "~/Work/SHRUBS/WORKDIR/SDM"
-} else if(host == "brisca_cluster"){
-  # presences-absences tables
-  ##in.spp <- "I:\\C_Write\\Signe\\aa_BRISCA\\SDM_sessions\\Presence-PseudoAbsence_thinned\\Data_output\\gbif_biosc_hult_thined_10000" #or gbif_biosc_hult_random for the random datasets (10,000 PA)
-  ## temp for devel
-  in.spp <- "V:\\aa_BRISCA\\Data\\StudySpecies\\Processed\\Species.list\\Presence-PseudoAbsence_thinned\\Data_output\\gbif_biosc_hult_thined_10000"
-  # worldclim layers
-  in.clim <- "I:\\C_Write\\Signe\\aa_BRISCA\\Data\\Climate\\Macroclimate\\Current\\Processed\\Projected\\bio" 
-  # GDD layer
-  in.gdd <- "I:\\C_Write\\Signe\\aa_BRISCA\\Data\\Climate\\Macroclimate\\Current\\Processed\\Projected\\tave10_esri"
-  # output directory (= workking directory)
-  ##out.dir <- "I:\\C_Write\\Signe\\aa_BRISCA\\SDM_sessions\\Biomod_pure_climate"
-  out.dir <- "J:\\People\\Anne\\workdir\\Biomod_pure_climate"
-  # path to maxent.jar file  
-  path_to_maxent.jar <- "I:\\C_Write\\Signe\\aa_BRISCA\\SDM_sessions\\Maxent"
-} else if (host == "idiv_cluster"){
+if (host == "idiv_cluster"){
   .libPaths("/home/georges/R/x86_64-pc-linux-gnu-library/3.2/")
   # presences-absences tables
-#   in.spp <- "/data/idiv_sdiv/brisca/SDM_sessions/Presence-PseudoAbsence_thinned/Data_output/gbif_biosc_hult_thined_10000" 
-  in.spp <- "/data/idiv_sdiv/brisca/SDM_sessions/Presence-PseudoAbsence_thinned/Data_output/gbif_biosc_hult_usgs_thined_10000"
-  # in.spp <-  "/data/idiv_sdiv/brisca/Data/january_session/Presence-PseudoAbsence_thinned/Data_output.no.flaws/gbif_biosc_hult_usgs_thined_10000.no.flaws"
+  in.spp.1 <-  "/data/idiv_sdiv/brisca/Data/january_session/Presence-PseudoAbsence_thinned/Data_output.no.flaws/gbif_biosc_hult_usgs_thined_10000.no.flaws"
+  in.spp.2 <- "/data/idiv_sdiv/brisca/SDM_sessions/Presence-PseudoAbsence_thinned/Data_output/gbif_biosc_hult_usgs_thined_10000"
+  in.spp.3 <- "/data/idiv_sdiv/brisca/SDM_sessions/Presence-PseudoAbsence_thinned/Data_output/gbif_biosc_hult_thined_10000"
   
     # worldclim layers
   in.clim <- "/data/idiv_sdiv/brisca/Data/Climate/Macroclimate/Current/Processed/Projected/bio"
@@ -103,9 +78,8 @@ if(host == "pinea"){
   ##' @note beacause of the the job manager installed in this cluster (qsub)
   ##'   the input argument is the species ID not the species name so we need 
   ##'   to recover species name manually
-  sp.id <- as.numeric(sp.name)
   # sp.tab <- read.table("/work/georges/BRISCA/grid_params/params_spcmJ.txt", header = FALSE, sep = " ")
-  sp.tab <- read.table("~/georges/BRISCA/briscahub/data/shrub.list_22082016.txt", header = TRUE, sep = "\t", stringsAsFactors = FALSE)
+  sp.tab <- read.table("~/BRISCA/briscahub/data/sp.list_22.12.2016.txt", header = TRUE, sep = "\t", stringsAsFactors = FALSE)
   sp.name <- as.character(sp.tab[sp.id, 2])
 }
 
@@ -134,10 +108,13 @@ clim.cur <- stack(ddeg, subset(bio, c(6, 10, 18, 19)))
 ## load presences-absences data for our species --------------------------------
 
 ## get species presences/pseudo-absences .csv files
-pres.thin.file <- list.files(in.spp, 
-#                              pattern = paste0("^pres_and_PA_thin_", sp.name, ".csv"),
-                             pattern = paste0("^pres_and_10000_PA_thin_", sp.name, ".csv"),
-                             full.names = TRUE)
+pres.thin.file <- lapply(c(in.spp.1, in.spp.2, in.spp.3),
+                         function(.){
+                           list.files(., 
+                             pattern = paste0("^pres_and_10000_PA_thin_", sub('[[:punct:]]', '_', sp.name), ".csv"),
+                             full.names = TRUE)})
+pres.thin.file <- unlist(pres.thin.file)[1]
+
 
 ## load the .csv
 pres.thin <- read.csv(pres.thin.file)
