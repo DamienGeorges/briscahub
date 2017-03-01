@@ -88,8 +88,8 @@ if(host == "pinea"){
   .libPaths("/home/georges/R/x86_64-pc-linux-gnu-library/3.2/")
   # presences-absences tables
 #   in.spp <- "/data/idiv_sdiv/brisca/SDM_sessions/Presence-PseudoAbsence_thinned/Data_output/gbif_biosc_hult_thined_10000" 
-  # in.spp <- "/data/idiv_sdiv/brisca/SDM_sessions/Presence-PseudoAbsence_thinned/Data_output/gbif_biosc_hult_usgs_thined_10000" 
-  in.spp <-  "/data/idiv_sdiv/brisca/Data/january_session/Presence-PseudoAbsence_thinned/Data_output.no.flaws/gbif_biosc_hult_usgs_thined_10000.no.flaws"
+  in.spp <- "/data/idiv_sdiv/brisca/SDM_sessions/Presence-PseudoAbsence_thinned/Data_output/gbif_biosc_hult_usgs_thined_10000"
+  # in.spp <-  "/data/idiv_sdiv/brisca/Data/january_session/Presence-PseudoAbsence_thinned/Data_output.no.flaws/gbif_biosc_hult_usgs_thined_10000.no.flaws"
   
     # worldclim layers
   in.clim <- "/data/idiv_sdiv/brisca/Data/Climate/Macroclimate/Current/Processed/Projected/bio"
@@ -97,14 +97,15 @@ if(host == "pinea"){
   in.gdd <- "/data/idiv_sdiv/brisca/Data/Climate/Macroclimate/Current/Processed/Projected/tave10_esri"
   # output directory (= workking directory)
 #   out.dir <- "/work/georges/BRISCA/Biomod_pure_climate"
-  out.dir <- "/work/georges/BRISCA/Biomod_pure_climate_usgs_no_flaws"
+  out.dir <- "/work/georges/BRISCA/Biomod_pure_climate_strange_distrib"
   # path to maxent.jar file  
   path_to_maxent.jar <- "/data/idiv_sdiv/brisca/SDM_sessions/Maxent"
   ##' @note beacause of the the job manager installed in this cluster (qsub)
   ##'   the input argument is the species ID not the species name so we need 
   ##'   to recover species name manually
   sp.id <- as.numeric(sp.name)
-  sp.tab <- read.table("/work/georges/BRISCA/grid_params/params_spcmJ.txt", header = FALSE, sep = " ")
+  # sp.tab <- read.table("/work/georges/BRISCA/grid_params/params_spcmJ.txt", header = FALSE, sep = " ")
+  sp.tab <- read.table("~/georges/BRISCA/briscahub/data/shrub.list_22082016.txt", header = TRUE, sep = "\t", stringsAsFactors = FALSE)
   sp.name <- as.character(sp.tab[sp.id, 2])
 }
 

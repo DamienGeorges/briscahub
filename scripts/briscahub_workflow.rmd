@@ -25,4 +25,8 @@ everithing have to be done from scratch!
 
 4. produce some graphs to check the validity of projected models and send it to Anne and Signe for a visual check (23/02/2017)
 
-5. copy the pure climate models outputs in /data/idiv_sdiv/
+5. copy the pure climate models outputs in /data/idiv_sdiv/ (27/02/2017)
+
+6. construct the present day filter masks (current binaries projection with convexhull + 250m buffer) (27/02/2017)
+
+7. create biotic interaction masks

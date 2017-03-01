@@ -53,7 +53,7 @@ mod.dir <- "/work/georges/BRISCA/Biomod_pure_climate_final"
 out.dir <- "/work/georges/BRISCA/Biomod_pure_climate_filtered"
 dir.create(out.dir, recursive = TRUE, showWarnings = FALSE)
 briscahub.dir <- "/home/georges/BRISCA/briscahub"
-convex.hull.dir <- "~/BRISCA/workdir/brsica_shrubs_convex_hull_full_filtered"
+convex.hull.dir <- "/data/idiv_sdiv/brisca/Data/january_session/Convex.hull"
 
 
 ## -- load th species list -----------------------------------------------------

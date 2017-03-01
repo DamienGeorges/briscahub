@@ -20,13 +20,6 @@
 rm(list = ls())
 setwd("/work/georges/BRISCA/")
 
-## retrieve input arguments ----------------------------------------------------
-args <- commandArgs(trailingOnly = TRUE)
-sp.id <- as.numeric(args[1])
-
-sp.list <- 
-
-
 ## -- load needed packages ----------------------------------------------------- 
 library(raster)
 rasterOptions(tmpdir = "/work/georges/R_raster_georges", ## where to store raster tmp files (prevent to fill up /tmp dir)
@@ -43,6 +36,8 @@ dir.create(out.dir, recursive = TRUE, showWarnings = FALSE)
 briscahub.dir <- "/home/georges/BRISCA/briscahub"
 convex.hull.dir <- "/data/idiv_sdiv/brisca/Data/january_session/Convex.hull"
 
+ras.ref <- raster("/data/idiv_sdiv/brisca/results/raster_ref_27_02_2017.grd")
+
 ## get the species list
 sp.list <- list.files(mod.dir)
 
@@ -58,7 +53,7 @@ for(sp_ in sp.list){
   shp <- shapefile(shp_file)
   
   ## -- ensure that r_bin is in the right projection system ----------------------
-  r_bin <- projectRaster(r_bin, crs = crs(shp))
+  r_bin <- projectRaster(r_bin, ras.ref, method = 'ngb')
   
   ## -- do the filtering process -------------------------------------------------
   r_bin_masked <- mask(r_bin, shp, updatevalue = 0) * r_bin

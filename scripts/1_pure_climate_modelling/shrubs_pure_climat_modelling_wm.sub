@@ -8,7 +8,7 @@
 #$  -S  /bin/bash
 #$  -l h_vmem=32G,highmem
 #$  -l  h_rt=24:00:00
-#$  -t  1-22
+#$  -t  122,135,146,158
 #$  -binding linear:1 ## core binding
 ## #$  -pe smp 1
 ## #$  -pe smp 1 ## this script seems not to work properly in parallel
