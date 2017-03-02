@@ -65,7 +65,8 @@ if(host == "pinea"){
   #in.mod <- "/work/georges/BRISCA/Biomod_pure_climate_final"
   #in.mod <- "/work/georges/BRISCA/Biomod_pure_climate_usgs" ## pure climate models
   #in.mod <- "/work/georges/BRISCA/Biomod_pure_climate_xy" ## pure climate + XY models  #in.mod <- "/work/georges/BRISCA/Biomod_pure_climate_invdist" ## pure climate + invdist models 
-  in.mod <- "/work/georges/BRISCA/Biomod_pure_climate_usgs_no_flaws"
+  # in.mod <- "/work/georges/BRISCA/Biomod_pure_climate_usgs_no_flaws"
+  in.mod <- "/work/georges/BRISCA/Biomod_pure_climate_strange_distrib"
   # path to parameter table
   ## pure climate models
   param.file <- "/work/georges/BRISCA/grid_params/params_spcp.txt" ## first run (5G ram)
