@@ -63,11 +63,13 @@ if(host == "pinea"){
 } else if (host == "idiv_cluster"){
   # path to the directory where models have been computed
 #   in.mod <- "/work/georges/BRISCA/Biomod_pure_climate"
-  in.mod <- "/work/georges/BRISCA/Biomod_pure_climate_usgs_no_flaws"
+  # in.mod <- "/work/georges/BRISCA/Biomod_pure_climate_usgs_no_flaws"
+  in.mod <- "/work/georges/BRISCA/Biomod_pure_climate_strange_distrib"
   # path to parameter table
 #   param.file <- "/work/georges/BRISCA/grid_params/params_spcp.txt" ## first run (10G ram)
 #    param.file <- "/work/georges/BRISCA/grid_params/params_spcp20G.txt" ## second run (20G ram)
   param.file <- "/work/georges/BRISCA/grid_params/params_spcp.txt" ## first run (10G ram)
+  ras.ref.file <- "/data/idiv_sdiv/brisca/results/raster_ref_27_02_2017.grd"
 }
 
 ## create the output directory and change the working directory ----------------
@@ -88,7 +90,6 @@ rasterOptions(tmpdir = "/work/georges/R_raster_georges", ## where to store raste
               chunksize = 5e+08, ## size of blocks that will be written on hardrive (for I/O optimisation)
               maxmemory = 1e+09, ## max number of cell loaded in the memory (for I/O optimisation)
               overwrite = TRUE)
-
 
 ## load models outputs and explanatory variables -------------------------------
 ## load models
@@ -112,6 +113,11 @@ ddeg <- raster(file.path(path.to.expl.var, "tave10_esri", "ddeg.grd"), crs = pro
 ## merge all cliimatic variables
 expl.stk <- stack(ddeg, subset(bio, c(6, 10, 18, 19)))
 
+## reproject the explanatory variables to work in the right projection system
+## load teh ref mask
+ras.ref <- raster(ras.ref.file)
+expl.stk <- projectRaster(expl.stk, ras.ref)
+
 ## do projections --------------------------------------------------------------
 ##define the projection name
 if(grepl("Current", path.to.expl.var)){
@@ -122,7 +128,7 @@ if(grepl("Current", path.to.expl.var)){
 
 ## do single models projections
 bm.mod.proj <- BIOMOD_Projection(modeling.output = bm.mod,
-                                 new.env = expl.stk,
+                                 new.env = stack(expl.stk),
                                  proj.name = bm.proj.name,
 #                                  binary.meth = c('TSS'), ## no needd to produce binary here
                                  build.clamping.mask = FALSE,
@@ -152,7 +158,9 @@ quit('no')
 # # sp.list <- read.table("~/BRISCA/briscahub/data/sp.list_08102015_red.txt",
 # #                       sep = "\t", stringsAsFactors = FALSE, header  = TRUE)
 # # sp.list <- sp.list$Biomod.name
-# sp.list <- list.files("/work/georges/BRISCA/Biomod_pure_climate_usgs_no_flaws/")
+# # sp.list <- list.files("/work/georges/BRISCA/Biomod_pure_climate_usgs_no_flaws/")
+# sp.list <- list.files("/work/georges/BRISCA/Biomod_pure_climate_strange_distrib/")
+# 
 # 
 # ## define the gcm and rcp we want to consider
 # rcp.list <- c("RCP_2.6_2080", "RCP_4.5_2080", "RCP_6.0_2080", "RCP_8.5_2080")
@@ -173,5 +181,5 @@ quit('no')
 # 
 # ## subselect a part of params?
 # params <- params[grepl("csiro_mk360", params$path.to.expl.var), ]
-# write.table(params, file = file.path(out.dir, "params_csiro.txt"), sep = " ", 
+# write.table(params, file = file.path(out.dir, "params_csiro.txt"), sep = " ",
 #             quote = FALSE, append = FALSE, row.names = TRUE, col.names = FALSE)
