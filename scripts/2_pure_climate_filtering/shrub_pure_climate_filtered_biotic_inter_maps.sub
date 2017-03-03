@@ -45,9 +45,7 @@ echo
 
 source /etc/profile.d/000-modules.sh
 
-module load gdal R/3.1.0-3
-module unload cairo
-module list
+module load gdal proj R
 
 export JAVA_OPTS=${JAVA_OPTS:-"-Xmx256M -Xms16M"}
 

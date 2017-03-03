@@ -47,9 +47,11 @@ library(raster)
 
 ## on idiv
 mod.dir <- "/data/idiv_sdiv/brisca/results/Biomod_pure_climate_final"
-pres.day.filt <- "/data/idiv_sdiv/brisca/results/Present_day_masks"
+pres.day.filt.dir <- "/data/idiv_sdiv/brisca/results/Present_day_masks"
+max.disp.filt.dir <- "/work/georges/BRISCA/Future_day_masks/max_dispersal"
 out.dir <- "/work/georges/BRISCA/Biomod_biotic_interaction_maps_2017-02-28"
 briscahub.dir <- "/home/georges/BRISCA/briscahub"
+
 
 ## on signe clust
 # mod.dir <- "I://C_Write/Damien/BRISCA/backup_idiv_cluster/Biomod_pure_climate_filtered"
@@ -63,7 +65,7 @@ dir.create(out.dir, recursive = TRUE, showWarnings = FALSE)
 # filt.pattern <- '_250kmBuffConvHull.grd'
 
 ## -- load th species list -----------------------------------------------------
-sp.tab <- read.table(file.path(briscahub.dir, "data/sp.list_08102015_red.txt"),
+sp.tab <- read.table(file.path(briscahub.dir, "data/sp.list_03.03.2017.txt"),
                      sep = "\t", header = TRUE, stringsAsFactors = FALSE)
 
 # for(sp.id in 1:nrow(sp.tab)){ ## loop over species
@@ -78,42 +80,35 @@ sp.height <- sp.tab$All.height.median[sp.id]
 sp.higher.bmnames <- sp.tab$Biomod.name[sp.tab$All.height.median > sp.height]
 
 ## define an empty default biotic interaction map
-sp.bio.inter <- sp.no.inter <- raster("/data/idiv_sdiv/brisca/results/raster_ref_27_02_2017.grd")
+sp.bio.inter <- sp.no.inter <- raster("/data/idiv_sdiv/brisca/results/raster_ref_27_02_2017.grd") - 1
 
-# sp_ <- sp.higher.bmnames[1]
-# mod.dir <- "/work/georges/BRISCA/Biomod_pure_climate_filtered"
-# pattern <- '_filt_ch.grd'
-# 
-get.filt.prob.map <- function(sp_, mod.dir, pattern = '_filt_ch.grd'){
+
+get.prob.map.stk <- function(sp_, mod.dir){
   ## get all the raster files matching the pattern
   ldir <- list.files(file.path(mod.dir, sp_), "proj_", full.names = TRUE)
-
-  ##cat(ldir)
-  prob.filt.files   <- sapply(ldir, function(x) list.files(file.path(x,"individual_projections"), pattern = paste0("EMca.*mergedData", pattern), full.names = TRUE))
-  
-  bin.filt.files  <- sapply(ldir, function(x) list.files(file.path(x,"individual_projections"), pattern = paste0("EMca.*mergedData_TSSbin", pattern), full.names = TRUE))
+  prob.filt.files   <- sapply(ldir, function(x) list.files(file.path(x,"individual_projections"), pattern = paste0("EMca.*mergedData.grd$"), full.names = TRUE))
   prob.filt.stk <- raster::stack(prob.filt.files)
-  bin.filt.stk <- raster::stack(bin.filt.files)
-  probXbin.filt.stk <- prob.filt.stk * bin.filt.stk
-  probXbin.filt.stk[is.na(probXbin.filt.stk)] <- 0 ## trick to be able to work on the full area
-  probXbin.filt.stk <- sp.no.inter + probXbin.filt.stk
-  return(probXbin.filt.stk)
+  return(prob.filt.stk)
 }
 
 ## build the biotic interaction maps
-for(disp_ in c("no", "min", "max")){
+for(disp_ in c("no", "max", "unlimited")){
   cat("\n> dealing with", disp_, "dipersal limit.\n")
   sp.bio.inter <- sp.no.inter
   for(sp_ in sp.higher.bmnames){
     cat("add contib of :", which(sp.higher.bmnames == sp_), "/", length(sp.higher.bmnames), "\n")
-    full.filt.pattern <- paste0("_filt_", disp_ ,"_disp", filt.pattern)
-    sp_.compet.contrib <- get.filt.prob.map(sp_, mod.dir, 
-                                            pattern = full.filt.pattern)
+    full.filt.pattern <- paste0("_", disp_, "_dipersal")
+    if(disp_ == "no") sp_.mask <- raster(file.path(pres.day.filt.dir, paste0(sp_, "_present_day_mask.grd")))
+    if(disp_ == "max") sp_.mask <- raster(file.path(max.disp.filt.dir, paste0(sp_, "_future_day_max_disp_mask.grd")))
+    if(disp_ == "unlimited") sp_.mask <- raster("/data/idiv_sdiv/brisca/results/raster_ref_27_02_2017.grd")
+    
+    sp_.compet.contrib <- get.prob.map.stk(sp_, mod.dir) * sp_.mask
+    
     sp.bio.inter <- sp.bio.inter + sp_.compet.contrib
   }
   ## update names of stk and save them on the hard drive
   stk.layer.names <- sub("/.*$", "", sub("^.*proj_pure_climat_", 
-                                         "", list.files(file.path(mod.dir, sp.bmname), paste0("EMca.*mergedData", full.filt.pattern), recursive  = TRUE, full.names = TRUE)))
+                                         "", list.files(file.path(mod.dir, sp.bmname), paste0("EMca.*mergedData.grd"), recursive  = TRUE, full.names = TRUE)))
   names(sp.bio.inter) <- stk.layer.names
   writeRaster(sp.bio.inter, filename = file.path(out.dir, paste0(sp.bmname,"_bio_inter", full.filt.pattern)))
 }
