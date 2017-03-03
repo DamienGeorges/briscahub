@@ -11,11 +11,11 @@
 ##' ## Script
 ##' 
 
-
-sp.list <- list.files("/work/georges/BRISCA/Biomod_pure_climate_usgs_no_flaws")
+setwd("/data/idiv_sdiv/brisca/results/Biomod_pure_climate_final/")
+sp.list <- list.files("/work/georges/BRISCA/Biomod_pure_climate_strange_distrib/")
 ll <- lapply(sp.list, function(.) unlink(., recursive = TRUE, force = TRUE))
 
-in.mod.dir <- "/work/georges/BRISCA/Biomod_pure_climate_usgs_no_flaws"
+in.mod.dir <- "/work/georges/BRISCA/Biomod_pure_climate_strange_distrib"
 ll <- lapply(sp.list, function(.) list.files(path = file.path(in.mod.dir, .), 
                                              pattern = "EMwmeanByTSS_mergedAlgo_mergedRun_mergedData.*gr|EMcaByTSS_mergedAlgo_mergedRun_mergedData.*gr",
                                              recursive = TRUE, full.names = TRUE))
@@ -29,10 +29,10 @@ lll <- lapply(ll, function(ll_){
     file.copy(ll__, out.dir_, overwrite = TRUE)
   })
 })
-
-
-sp.proj.files <- list.files(path = file.path(mod.dir, sp.bmname), 
-                            pattern = "EMwmeanByTSS_mergedAlgo_mergedRun_mergedData.*grd|EMcaByTSS_mergedAlgo_mergedRun_mergedData.*grd",
-                            recursive = TRUE, full.names = TRUE)
-
-file.copy(from = list.files("/work/georges/BRISCA/Biomod_pure_climate_usgs_no_flaws", full.names = TRUE), to = ".")
+# 
+# 
+# sp.proj.files <- list.files(path = file.path(mod.dir, sp.bmname), 
+#                             pattern = "EMwmeanByTSS_mergedAlgo_mergedRun_mergedData.*grd|EMcaByTSS_mergedAlgo_mergedRun_mergedData.*grd",
+#                             recursive = TRUE, full.names = TRUE)
+# 
+# file.copy(from = list.files("/work/georges/BRISCA/Biomod_pure_climate_strange_distrib", full.names = TRUE), to = ".")

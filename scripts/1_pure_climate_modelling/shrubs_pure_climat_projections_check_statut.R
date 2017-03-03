@@ -32,7 +32,9 @@ rm(list=ls())
 # modelling.dir <- "/work/georges/BRISCA/Biomod_pure_climate_invdist"
 # modelling.dir <- "/work/georges/BRISCA/Biomod_pure_climate_dist"
 # modelling.dir <- "/work/georges/BRISCA/Biomod_climate_and_biointer"
-modelling.dir <- "/work/georges/BRISCA/Biomod_pure_climate_usgs_no_flaws"
+# modelling.dir <- "/work/georges/BRISCA/Biomod_pure_climate_usgs_no_flaws"
+# modelling.dir <- "/work/georges/BRISCA/Biomod_pure_climate_usgs_no_flaws"
+modelling.dir <- "/work/georges/BRISCA/Biomod_pure_climate_strange_distrib"
 
 ## read the inout parameters
 proj.tab <- read.table("/work/georges/BRISCA/grid_params/params_spcp.txt", header = FALSE, sep = " ")
@@ -104,8 +106,8 @@ out.dir <- "/work/georges/BRISCA/grid_params/"
 
 
 ## produce the new parameter file
-# write.table(proj.tab[ !proj.tab$ensmod.proj.ok, 2:3], file = file.path(out.dir, "params_spcep.txt"), sep = " ", 
-#              quote = FALSE, append = FALSE, row.names = TRUE, col.names = FALSE)
+write.table(proj.tab[ !proj.tab$ensmod.proj.ok, 2:3], file = file.path(out.dir, "params_spcp.txt"), sep = " ",
+             quote = FALSE, append = FALSE, row.names = TRUE, col.names = FALSE)
 dim(proj.tab[ !proj.tab$ensmod.proj.ok, 2:3])
 
 which(!proj.tab$mod.proj.ok)
