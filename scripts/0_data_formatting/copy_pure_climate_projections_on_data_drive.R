@@ -13,7 +13,7 @@
 
 setwd("/data/idiv_sdiv/brisca/results/Biomod_pure_climate_final/")
 sp.list <- list.files("/work/georges/BRISCA/Biomod_pure_climate_strange_distrib/")
-ll <- lapply(sp.list, function(.) unlink(., recursive = TRUE, force = TRUE))
+# ll <- lapply(sp.list, function(.) unlink(., recursive = TRUE, force = TRUE))
 
 in.mod.dir <- "/work/georges/BRISCA/Biomod_pure_climate_strange_distrib"
 ll <- lapply(sp.list, function(.) list.files(path = file.path(in.mod.dir, .), 

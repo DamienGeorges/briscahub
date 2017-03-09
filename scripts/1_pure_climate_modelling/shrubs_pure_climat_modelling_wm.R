@@ -72,14 +72,14 @@ if (host == "idiv_cluster"){
   in.gdd <- "/data/idiv_sdiv/brisca/Data/Climate/Macroclimate/Current/Processed/Projected/tave10_esri"
   # output directory (= workking directory)
 #   out.dir <- "/work/georges/BRISCA/Biomod_pure_climate"
-  out.dir <- "/work/georges/BRISCA/Biomod_pure_climate_strange_distrib"
+  out.dir <- "/work/georges/BRISCA/Biomod_pure_climate_2017_03_09"
   # path to maxent.jar file  
   path_to_maxent.jar <- "/data/idiv_sdiv/brisca/SDM_sessions/Maxent"
   ##' @note beacause of the the job manager installed in this cluster (qsub)
   ##'   the input argument is the species ID not the species name so we need 
   ##'   to recover species name manually
   # sp.tab <- read.table("/work/georges/BRISCA/grid_params/params_spcmJ.txt", header = FALSE, sep = " ")
-  sp.tab <- read.table("~/BRISCA/briscahub/data/sp.list_22.12.2016.txt", header = TRUE, sep = "\t", stringsAsFactors = FALSE)
+  sp.tab <- read.table("~/BRISCA/briscahub/data/sp.list_03.03.2017.txt", header = TRUE, sep = "\t", stringsAsFactors = FALSE)
   sp.name <- as.character(sp.tab[sp.id, 2])
 }
 
