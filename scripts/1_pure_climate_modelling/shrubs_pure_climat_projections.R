@@ -64,7 +64,7 @@ if(host == "pinea"){
   # path to the directory where models have been computed
 #   in.mod <- "/work/georges/BRISCA/Biomod_pure_climate"
   # in.mod <- "/work/georges/BRISCA/Biomod_pure_climate_usgs_no_flaws"
-  in.mod <- "/work/georges/BRISCA/Biomod_pure_climate_strange_distrib"
+  in.mod <- "/work/georges/BRISCA/Biomod_pure_climate_2017_03_09"
   # path to parameter table
 #   param.file <- "/work/georges/BRISCA/grid_params/params_spcp.txt" ## first run (10G ram)
 #    param.file <- "/work/georges/BRISCA/grid_params/params_spcp20G.txt" ## second run (20G ram)
@@ -150,8 +150,8 @@ quit('no')
 
 ## end of script ---------------------------------------------------------------
 
-# ## create the parameter files for the grid -------------------------------------
-# 
+## create the parameter files for the grid -------------------------------------
+
 # ## on idiv_cluster
 # out.dir <- "/work/georges/BRISCA/grid_params/"
 # dir.create(out.dir, showWarnings = FALSE, recursive = TRUE)
@@ -159,7 +159,7 @@ quit('no')
 # #                       sep = "\t", stringsAsFactors = FALSE, header  = TRUE)
 # # sp.list <- sp.list$Biomod.name
 # # sp.list <- list.files("/work/georges/BRISCA/Biomod_pure_climate_usgs_no_flaws/")
-# sp.list <- list.files("/work/georges/BRISCA/Biomod_pure_climate_strange_distrib/")
+# sp.list <- list.files("/work/georges/BRISCA/Biomod_pure_climate_2017_03_09/")
 # 
 # 
 # ## define the gcm and rcp we want to consider
