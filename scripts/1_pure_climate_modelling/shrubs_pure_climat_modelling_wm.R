@@ -115,6 +115,8 @@ pres.thin.file <- lapply(c(in.spp.1, in.spp.2, in.spp.3),
                              full.names = TRUE)})
 pres.thin.file <- unlist(pres.thin.file)[1]
 
+cat('\n> pres.thin.file: ', pres.thin.file, "\n")
+
 
 ## load the .csv
 pres.thin <- read.csv(pres.thin.file)
