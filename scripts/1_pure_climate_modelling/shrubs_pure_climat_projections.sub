@@ -1,0 +1,55 @@
+#!/bin/bash
+
+# ----------------------------------------------------------------------
+# qsub arguments
+# ----------------------------------------------------------------------
+
+## #$  -N  shrub_pure_climat_projections
+#$  -N  spcp_5G
+#$  -S  /bin/bash
+## #$  -l  h_vmem=5999M
+## #$  -l  h_vmem=9999M
+#$  -l  h_vmem=10G,highmem
+#$  -l  h_rt=24:00:00
+#$  -t  1-5394
+## #$  -t 1:116
+#$  -binding linear:1 ## core binding
+
+# ---------------------------------------------------------------------- 
+# output files
+#
+# Explanation:
+#
+#   USER          well, that is your user name
+#   JOB_NAME      reference to the name of the job
+#   JOB_ID        the unique ID of the job
+#   TASK_ID       the task ID of the current task
+# ----------------------------------------------------------------------
+
+#$ -o /work/$USER/logfiles/$JOB_NAME-$JOB_ID-$TASK_ID.log
+#$ -j y
+
+# ----------------------------------------------------------------------
+# actual processing
+# ----------------------------------------------------------------------
+
+paramsFile="none"
+params=${SGE_TASK_ID}
+
+echo
+echo "task id: " ${SGE_TASK_ID}
+echo "params file:" ${paramsFile}
+echo "params: " ${params} 
+echo
+echo
+
+
+source /etc/profile.d/000-modules.sh
+
+module load gdal geos R
+module unload cairo
+module list
+
+export JAVA_OPTS=${JAVA_OPTS:-"-Xmx256M -Xms16M"}
+
+Rscript --no-restore --vanilla ~/BRISCA/briscahub/scripts/1_pure_climate_modelling/shrubs_pure_climat_projections.R  ${params}
