@@ -152,34 +152,34 @@ quit('no')
 
 ## create the parameter files for the grid -------------------------------------
 
-# ## on idiv_cluster
-# out.dir <- "/work/georges/BRISCA/grid_params/"
-# dir.create(out.dir, showWarnings = FALSE, recursive = TRUE)
-# # sp.list <- read.table("~/BRISCA/briscahub/data/sp.list_08102015_red.txt",
-# #                       sep = "\t", stringsAsFactors = FALSE, header  = TRUE)
-# # sp.list <- sp.list$Biomod.name
-# # sp.list <- list.files("/work/georges/BRISCA/Biomod_pure_climate_usgs_no_flaws/")
-# sp.list <- list.files("/work/georges/BRISCA/Biomod_pure_climate_2017_03_09/")
-# 
-# 
-# ## define the gcm and rcp we want to consider
-# rcp.list <- c("RCP_2.6_2080", "RCP_4.5_2080", "RCP_6.0_2080", "RCP_8.5_2080")
-# gcm.list <- c("cesm1_cam5", "gfdl_esm2m", "miroc_miroc5", "mri_cgcm3", "ncar_ccsm4",
-#               "nimr_hadgem2ao", "csiro_mk360")
-# rcp.gcm.comb <- expand.grid(rcp.list = rcp.list,
-#                             gcm.list = gcm.list)
-# from.path.to.fut.expl.var <- "/data/idiv_sdiv/brisca/Data/Climate/Macroclimate/Future/CIAT_AR5_bio_prec_tmean_tmax_tmin/Processed/Projected_polar_laea_10km/Full_arctic_30_north"
-# path.to.fut.expl.var <- file.path(from.path.to.fut.expl.var, rcp.gcm.comb$rcp.list, rcp.gcm.comb$gcm.list)
-# path.to.cur.expl.var <- "/data/idiv_sdiv/brisca/Data/Climate/Macroclimate/Current/Processed/Projected"
-# path.to.expl.var <- c(path.to.cur.expl.var, path.to.fut.expl.var)
-# 
-# params <- expand.grid(sp.list = sp.list,
-#                       path.to.expl.var = path.to.expl.var)
-# 
-# write.table(params, file = file.path(out.dir, "params_spcp.txt"), sep = " ",
-#             quote = FALSE, append = FALSE, row.names = TRUE, col.names = FALSE)
-# 
-# ## subselect a part of params?
-# params <- params[grepl("csiro_mk360", params$path.to.expl.var), ]
-# write.table(params, file = file.path(out.dir, "params_csiro.txt"), sep = " ",
-#             quote = FALSE, append = FALSE, row.names = TRUE, col.names = FALSE)
+## on idiv_cluster
+out.dir <- "/work/georges/BRISCA/grid_params/"
+dir.create(out.dir, showWarnings = FALSE, recursive = TRUE)
+# sp.list <- read.table("~/BRISCA/briscahub/data/sp.list_08102015_red.txt",
+#                       sep = "\t", stringsAsFactors = FALSE, header  = TRUE)
+# sp.list <- sp.list$Biomod.name
+# sp.list <- list.files("/work/georges/BRISCA/Biomod_pure_climate_usgs_no_flaws/")
+sp.list <- list.files("/work/georges/BRISCA/Biomod_pure_climate_2017_03_09/")
+
+
+## define the gcm and rcp we want to consider
+rcp.list <- c("RCP_2.6_2080", "RCP_4.5_2080", "RCP_6.0_2080", "RCP_8.5_2080")
+gcm.list <- c("cesm1_cam5", "gfdl_esm2m", "miroc_miroc5", "mri_cgcm3", "ncar_ccsm4",
+              "nimr_hadgem2ao", "csiro_mk360")
+rcp.gcm.comb <- expand.grid(rcp.list = rcp.list,
+                            gcm.list = gcm.list)
+from.path.to.fut.expl.var <- "/data/idiv_sdiv/brisca/Data/Climate/Macroclimate/Future/CIAT_AR5_bio_prec_tmean_tmax_tmin/Processed/Projected_polar_laea_10km/Full_arctic_30_north"
+path.to.fut.expl.var <- file.path(from.path.to.fut.expl.var, rcp.gcm.comb$rcp.list, rcp.gcm.comb$gcm.list)
+path.to.cur.expl.var <- "/data/idiv_sdiv/brisca/Data/Climate/Macroclimate/Current/Processed/Projected"
+path.to.expl.var <- c(path.to.cur.expl.var, path.to.fut.expl.var)
+
+params <- expand.grid(sp.list = sp.list,
+                      path.to.expl.var = path.to.expl.var)
+
+write.table(params, file = file.path(out.dir, "params_spcp.txt"), sep = " ",
+            quote = FALSE, append = FALSE, row.names = TRUE, col.names = FALSE)
+
+## subselect a part of params?
+params <- params[grepl("csiro_mk360", params$path.to.expl.var), ]
+write.table(params, file = file.path(out.dir, "params_csiro.txt"), sep = " ",
+            quote = FALSE, append = FALSE, row.names = TRUE, col.names = FALSE)

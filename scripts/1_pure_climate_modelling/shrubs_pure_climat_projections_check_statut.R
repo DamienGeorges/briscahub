@@ -34,7 +34,8 @@ rm(list=ls())
 # modelling.dir <- "/work/georges/BRISCA/Biomod_climate_and_biointer"
 # modelling.dir <- "/work/georges/BRISCA/Biomod_pure_climate_usgs_no_flaws"
 # modelling.dir <- "/work/georges/BRISCA/Biomod_pure_climate_usgs_no_flaws"
-modelling.dir <- "/work/georges/BRISCA/Biomod_pure_climate_strange_distrib"
+# modelling.dir <- "/work/georges/BRISCA/Biomod_pure_climate_strange_distrib"
+modelling.dir <- "/work/georges/BRISCA/Biomod_pure_climate_2017_03_09"
 
 ## read the inout parameters
 proj.tab <- read.table("/work/georges/BRISCA/grid_params/params_spcp.txt", header = FALSE, sep = " ")
