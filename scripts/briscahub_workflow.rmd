@@ -21,12 +21,12 @@ everithing have to be done from scratch!
 
 2. generate the thined pseudo absences for our 22 species (14/02/2017)
 
-3. do the pure climate modelling, projection and ensemble projections for our 22 species (15/02/2017 to 22/02/2017)
+3. do the pure climate modelling, projection and ensemble projections for every the species (10/03/2017) (have been redone entirerly because I dicovered some stanges (due to an unknow bug) stripes in couple of models projection maps)
 
 4. produce some graphs to check the validity of projected models and send it to Anne and Signe for a visual check (23/02/2017)
 
-5. copy the pure climate models outputs in /data/idiv_sdiv/ (27/02/2017)
-
-6. construct the present day filter masks (current binaries projection with convexhull + 250m buffer) (27/02/2017)
+5. construct the present day filter masks (current binaries projection with convexhull + 250m buffer) (17/03/2017)
 
 7. create biotic interaction masks
+
+5. copy the pure climate models outputs in /data/idiv_sdiv/ (27/02/2017)

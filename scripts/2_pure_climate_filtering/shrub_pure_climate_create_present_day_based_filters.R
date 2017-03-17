@@ -64,14 +64,14 @@ rasterOptions(tmpdir = "/work/georges/R_raster_georges", ## where to store raste
 
 
 ## -- define path to models and to output directories --------------------------
-in.dir <- "/data/idiv_sdiv/brisca/results/Present_day_masks"
-out.dir <- "/work/georges/BRISCA/Future_day_masks/max_dispersal"
+in.dir <- "/work/georges/BRISCA/Present_day_masks_2017_03_17"
+out.dir <- "/work/georges/BRISCA/Future_day_masks_2017_03_17/max_dispersal"
 dir.create(out.dir, recursive = TRUE, showWarnings = FALSE)
 briscahub.dir <- "/home/georges/BRISCA/briscahub"
 ras.ref.file <- "/data/idiv_sdiv/brisca/results/raster_ref_27_02_2017.grd"
 
 ## -- load th species list -----------------------------------------------------
-sp.tab <- read.table(file.path(briscahub.dir, "data/sp.list_22.12.2016.txt"),
+sp.tab <- read.table(file.path(briscahub.dir, "data/sp.list_03.03.2017.txt"),
                      sep = "\t", header = TRUE, stringsAsFactors = FALSE)
 
 disp.tab <- read.table(file.path(briscahub.dir, "data/sp.list_red_tamme_disp.txt"),

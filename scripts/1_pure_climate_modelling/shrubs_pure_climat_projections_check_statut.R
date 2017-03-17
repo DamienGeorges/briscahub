@@ -100,12 +100,6 @@ sum(proj.tab$ensmod.proj.ok)
 
 ## produce the new parameter file
 out.dir <- "/work/georges/BRISCA/grid_params/"
-# write.table(proj.tab[ !proj.tab$mod.proj.ok & is.element(proj.tab$sp.name, c("Spiraea.salicifolia", "Vaccinium.myrtilloides")), 2:3], file = file.path(out.dir, "params_spcp.txt"), sep = " ", 
-#             quote = FALSE, append = FALSE, row.names = TRUE, col.names = FALSE)
-#write.table(proj.tab[!proj.tab$mod.proj.ok, 1:4], file = file.path(out.dir, "params_scabp2.txt"), sep = "\t", 
-#            quote = FALSE, append = FALSE, row.names = FALSE, col.names = FALSE)
-
-
 ## produce the new parameter file
 write.table(proj.tab[ !proj.tab$ensmod.proj.ok, 2:3], file = file.path(out.dir, "params_spcp.txt"), sep = " ",
              quote = FALSE, append = FALSE, row.names = TRUE, col.names = FALSE)
