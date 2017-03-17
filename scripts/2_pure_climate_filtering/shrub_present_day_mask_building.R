@@ -30,9 +30,10 @@ rasterOptions(tmpdir = "/work/georges/R_raster_georges", ## where to store raste
 
 
 ## -- define path to models and to output directories --------------------------
-mod.dir <- "/data/idiv_sdiv/brisca/results/Biomod_pure_climate_final" ## the directory where pure climate models are stored
+# mod.dir <- "/data/idiv_sdiv/brisca/results/Biomod_pure_climate_final" ## the directory where pure climate models are stored
 # mod.dir <- "/work/georges/BRISCA/Biomod_pure_climate_strange_distrib" ## the directory where pure climate models are stored
-out.dir <- "/work/georges/BRISCA/Present_day_masks"
+mod.dir <- "/work/georges/BRISCA/Biomod_pure_climate_2017_03_09"
+out.dir <- "/work/georges/BRISCA/Present_day_masks_2017_03_17"
 dir.create(out.dir, recursive = TRUE, showWarnings = FALSE)
 briscahub.dir <- "/home/georges/BRISCA/briscahub"
 convex.hull.dir <- "/data/idiv_sdiv/brisca/Data/january_session/Convex.hull"
