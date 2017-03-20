@@ -46,21 +46,13 @@ sp.id <- as.numeric(args[1])
 library(raster)
 
 ## on idiv
-mod.dir <- "/data/idiv_sdiv/brisca/results/Biomod_pure_climate_final"
-pres.day.filt.dir <- "/data/idiv_sdiv/brisca/results/Present_day_masks"
-max.disp.filt.dir <- "/work/georges/BRISCA/Future_day_masks/max_dispersal"
-out.dir <- "/work/georges/BRISCA/Biomod_biotic_interaction_maps_2017-02-28"
+mod.dir <- "/work/georges/BRISCA/Biomod_pure_climate_2017_03_09"
+pres.day.filt.dir <- "/work/georges/BRISCA/Present_day_masks_2017_03_17"
+max.disp.filt.dir <- "/work/georges/BRISCA/Future_day_masks_2017_03_17/max_dispersal"
+out.dir <- "/work/georges/BRISCA/Biomod_biotic_interaction_maps_2017-03-20"
 briscahub.dir <- "/home/georges/BRISCA/briscahub"
 
-
-## on signe clust
-# mod.dir <- "I://C_Write/Damien/BRISCA/backup_idiv_cluster/Biomod_pure_climate_filtered"
-# out.dir <- "I://C_Write/Damien/BRISCA/Biomod_biotic_interaction_maps"
-# briscahub.dir <- "J://People/Damien/BRISCA/briscahub"
-
 dir.create(out.dir, recursive = TRUE, showWarnings = FALSE)
-
-
 
 # filt.pattern <- '_250kmBuffConvHull.grd'
 
