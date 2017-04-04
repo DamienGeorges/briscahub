@@ -40,7 +40,7 @@ setwd("/work/georges/BRISCA/")
 ## retrieve input arguments ----------------------------------------------------
 args <- commandArgs(trailingOnly = TRUE)
 sp.id <- as.numeric(args[1])
-# sp.id <- 61
+# sp.id <- 75
 
 ## -- load needed packages ----------------------------------------------------- 
 library(raster)
@@ -87,20 +87,29 @@ get.prob.map.stk <- function(sp_, mod.dir){
 for(disp_ in c("no", "max", "unlimited")){
   cat("\n> dealing with", disp_, "dipersal limit.\n")
   sp.bio.inter <- sp.no.inter
-  for(sp_ in sp.higher.bmnames){
-    cat("add contib of :", which(sp.higher.bmnames == sp_), "/", length(sp.higher.bmnames), "\n")
-    full.filt.pattern <- paste0("_", disp_, "_dipersal")
-    if(disp_ == "no") sp_.mask <- raster(file.path(pres.day.filt.dir, paste0(sp_, "_present_day_mask.grd")))
-    if(disp_ == "max") sp_.mask <- raster(file.path(max.disp.filt.dir, paste0(sp_, "_future_day_max_disp_mask.grd")))
-    if(disp_ == "unlimited") sp_.mask <- raster("/data/idiv_sdiv/brisca/results/raster_ref_27_02_2017.grd")
-    
-    sp_.compet.contrib <- get.prob.map.stk(sp_, mod.dir) * sp_.mask
-    
-    sp.bio.inter <- sp.bio.inter + sp_.compet.contrib
-  }
   ## update names of stk and save them on the hard drive
+  full.filt.pattern <- paste0("_", disp_, "_dipersal")
   stk.layer.names <- sub("/.*$", "", sub("^.*proj_pure_climat_", 
                                          "", list.files(file.path(mod.dir, sp.bmname), paste0("EMca.*mergedData.grd"), recursive  = TRUE, full.names = TRUE)))
+  
+  if(length(sp.higher.bmnames)){
+    for(sp_ in sp.higher.bmnames){
+      cat("add contib of :", which(sp.higher.bmnames == sp_), "/", length(sp.higher.bmnames), "\n")
+      if(disp_ == "no") sp_.mask <- raster(file.path(pres.day.filt.dir, paste0(sp_, "_present_day_mask.grd")))
+      if(disp_ == "max") sp_.mask <- raster(file.path(max.disp.filt.dir, paste0(sp_, "_future_day_max_disp_mask.grd")))
+      if(disp_ == "unlimited") sp_.mask <- raster("/data/idiv_sdiv/brisca/results/raster_ref_27_02_2017.grd")
+      
+      sp_.compet.contrib <- get.prob.map.stk(sp_, mod.dir) * sp_.mask
+      
+      sp.bio.inter <- sp.bio.inter + sp_.compet.contrib
+    }
+  } else { ## for the highest plants => no competition
+    for(i in 2:length(stk.layer.names)){
+      cat("*")
+      sp.bio.inter <- addLayer(sp.bio.inter, sp.no.inter)
+    }
+  }
+  
   names(sp.bio.inter) <- stk.layer.names
   writeRaster(sp.bio.inter, filename = file.path(out.dir, paste0(sp.bmname,"_bio_inter", full.filt.pattern)))
 }
