@@ -4,15 +4,14 @@
 # qsub arguments
 # ----------------------------------------------------------------------
 
-#$  -N  scabm
+#$  -N  scabm                 ## campaign name
 #$  -S  /bin/bash
-#$  -l h_vmem=32G,highmem
-#$  -l  h_rt=17:00:00
-## #$  -t  135-189
-#$  -t  35-35
-#$  -binding linear:1 ## core binding
-## #$  -pe smp 1
-## #$  -pe smp 1 ## this script seems not to work properly in parallel
+#$  -l h_vmem=32G,highmem     ## the memory requested (here 32Go!!)
+#$  -l  h_rt=17:00:00         ## the job wholetime
+#$  -t  1-186                 ## the job to launch (get in R as job.id)
+#$  -binding linear:1         ## core binding (for non-parallel jobs)
+## #$  -pe smp 4              ## or the number of cpus for parallel jobs
+
 
 # ---------------------------------------------------------------------- 
 # output files
@@ -25,6 +24,7 @@
 #   TASK_ID       the task ID of the current task
 # ----------------------------------------------------------------------
 
+## where the logfiles are stored
 #$ -o /work/$USER/logfiles/$JOB_NAME-$JOB_ID-$TASK_ID.log
 #$ -j y
 
@@ -35,6 +35,7 @@
 paramsFile="none"
 params=${SGE_TASK_ID}
 
+## print some job stats
 echo
 echo "task id: " ${SGE_TASK_ID}
 echo "params file:" ${paramsFile}
@@ -42,15 +43,10 @@ echo "params: " ${params}
 echo
 echo
 
-
+## load the required modules
 source /etc/profile.d/000-modules.sh
-
-## module load gdal geos R/3.1.0-3
-## module unload cairo
-## module list
-
 module load gdal geos R
+export JAVA_OPTS=${JAVA_OPTS:-"-Xmx256M -Xms16M"} ## for MAXENT
 
-export JAVA_OPTS=${JAVA_OPTS:-"-Xmx256M -Xms16M"}
-
+## launch the R script
 Rscript --no-restore --vanilla ~/BRISCA/briscahub/scripts/3_climate_and_biointer_modelling/shrubs_climat_and_biointer_modelling.R  ${params}
