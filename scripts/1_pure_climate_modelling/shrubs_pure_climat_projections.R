@@ -159,7 +159,8 @@ dir.create(out.dir, showWarnings = FALSE, recursive = TRUE)
 #                       sep = "\t", stringsAsFactors = FALSE, header  = TRUE)
 # sp.list <- sp.list$Biomod.name
 # sp.list <- list.files("/work/georges/BRISCA/Biomod_pure_climate_usgs_no_flaws/")
-sp.list <- list.files("/work/georges/BRISCA/Biomod_pure_climate_2017_03_09/")
+# sp.list <- list.files("/work/georges/BRISCA/Biomod_pure_climate_2017_03_09/")
+sp.list <- "Salix.rotundifolia"
 
 
 ## define the gcm and rcp we want to consider
@@ -179,7 +180,7 @@ params <- expand.grid(sp.list = sp.list,
 write.table(params, file = file.path(out.dir, "params_spcp.txt"), sep = " ",
             quote = FALSE, append = FALSE, row.names = TRUE, col.names = FALSE)
 
-## subselect a part of params?
-params <- params[grepl("csiro_mk360", params$path.to.expl.var), ]
-write.table(params, file = file.path(out.dir, "params_csiro.txt"), sep = " ",
-            quote = FALSE, append = FALSE, row.names = TRUE, col.names = FALSE)
+# ## subselect a part of params?
+# params <- params[grepl("csiro_mk360", params$path.to.expl.var), ]
+# write.table(params, file = file.path(out.dir, "params_csiro.txt"), sep = " ",
+#             quote = FALSE, append = FALSE, row.names = TRUE, col.names = FALSE)
