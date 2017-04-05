@@ -6,9 +6,9 @@
 
 #$  -N  spc_ep_hm
 #$  -S  /bin/bash
-#$  -l  h_vmem=10G,highmem
+#$  -l  h_vmem=15G,highmem
 #$  -l  h_rt=24:00:00
-#$  -t  1-5394
+#$  -t  66-66
 #$  -binding linear:1 ## core binding
 
 # ---------------------------------------------------------------------- 
