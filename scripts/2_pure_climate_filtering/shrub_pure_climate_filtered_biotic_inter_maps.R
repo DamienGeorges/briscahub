@@ -14,6 +14,8 @@
 ##' - 16 Nov 2016: update the file path to recompute the 
 ##' - 28 Fev 2017: change the path and use the new present day masks (binary proj within 250 km 
 ##'                bufferedconvex hull)
+##' - 06 Apr 2017: change the shader/shaded relathionship. Trees are only affected Trees and Tall shrubs
+##'                not Low and Dwarf shrubs
 ##' 
 ##' @licencing GPL
 ##'     Copyright (C) 2015  Damien G.
@@ -40,7 +42,7 @@ setwd("/work/georges/BRISCA/")
 ## retrieve input arguments ----------------------------------------------------
 args <- commandArgs(trailingOnly = TRUE)
 sp.id <- as.numeric(args[1])
-# sp.id <- 75
+# sp.id <- 181
 
 ## -- load needed packages ----------------------------------------------------- 
 library(raster)
@@ -49,7 +51,7 @@ library(raster)
 mod.dir <- "/work/georges/BRISCA/Biomod_pure_climate_2017_03_09"
 pres.day.filt.dir <- "/work/georges/BRISCA/Present_day_masks_2017_03_17"
 max.disp.filt.dir <- "/work/georges/BRISCA/Future_day_masks_2017_03_17/max_dispersal"
-out.dir <- "/work/georges/BRISCA/Biomod_biotic_interaction_maps_2017-03-20"
+out.dir <- "/work/georges/BRISCA/Biomod_biotic_interaction_maps_2017-04-06"
 briscahub.dir <- "/home/georges/BRISCA/briscahub"
 
 dir.create(out.dir, recursive = TRUE, showWarnings = FALSE)
@@ -67,9 +69,14 @@ cat("\n> sp:", sp.id, "/", nrow(sp.tab), "--------------------------------------
 sp.name <- sp.tab$Genus.species[sp.id]
 sp.bmname <- sp.tab$Biomod.name[sp.id]
 sp.height <- sp.tab$All.height.median[sp.id]
+sp.growth.form <- sp.tab$Growth.form.height[sp.id]
 
 ## get species competitors
-sp.higher.bmnames <- sp.tab$Biomod.name[sp.tab$All.height.median > sp.height]
+if(sp.height >= 0.5 | sp.growth.form == "TREE"){ ## shade come from all what is above for trees and tall shrubs
+  sp.higher.bmnames <- sp.tab$Biomod.name[sp.tab$All.height.median > sp.height]
+} else { ## not shaded by trees
+  sp.higher.bmnames <- sp.tab$Biomod.name[sp.tab$All.height.median > sp.height & (sp.tab$Growth.form.height != "TREE")]
+}
 
 ## define an empty default biotic interaction map
 sp.bio.inter <- sp.no.inter <- raster("/data/idiv_sdiv/brisca/results/raster_ref_27_02_2017.grd") - 1
