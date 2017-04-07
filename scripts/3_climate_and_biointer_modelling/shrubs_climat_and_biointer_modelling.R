@@ -60,19 +60,21 @@ if(host == "pinea"){
 } else if(host == "brisca_cluster"){
 } else if (host == "idiv_cluster"){
   # presences-absences tables
-#   in.spp <- "/data/idiv_sdiv/brisca/SDM_sessions/Presence-PseudoAbsence_thinned/Data_output/gbif_biosc_hult_thined_10000" 
-  in.spp <- "/data/idiv_sdiv/brisca/SDM_sessions/Presence-PseudoAbsence_thinned/Data_output/gbif_biosc_hult_usgs_thined_10000" 
-  in.spp.bis <- "/data/idiv_sdiv/brisca/SDM_sessions/Presence-PseudoAbsence_thinned/Data_output/gbif_biosc_hult_thined_10000" 
+  .libPaths("/home/georges/R/x86_64-pc-linux-gnu-library/3.2/")
+  # presences-absences tables
+  in.spp.1 <-  "/data/idiv_sdiv/brisca/Data/january_session/Presence-PseudoAbsence_thinned/Data_output.no.flaws/gbif_biosc_hult_usgs_thined_10000.no.flaws"
+  in.spp.2 <- "/data/idiv_sdiv/brisca/SDM_sessions/Presence-PseudoAbsence_thinned/Data_output/gbif_biosc_hult_usgs_thined_10000"
+  in.spp.3 <- "/data/idiv_sdiv/brisca/SDM_sessions/Presence-PseudoAbsence_thinned/Data_output/gbif_biosc_hult_thined_10000"
   # worldclim layers
   in.clim <- "/data/idiv_sdiv/brisca/Data/Climate/Macroclimate/Current/Processed/Projected/bio"
   # GDD layer
   in.gdd <- "/data/idiv_sdiv/brisca/Data/Climate/Macroclimate/Current/Processed/Projected/tave10_esri"
   # biotic interaction maps
-  in.biot <- "/work/georges/BRISCA/Biomod_biotic_interaction_maps_new"
+  in.biot <- "/work/georges/BRISCA/Present_day_masks_2017_03_17"
   # path to maxent.jar file  
   path_to_maxent.jar <- "/data/idiv_sdiv/brisca/SDM_sessions/Maxent"
   
-  out.dir <- "/work/georges/BRISCA/Biomod_climate_and_biointer"
+  out.dir <- "/work/georges/BRISCA/Biomod_climate_and_biointer_2017-04-07"
 
   params.tab <- read.table("/work/georges/BRISCA/grid_params/params_scabm.txt", header = FALSE, sep = "\t")
   sp.name <- as.character(params.tab[job.id, 2])
@@ -101,8 +103,10 @@ proj <- CRS("+proj=laea +lat_0=90.0 +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +towgs84
 bio <- stack(file.path(in.clim, "bioproj.grd"))
 ## degree day
 ddeg <- raster(file.path(in.gdd, "ddeg"), crs = proj)
+
+
 ## biotic interaction
-biointer <- stack(file.path(in.biot,  paste0(sp.bmname, "_bio_inter_filt_no_disp_invdist.grd")))
+biointer <- stack(file.path(in.biot,  paste0(sp.bmname, "_bio_inter_no_dipersal.grd")))
 biointer <- subset(biointer, "current")
 # ## added for the testing session of biointeraction maps
 # biointer <- projectRaster(biointer, bio)
@@ -114,15 +118,19 @@ expl.stk <- stack(ddeg, subset(bio, c(6, 10, 18, 19)), biointer)
 ## load presences-absences data for our species --------------------------------
 
 ## get species presences/pseudo-absences .csv files
-pres.thin.file <- list.files(in.spp, 
-                             pattern = paste0("^pres_and_10000_PA_thin_", gsub(" ", "_", sp.name), ".csv"),
-                             full.names = TRUE)
-## or in the older version if not found
-if(!length(pres.thin.file)){
-  pres.thin.file <- list.files(in.spp.bis, 
-                               pattern = paste0("^pres_and_10000_PA_thin_", gsub(" ", "_", sp.name), ".csv"),
-                               full.names = TRUE)
-}
+pres.thin.file <- lapply(c(in.spp.1, in.spp.2, in.spp.3),
+                         function(.){
+                           list.files(., 
+                                      pattern = paste0("^pres_and_10000_PA_thin_", sub('[[:punct:]]', '_', sp.name), ".csv"),
+                                      full.names = TRUE)})
+pres.thin.file <- unlist(pres.thin.file)[1]
+
+cat('\n> pres.thin.file: ', pres.thin.file, "\n")
+
+## remove all 'tricky' characters from sp names
+sp.name <- gsub("-", "", sp.name)
+sp.name <- gsub(" ", ".", sp.name, fixed = "TRUE")
+sp.name <- gsub("_", ".", sp.name, fixed = "TRUE")
 
 ## load the .csv
 pres.thin <- read.csv(pres.thin.file)
