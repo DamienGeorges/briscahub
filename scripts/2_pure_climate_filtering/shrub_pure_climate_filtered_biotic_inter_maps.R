@@ -42,6 +42,7 @@ setwd("/work/georges/BRISCA/")
 ## retrieve input arguments ----------------------------------------------------
 args <- commandArgs(trailingOnly = TRUE)
 sp.id <- as.numeric(args[1])
+type <- "incl_tree"
 # sp.id <- 181
 
 ## -- load needed packages ----------------------------------------------------- 
@@ -51,7 +52,7 @@ library(raster)
 mod.dir <- "/work/georges/BRISCA/Biomod_pure_climate_2017_03_09"
 pres.day.filt.dir <- "/work/georges/BRISCA/Present_day_masks_2017_03_17"
 max.disp.filt.dir <- "/work/georges/BRISCA/Future_day_masks_2017_03_17/max_dispersal"
-out.dir <- "/work/georges/BRISCA/Biomod_biotic_interaction_maps_2017-04-06"
+out.dir <- paste0("/work/georges/BRISCA/Biomod_biotic_interaction_maps_",type,"_2017-04-06")
 briscahub.dir <- "/home/georges/BRISCA/briscahub"
 
 dir.create(out.dir, recursive = TRUE, showWarnings = FALSE)
@@ -72,11 +73,18 @@ sp.height <- sp.tab$All.height.median[sp.id]
 sp.growth.form <- sp.tab$Growth.form.height[sp.id]
 
 ## get species competitors
-if(sp.height >= 0.5 | sp.growth.form == "TREE"){ ## shade come from all what is above for trees and tall shrubs
+if(type == "incl_tree"){
   sp.higher.bmnames <- sp.tab$Biomod.name[sp.tab$All.height.median > sp.height]
-} else { ## not shaded by trees
-  sp.higher.bmnames <- sp.tab$Biomod.name[sp.tab$All.height.median > sp.height & (sp.tab$Growth.form.height != "TREE")]
+} else if(type == "no_tree") {
+  if(sp.height >= 0.5 | sp.growth.form == "TREE"){ ## shade come from all what is above for trees and tall shrubs
+    cat("\n------> nothing to do for this species")
+    q("no")
+  } else { ## not shaded by trees
+    sp.higher.bmnames <- sp.tab$Biomod.name[sp.tab$All.height.median > sp.height & (sp.tab$Growth.form.height != "TREE")]
+  }
 }
+
+
 
 ## define an empty default biotic interaction map
 sp.bio.inter <- sp.no.inter <- raster("/data/idiv_sdiv/brisca/results/raster_ref_27_02_2017.grd") - 1

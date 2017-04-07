@@ -7,8 +7,8 @@
 #$  -N  scabm                 ## campaign name
 #$  -S  /bin/bash
 #$  -l h_vmem=32G,highmem     ## the memory requested (here 32Go!!)
-#$  -l  h_rt=17:00:00         ## the job wholetime
-#$  -t  1-186                 ## the job to launch (get in R as job.id)
+#$  -l  h_rt=24:00:00         ## the job wholetime
+#$  -t  1-187                 ## the job to launch (get in R as job.id)
 #$  -binding linear:1         ## core binding (for non-parallel jobs)
 ## #$  -pe smp 4              ## or the number of cpus for parallel jobs
 
