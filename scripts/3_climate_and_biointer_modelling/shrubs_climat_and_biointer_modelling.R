@@ -54,6 +54,7 @@ job.id <- as.numeric(args[1])
 
 ## definig the machine where the script will run ----------------------------------------
 host = "idiv_cluster"
+type = "incl_tree"
 
 ## input/output directories depending on the host ------------------------------
 if(host == "pinea"){
@@ -70,11 +71,11 @@ if(host == "pinea"){
   # GDD layer
   in.gdd <- "/data/idiv_sdiv/brisca/Data/Climate/Macroclimate/Current/Processed/Projected/tave10_esri"
   # biotic interaction maps
-  in.biot <- "/work/georges/BRISCA/Present_day_masks_2017_03_17"
+  in.biot <- paste0("/work/georges/BRISCA/Biomod_biotic_interaction_maps_", type, "_2017-04-06")
   # path to maxent.jar file  
   path_to_maxent.jar <- "/data/idiv_sdiv/brisca/SDM_sessions/Maxent"
   
-  out.dir <- "/work/georges/BRISCA/Biomod_climate_and_biointer_2017-04-07"
+  out.dir <- paste0("/work/georges/BRISCA/Biomod_climate_and_biointer_", type, "_2017-04-07")
 
   params.tab <- read.table("/work/georges/BRISCA/grid_params/params_scabm.txt", header = FALSE, sep = "\t")
   sp.name <- as.character(params.tab[job.id, 2])
