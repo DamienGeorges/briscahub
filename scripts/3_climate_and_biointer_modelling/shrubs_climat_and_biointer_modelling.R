@@ -50,7 +50,7 @@ args <- commandArgs(trailingOnly = TRUE)
 sp.id <- as.numeric(args[1])
 
 ## test ===
-## job.id <- 35
+## sp.id <- 35
 
 ## definig the machine where the script will run ----------------------------------------
 host = "idiv_cluster"
@@ -104,14 +104,13 @@ proj <- CRS("+proj=laea +lat_0=90.0 +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +towgs84
 ## bioclimatic variables
 bio <- stack(file.path(in.clim, "bioproj.grd"))
 ## degree day
-ddeg <- raster(file.path(in.gdd, "ddeg"), crs = proj)
-
+ddeg <- raster(file.path(in.gdd, "ddeg.grd"))
 
 ## biotic interaction
 biointer <- stack(file.path(in.biot,  paste0(sp.bmname, "_bio_inter_no_dipersal.grd")))
 biointer <- subset(biointer, "current")
-# ## added for the testing session of biointeraction maps
-# biointer <- projectRaster(biointer, bio)
+## added for the testing session of biointeraction maps
+biointer <- projectRaster(biointer, bio) ## to ensure the compatibility btw maps cordiantes and extent
 names(biointer) <- "biointer"
 ## merge all cliimatic variables
 expl.stk <- stack(ddeg, subset(bio, c(6, 10, 18, 19)), biointer)

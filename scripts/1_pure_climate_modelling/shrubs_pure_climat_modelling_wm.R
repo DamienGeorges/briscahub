@@ -101,7 +101,6 @@ proj <- CRS("+proj=laea +lat_0=90.0 +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +towgs84
 ## bioclimatic variables
 bio <- stack(file.path(in.clim, "bioproj.grd"))
 ## degree day
-# ddeg <- raster(file.path(in.gdd, "ddeg"), crs = proj)
 ddeg <- raster(file.path(in.gdd, "ddeg.grd"))
 ## merge all cliimatic variables
 clim.cur <- stack(ddeg, subset(bio, c(6, 10, 18, 19)))
