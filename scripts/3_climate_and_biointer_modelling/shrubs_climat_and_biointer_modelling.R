@@ -78,8 +78,7 @@ if(host == "pinea"){
   out.dir <- paste0("/work/georges/BRISCA/Biomod_climate_and_biointer_", type, "_2017-04-07")
 
   sp.tab <- read.table("~/BRISCA/briscahub/data/sp.list_03.03.2017.txt", header = TRUE, sep = "\t", stringsAsFactors = FALSE)
-  sp.name <- as.character(sp.tab[sp.id, "Genus.species"])
-  sp.bmname <- as.character(sp.tab[sp.id, "Biomod.name"])
+  sp.name <- as.character(sp.tab[sp.id, "Biomod.name"])
   
   .libPaths("~/R/x86_64-pc-linux-gnu-library/3.2")  
 }
@@ -107,7 +106,7 @@ bio <- stack(file.path(in.clim, "bioproj.grd"))
 ddeg <- raster(file.path(in.gdd, "ddeg.grd"))
 
 ## biotic interaction
-biointer <- stack(file.path(in.biot,  paste0(sp.bmname, "_bio_inter_no_dipersal.grd")))
+biointer <- stack(file.path(in.biot,  paste0(sp.name, "_bio_inter_no_dipersal.grd")))
 biointer <- subset(biointer, "current")
 ## added for the testing session of biointeraction maps
 biointer <- projectRaster(biointer, bio) ## to ensure the compatibility btw maps cordiantes and extent
@@ -128,10 +127,6 @@ pres.thin.file <- unlist(pres.thin.file)[1]
 
 cat('\n> pres.thin.file: ', pres.thin.file, "\n")
 
-# ## remove all 'tricky' characters from sp names
-# sp.name <- gsub("-", "", sp.name)
-# sp.name <- gsub(" ", ".", sp.name, fixed = "TRUE")
-# sp.name <- gsub("_", ".", sp.name, fixed = "TRUE")
 
 ## load the .csv
 pres.thin <- read.csv(pres.thin.file)
@@ -174,7 +169,7 @@ rm(pres.thin.file, pres.thin, bio, ddeg)
 bm.dat <- BIOMOD_FormatingData(resp.var = sp.resp,
                                expl.var = sp.env,
                                resp.xy = sp.coord,
-                               resp.name = sp.bmname,
+                               resp.name = sp.name,
                                PA.strategy = 'user.defined', 
                                PA.table = sp.pa.tab, 
                                na.rm = TRUE)
@@ -299,19 +294,4 @@ write.table(bm.eval, file = file.path(out.dir, bm.dat@sp.name, "bm.eval.txt"))
 
 quit("no")
 
-# ## create the parameter files for the grid -------------------------------------
-# 
-# out.dir <- "/work/georges/BRISCA/grid_params"
-# dir.create(out.dir, showWarnings = FALSE, recursive = TRUE)
-# ## get all species names
-# briscahub.dir <- "/home/georges/BRISCA/briscahub"
-# ## -- load th species list -----------------------------------------------------
-# sp.tab <- read.table(file.path(briscahub.dir, "data/sp.list_08102015_red.txt"),
-#                      sep = "\t", header = TRUE, stringsAsFactors = FALSE)
-# 
-# params <- data.frame(sp.name = sp.tab$Genus.species,
-#                      sp.bmname = sp.tab$Biomod.name)
-# 
-# write.table(params, file = file.path(out.dir, "params_scabm.txt"), sep = "\t", 
-#             quote = TRUE, append = FALSE, row.names = TRUE, col.names = FALSE)
 
