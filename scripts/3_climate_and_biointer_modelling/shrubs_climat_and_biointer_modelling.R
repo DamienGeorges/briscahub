@@ -47,7 +47,7 @@ rm(list=ls())
 
 ## retrieve input arguments ----------------------------------------------------
 args <- commandArgs(trailingOnly = TRUE)
-job.id <- as.numeric(args[1])
+sp.id <- as.numeric(args[1])
 
 ## test ===
 ## job.id <- 35
@@ -77,9 +77,10 @@ if(host == "pinea"){
   
   out.dir <- paste0("/work/georges/BRISCA/Biomod_climate_and_biointer_", type, "_2017-04-07")
 
-  params.tab <- read.table("/work/georges/BRISCA/grid_params/params_scabm.txt", header = FALSE, sep = "\t")
-  sp.name <- as.character(params.tab[job.id, 2])
-  sp.bmname <- as.character(params.tab[job.id, 3])
+  sp.tab <- read.table("~/BRISCA/briscahub/data/sp.list_03.03.2017.txt", header = TRUE, sep = "\t", stringsAsFactors = FALSE)
+  sp.name <- as.character(sp.tab[sp.id, "Genus.species"])
+  sp.bmname <- as.character(sp.tab[sp.id, "Biomod.name"])
+  
   .libPaths("~/R/x86_64-pc-linux-gnu-library/3.2")  
 }
 
@@ -128,10 +129,10 @@ pres.thin.file <- unlist(pres.thin.file)[1]
 
 cat('\n> pres.thin.file: ', pres.thin.file, "\n")
 
-## remove all 'tricky' characters from sp names
-sp.name <- gsub("-", "", sp.name)
-sp.name <- gsub(" ", ".", sp.name, fixed = "TRUE")
-sp.name <- gsub("_", ".", sp.name, fixed = "TRUE")
+# ## remove all 'tricky' characters from sp names
+# sp.name <- gsub("-", "", sp.name)
+# sp.name <- gsub(" ", ".", sp.name, fixed = "TRUE")
+# sp.name <- gsub("_", ".", sp.name, fixed = "TRUE")
 
 ## load the .csv
 pres.thin <- read.csv(pres.thin.file)
