@@ -53,6 +53,7 @@ job.id <- as.numeric(args[1])
 
 ## definig the machine where the script will run -------------------------------
 host = "idiv_cluster"
+type = "incl_tree"
 
 ## require libraries -----------------------------------------------------------
 .libPaths("~/R/x86_64-pc-linux-gnu-library/3.2")
@@ -72,9 +73,10 @@ if(host == "pinea"){
   ## TODO (Damien)
 } else if (host == "idiv_cluster"){
   # path to the directory where models have been computed
-  in.mod <- "/work/georges/BRISCA/Biomod_climate_and_biointer"
+  in.mod <- paste0("/work/georges/BRISCA/Biomod_climate_and_biointer_", type, "_2017-04-07")
   # path to parameter table
-  param.file <- "/work/georges/BRISCA/grid_params/params_scabp.txt" ## first run (10G ram)
+  param.file <- paste0("/work/georges/BRISCA/grid_params/params_scabp_", type, ".txt") ## first run (10G ram)
+  ras.ref.file <- "/data/idiv_sdiv/brisca/results/raster_ref_27_02_2017.grd"
 }
 
 ## create the output directory and change the working directory ----------------
@@ -97,7 +99,7 @@ bm.mod <- get(mod.name)
 rm(list = mod.name)
 
 ##define the projection name
-biointer.str <- sub(".grd", "", sub("^.*_bio_inter_filt", "", path.to.biointer.stk))
+biointer.str <- sub(".grd", "", sub("^.*_bio_inter_", "", path.to.biointer.stk))
 if(grepl("Current", path.to.clim.var)){
   bm.proj.name <- paste0("pure_climat_current", biointer.str)
 } else{
@@ -106,7 +108,7 @@ if(grepl("Current", path.to.clim.var)){
 
 ## load explanatory variables
 ## define the projection system
-proj <- CRS("+proj=laea +lat_0=90.0 +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs") 
+proj <- CRS("+proj=laea +lat_0=90.0 +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs")
 
 ## bioclimatic variables
 bio <- stack(file.path(path.to.clim.var, "bio", ifelse(grepl("Current", path.to.clim.var), "bioproj.grd", "bioproj_multi.grd")))
@@ -124,6 +126,12 @@ names(biointer) <- "biointer"
 ## merge all cliimatic variables
 expl.stk <- stack(ddeg, subset(bio, c(6, 10, 18, 19)), biointer)
 
+## reproject the explanatory variables to work in the right projection system
+## load teh ref mask
+ras.ref <- raster(ras.ref.file)
+expl.stk <- projectRaster(expl.stk, ras.ref)
+names(expl.stk) <- expl.stk.names
+
 ## ensure that exactly all the same cells are define in explanatory rasters
 ## function to define the intersect of rasters
 intersect_mask <- function(x){
@@ -136,7 +144,7 @@ intersect_mask <- function(x){
 ## keep only all cells that are defined for all layers
 expl.stk.names <- names(expl.stk)
 expl.stk <- stack(mask(expl.stk, intersect_mask(expl.stk)))
-names(expl.stk) <- expl.stk.names
+
 
 ## do projections --------------------------------------------------------------
 
@@ -155,13 +163,14 @@ quit('no')
 
 ## end of script ---------------------------------------------------------------
 
-# ## create the parameter files for the grid -------------------------------------
-# 
+## create the parameter files for the grid -------------------------------------
+
 # ## on idiv_cluster
+# library(dplyr)
+# type <- "incl_tree"
 # out.dir <- "/work/georges/BRISCA/grid_params/"
 # dir.create(out.dir, showWarnings = FALSE, recursive = TRUE)
-# sp.list <- read.table("~/BRISCA/briscahub/data/sp.list_08102015_red.txt",
-#                       sep = "\t", stringsAsFactors = FALSE, header  = TRUE)
+# sp.list <- read.table("~/BRISCA/briscahub/data/sp.list_03.03.2017.txt", header = TRUE, sep = "\t", stringsAsFactors = FALSE)
 # sp.list <- sp.list$Biomod.name
 # 
 # ## define the gcm and rcp we want to consider
@@ -178,74 +187,27 @@ quit('no')
 # params <- expand.grid(sp.list = sp.list,
 #                       path.to.clim.var = path.to.clim.var)
 # 
-# params.no.disp.biointer <- params.min.disp.biointer <- params.max.disp.biointer <- params 
+# params.no.disp.biointer <- params.ulim.disp.biointer <- params.max.disp.biointer <- params
 # 
-# params.no.disp.biointer$path.to.biointer.stk <- paste0("/work/georges/BRISCA/Biomod_biotic_interaction_maps/", params.no.disp.biointer$sp.list, "_bio_inter_filt_no_disp_invdist.grd")
-# params.min.disp.biointer$path.to.biointer.stk <- paste0("/work/georges/BRISCA/Biomod_biotic_interaction_maps/", params.no.disp.biointer$sp.list, "_bio_inter_filt_min_disp_invdist.grd")
-# params.max.disp.biointer$path.to.biointer.stk <- paste0("/work/georges/BRISCA/Biomod_biotic_interaction_maps/", params.no.disp.biointer$sp.list, "_bio_inter_filt_max_disp_invdist.grd")
+# params.no.disp.biointer$path.to.biointer.stk <- paste0("/work/georges/BRISCA/Biomod_biotic_interaction_maps_", type, "_2017-04-06/", params.no.disp.biointer$sp.list, "_bio_inter_no_dipersal.grd")
+# params.max.disp.biointer$path.to.biointer.stk <- paste0("/work/georges/BRISCA/Biomod_biotic_interaction_maps_", type, "_2017-04-06/", params.no.disp.biointer$sp.list, "_bio_inter_max_dipersal.grd")
+# params.ulim.disp.biointer$path.to.biointer.stk <- paste0("/work/georges/BRISCA/Biomod_biotic_interaction_maps_", type, "_2017-04-06/", params.no.disp.biointer$sp.list, "_bio_inter_unlimited_dipersal.grd")
 # 
 # ## remove all the non no dispersal based biotic interaction for current condition
-# params.min.disp.biointer <- params.min.disp.biointer[!grepl('current', params.min.disp.biointer$path.to.clim.var), ] 
-# params.max.disp.biointer <- params.max.disp.biointer[!grepl('current', params.max.disp.biointer$path.to.clim.var), ] 
+# params.max.disp.biointer <- params.max.disp.biointer[!grepl('current', params.max.disp.biointer$path.to.clim.var), ]
+# params.ulim.disp.biointer <- params.ulim.disp.biointer[!grepl('current', params.ulim.disp.biointer$path.to.clim.var), ]
 # 
 # 
-# params <- rbind(params.no.disp.biointer, params.max.disp.biointer, params.min.disp.biointer)
+# params <- rbind(params.no.disp.biointer, params.max.disp.biointer, params.ulim.disp.biointer)
 # 
 # ## subselect a part of params?
-# params <- params[!grepl("_min_disp", params$path.to.biointer.stk), ]
-# 
-# ## reorder the table by species names
-# params <- params[order(params$sp.list), ]
-# rownames(params) <- NULL
-# 
-# write.table(params, file = file.path(out.dir, "params_scabp.txt"), sep = "\t", 
-#             quote = FALSE, append = FALSE, row.names = TRUE, col.names = FALSE)
-# 
-
-
-## create the parameter files for the grid -------------------------------------
-## test mode
-
-# ## on idiv_cluster
-# out.dir <- "/work/georges/BRISCA/grid_params/"
-# dir.create(out.dir, showWarnings = FALSE, recursive = TRUE)
-# sp.list <- "Cassiope.tetragona" 
-# 
-# ## define the gcm and rcp we want to consider
-# rcp.list <- c("RCP_6.0_2080")
-# gcm.list <- c("cesm1_cam5")
-# rcp.gcm.comb <- expand.grid(rcp.list = rcp.list,
-#                             gcm.list = gcm.list)
-# from.path.to.fut.expl.var <- "/data/idiv_sdiv/brisca/Data/Climate/Macroclimate/Future/CIAT_AR5_bio_prec_tmean_tmax_tmin/Processed/Projected_polar_laea_10km/Full_arctic_30_north"
-# path.to.fut.expl.var <- file.path(from.path.to.fut.expl.var, rcp.gcm.comb$rcp.list, rcp.gcm.comb$gcm.list)
-# path.to.cur.expl.var <- "/data/idiv_sdiv/brisca/Data/Climate/Macroclimate/Current/Processed/Projected"
-# path.to.clim.var <- c(path.to.cur.expl.var, path.to.fut.expl.var)
-# 
-# params <- expand.grid(sp.list = sp.list,
-#                       path.to.clim.var = path.to.clim.var)
-# 
-# params.no.disp.biointer <- params.min.disp.biointer <- params.max.disp.biointer <- params 
-# 
-# params.no.disp.biointer$path.to.biointer.stk <- paste0("/work/georges/BRISCA/Biomod_biotic_interaction_maps_new/", params.no.disp.biointer$sp.list, "_bio_inter_filt_no_disp_invdist.grd")
-# params.min.disp.biointer$path.to.biointer.stk <- paste0("/work/georges/BRISCA/Biomod_biotic_interaction_maps_new/", params.no.disp.biointer$sp.list, "_bio_inter_filt_min_disp_invdist.grd")
-# params.max.disp.biointer$path.to.biointer.stk <- paste0("/work/georges/BRISCA/Biomod_biotic_interaction_maps_new/", params.no.disp.biointer$sp.list, "_bio_inter_filt_max_disp_invdist.grd")
-# 
-# ## remove all the non no dispersal based biotic interaction for current condition
-# params.min.disp.biointer <- params.min.disp.biointer[!grepl('current', params.min.disp.biointer$path.to.clim.var), ] 
-# params.max.disp.biointer <- params.max.disp.biointer[!grepl('current', params.max.disp.biointer$path.to.clim.var), ] 
-# 
-# 
-# params <- rbind(params.no.disp.biointer, params.max.disp.biointer, params.min.disp.biointer)
-# 
-# # ## subselect a part of params?
 # # params <- params[!grepl("_min_disp", params$path.to.biointer.stk), ]
 # 
 # ## reorder the table by species names
-# params <- params[order(params$sp.list), ]
-# params <- params[c(2,4,6), ]
+# params <- params %>% arrange(sp.list, path.to.clim.var, path.to.biointer.stk)
 # rownames(params) <- NULL
 # 
-# write.table(params, file = file.path(out.dir, "params_scabp.txt"), sep = "\t", 
+# write.table(params, file = file.path(out.dir, paste0("params_scabp_", type,".txt")), sep = "\t",
 #             quote = FALSE, append = FALSE, row.names = TRUE, col.names = FALSE)
-# 
+
 
