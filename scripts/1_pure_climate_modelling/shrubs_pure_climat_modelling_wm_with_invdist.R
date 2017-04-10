@@ -82,7 +82,7 @@ proj <- CRS("+proj=laea +lat_0=90.0 +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +towgs84
 ## bioclimatic variables
 bio <- stack(file.path(in.clim, "bioproj.grd"))
 ## degree day
-ddeg <- raster(file.path(in.gdd, "ddeg"), crs = proj)
+ddeg <- raster(file.path(in.gdd, "ddeg.grd"))
 ## distance to closest occurence
 invdist.laea <- raster(file.path(in.dist, 
                               paste0("InvDist_", sp.bmname, ".grd")))

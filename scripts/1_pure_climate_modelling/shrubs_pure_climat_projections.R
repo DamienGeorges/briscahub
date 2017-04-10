@@ -109,7 +109,7 @@ proj <- CRS("+proj=laea +lat_0=90.0 +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +towgs84
 ## bioclimatic variables
 bio <- stack(file.path(path.to.expl.var, "bio", ifelse(grepl("Current", path.to.expl.var), "bioproj.grd", "bioproj_multi.grd")))
 ## degree day
-ddeg <- raster(file.path(path.to.expl.var, "tave10_esri", "ddeg.grd"), crs = proj)
+ddeg <- raster(file.path(path.to.expl.var, "tave10_esri", "ddeg.grd"))
 ## merge all cliimatic variables
 expl.stk <- stack(ddeg, subset(bio, c(6, 10, 18, 19)))
 

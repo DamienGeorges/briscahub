@@ -34,7 +34,7 @@ dir.create(out.dir, showWarnings = FALSE, recursive = TRUE)
 ## define the projection system
 proj <- CRS("+proj=laea +lat_0=90.0 +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs") 
 ## degree day
-ddeg <- raster(file.path(in.gdd, "ddeg"), crs = proj)
+ddeg <- raster(file.path(in.gdd, "ddeg.grd"))
 ddeg.non.na.cell <- which(!is.na(ddeg[]))
 ## sel all values to 0
 ddeg[ddeg.non.na.cell] <- 0

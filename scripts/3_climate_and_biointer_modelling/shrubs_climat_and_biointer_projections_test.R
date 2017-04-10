@@ -111,7 +111,7 @@ proj <- CRS("+proj=laea +lat_0=90.0 +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +towgs84
 ## bioclimatic variables
 bio <- stack(file.path(path.to.clim.var, "bio", ifelse(grepl("Current", path.to.clim.var), "bioproj.grd", "bioproj_multi.grd")))
 ## degree day
-ddeg <- raster(file.path(path.to.clim.var, "tave10_esri", "ddeg"), crs = proj)
+ddeg <- raster(file.path(path.to.clim.var, "tave10_esri", "ddeg.grd"))
 ## biotic interaction
 biointer <- stack(path.to.biointer.stk)
 ## select the oppropriate layer
