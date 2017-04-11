@@ -48,7 +48,7 @@ args <- commandArgs(trailingOnly = TRUE)
 job.id <- as.numeric(args[1])
 
 ## test ===
-## job.id <- 1
+## job.id <- 4
 
 
 ## definig the machine where the script will run -------------------------------
@@ -113,7 +113,7 @@ proj <- CRS("+proj=laea +lat_0=90.0 +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +towgs84
 ## bioclimatic variables
 bio <- stack(file.path(path.to.clim.var, "bio", ifelse(grepl("Current", path.to.clim.var), "bioproj.grd", "bioproj_multi.grd")))
 ## degree day
-ddeg <- raster(file.path(path.to.clim.var, "tave10_esri", "ddeg.grd"))
+ddeg <- raster(file.path(path.to.clim.var, "tave10_esri", "ddeg.grd"), crs = proj)
 ## biotic interaction
 biointer <- stack(path.to.biointer.stk)
 ## select the oppropriate layer
@@ -125,12 +125,12 @@ names(biointer) <- "biointer"
 
 ## merge all cliimatic variables
 expl.stk <- stack(ddeg, subset(bio, c(6, 10, 18, 19)), biointer)
+expl.stk.names <- names(expl.stk)
 
 ## reproject the explanatory variables to work in the right projection system
 ## load teh ref mask
 ras.ref <- raster(ras.ref.file)
 expl.stk <- projectRaster(expl.stk, ras.ref)
-names(expl.stk) <- expl.stk.names
 
 ## ensure that exactly all the same cells are define in explanatory rasters
 ## function to define the intersect of rasters
@@ -142,9 +142,8 @@ intersect_mask <- function(x){
 }
 
 ## keep only all cells that are defined for all layers
-expl.stk.names <- names(expl.stk)
 expl.stk <- stack(mask(expl.stk, intersect_mask(expl.stk)))
-
+names(expl.stk) <- expl.stk.names
 
 ## do projections --------------------------------------------------------------
 
