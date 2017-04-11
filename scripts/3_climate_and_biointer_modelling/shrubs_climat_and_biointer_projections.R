@@ -125,12 +125,12 @@ names(biointer) <- "biointer"
 
 ## merge all cliimatic variables
 expl.stk <- stack(ddeg, subset(bio, c(6, 10, 18, 19)), biointer)
+expl.stk.names <- names(expl.stk)
 
 ## reproject the explanatory variables to work in the right projection system
 ## load teh ref mask
 ras.ref <- raster(ras.ref.file)
 expl.stk <- projectRaster(expl.stk, ras.ref)
-names(expl.stk) <- expl.stk.names
 
 ## ensure that exactly all the same cells are define in explanatory rasters
 ## function to define the intersect of rasters
@@ -142,9 +142,8 @@ intersect_mask <- function(x){
 }
 
 ## keep only all cells that are defined for all layers
-expl.stk.names <- names(expl.stk)
 expl.stk <- stack(mask(expl.stk, intersect_mask(expl.stk)))
-
+names(expl.stk) <- expl.stk.names
 
 ## do projections --------------------------------------------------------------
 
