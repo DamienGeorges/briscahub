@@ -54,7 +54,7 @@ sp.id <- as.numeric(args[1])
 
 ## definig the machine where the script will run ----------------------------------------
 host = "idiv_cluster"
-type = "incl_tree"
+type = "no_tree" ##"incl_tree"
 
 ## input/output directories depending on the host ------------------------------
 if(host == "pinea"){
@@ -81,6 +81,14 @@ if(host == "pinea"){
   sp.name <- as.character(sp.tab[sp.id, "Biomod.name"])
   
   .libPaths("~/R/x86_64-pc-linux-gnu-library/3.2")  
+}
+
+
+## check if we have to model the species
+sp.height <- as.numeric(sp.tab[sp.id, "All.height.median"])
+if(type == "no_tree" & sp.height > 0.5){ ## not a low neighter dwarf shrub => not model
+  cat("\n>", sp.name, "will not be model because it is neighter a low nor a dwarf shrub!")
+  q('no')
 }
 
 ## create the output directory and change the working directory ----------------
