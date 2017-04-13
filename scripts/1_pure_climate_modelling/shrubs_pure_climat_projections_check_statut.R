@@ -35,31 +35,35 @@ rm(list=ls())
 # modelling.dir <- "/work/georges/BRISCA/Biomod_pure_climate_usgs_no_flaws"
 # modelling.dir <- "/work/georges/BRISCA/Biomod_pure_climate_usgs_no_flaws"
 # modelling.dir <- "/work/georges/BRISCA/Biomod_pure_climate_strange_distrib"
-modelling.dir <- "/work/georges/BRISCA/Biomod_pure_climate_2017_03_09"
+# modelling.dir <- "/work/georges/BRISCA/Biomod_pure_climate_2017_03_09"
+modelling.dir <- "/work/georges/BRISCA/Biomod_climate_and_biointer_incl_tree_2017-04-07"
 
+# ### for Pure Climate models ###
+# ## read the inout parameters
+# proj.tab <- read.table("/work/georges/BRISCA/grid_params/params_spcp.txt", header = FALSE, sep = " ")
+# # proj.tab <- read.table("/work/georges/BRISCA/grid_params/params_csiro.txt", header = FALSE, sep = " ")
+# colnames(proj.tab) <- c("job.id", "sp.name", "path.to.expl")
+# head(proj.tab)
+# 
+# ## add columns with path to object we want to check exitance
+# proj.objs <- sapply(1:nrow(proj.tab), function(i){
+#   path.to.expl.var <- proj.tab$path.to.expl[i]
+#   ##define the projection name
+#   if(grepl("Current", path.to.expl.var)){
+#     bm.proj.name <- "pure_climat_current"
+#   } else{
+#     bm.proj.name <- paste0("pure_climat_", sub("/", "_", sub("^.*Full_arctic_30_north/", "", path.to.expl.var))) 
+#   }
+#   proj.objs <- file.path(modelling.dir, 
+#                         proj.tab$sp.name[i], 
+#                         paste0("proj_", bm.proj.name),
+#                         paste0(proj.tab$sp.name[i], ".", bm.proj.name, c(".projection.out", ".ensemble.projection.out")))
+#   return(proj.objs)
+# })
+
+### for Biotic interaction models ###
 ## read the inout parameters
-proj.tab <- read.table("/work/georges/BRISCA/grid_params/params_spcp.txt", header = FALSE, sep = " ")
-# proj.tab <- read.table("/work/georges/BRISCA/grid_params/params_csiro.txt", header = FALSE, sep = " ")
-colnames(proj.tab) <- c("job.id", "sp.name", "path.to.expl")
-head(proj.tab)
-
-## add columns with path to object we want to check exitance
-proj.objs <- sapply(1:nrow(proj.tab), function(i){
-  path.to.expl.var <- proj.tab$path.to.expl[i]
-  ##define the projection name
-  if(grepl("Current", path.to.expl.var)){
-    bm.proj.name <- "pure_climat_current"
-  } else{
-    bm.proj.name <- paste0("pure_climat_", sub("/", "_", sub("^.*Full_arctic_30_north/", "", path.to.expl.var))) 
-  }
-  proj.objs <- file.path(modelling.dir, 
-                        proj.tab$sp.name[i], 
-                        paste0("proj_", bm.proj.name),
-                        paste0(proj.tab$sp.name[i], ".", bm.proj.name, c(".projection.out", ".ensemble.projection.out")))
-  return(proj.objs)
-})
-
-proj.tab <- read.table("/work/georges/BRISCA/grid_params/params_scabp.txt", header = FALSE, sep = "\t")
+proj.tab <- read.table("/work/georges/BRISCA/grid_params/params_scabp_incl_tree.txt", header = FALSE, sep = "\t")
 colnames(proj.tab) <- c("job.id", "sp.name", "path.to.clim", "path.to.biointer")
 head(proj.tab)
 
@@ -67,8 +71,7 @@ head(proj.tab)
 proj.objs <- sapply(1:nrow(proj.tab), function(i){
   path.to.clim.var <- proj.tab$path.to.clim[i]
   path.to.biointer.var <- proj.tab$path.to.biointer[i]
-  biointer.str <- sub(".grd", "", sub("^.*_bio_inter_filt", "", path.to.biointer.var))
-  ##define the projection name
+  biointer.str <- sub(".grd", "", sub("^.*_bio_inter_", "", path.to.biointer.var))
   if(grepl("Current", path.to.clim.var)){
     bm.proj.name <- paste0("pure_climat_current", biointer.str)
   } else{
