@@ -6,11 +6,10 @@
 
 #$  -N  scabeph
 #$  -S  /bin/bash
-## #$  -l  h_vmem=5999M
-#$  -l  h_vmem=10G,highmem
+#$  -l  h_vmem=5999M
+## #$  -l  h_vmem=10G,highmem
 #$  -l  h_rt=03:00:00
-#$  -t  1:1
-## #$  -tc 500
+#$  -t  1-5394
 #$  -binding linear:1 ## core binding
 
 # ---------------------------------------------------------------------- 
@@ -44,10 +43,8 @@ echo
 
 source /etc/profile.d/000-modules.sh
 
-module load gdal R/3.1.0-3
-module unload cairo
-module list
+module load gdal R
 
 export JAVA_OPTS=${JAVA_OPTS:-"-Xmx256M -Xms16M"}
 
-Rscript --no-restore --vanilla ~/BRISCA/briscahub/scripts/3_climate_and_biointer_modelling/shrubs_climate_and_biointer_ensemble_projections.R ${params}
+Rscript --no-restore --vanilla ~/BRISCA/briscahub/scripts/3_climate_and_biointer_modelling/shrubs_climate_and_biointer_ensemble_projections.R ${params} no_tree

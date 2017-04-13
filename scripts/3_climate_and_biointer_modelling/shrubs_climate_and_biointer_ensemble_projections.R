@@ -54,7 +54,7 @@ rasterOptions(tmpdir = "/work/georges/R_raster_georges", ## where to store raste
 ## retrieve input arguments ----------------------------------------------------
 args <- commandArgs(trailingOnly = TRUE)
 job.id <- as.numeric(args[1])
-
+type <- as.character(args[2])
 ## test ===
 ## job.id <- 1
 
@@ -62,16 +62,22 @@ job.id <- as.numeric(args[1])
 ## definig the machine where the script will run -------------------------------
 host = "idiv_cluster"
 
+
 ## input/output directories depending on the host ------------------------------
 if(host == "pinea"){
   ## TODO (Damien)
 } else if(host == "brisca_cluster"){
   ## TODO (Damien)
 } else if (host == "idiv_cluster"){
+  # # path to the directory where models have been computed
+  # in.mod <- "/work/georges/BRISCA/Biomod_climate_and_biointer" ## pure climate + invdist models 
+  # # path to parameter table
+  # param.file <- "/work/georges/BRISCA/grid_params/params_scabeph.txt"
   # path to the directory where models have been computed
-  in.mod <- "/work/georges/BRISCA/Biomod_climate_and_biointer" ## pure climate + invdist models 
+  in.mod <- paste0("/work/georges/BRISCA/Biomod_climate_and_biointer_", type, "_2017-04-07")
   # path to parameter table
-  param.file <- "/work/georges/BRISCA/grid_params/params_scabeph.txt"
+  param.file <- paste0("/work/georges/BRISCA/grid_params/params_scabp_", type, ".txt") ## first run (10G ram)
+  ras.ref.file <- "/data/idiv_sdiv/brisca/results/raster_ref_27_02_2017.grd"
 }
 
 
@@ -101,8 +107,7 @@ rm(list = ensmod.name)
 
 ## do projections --------------------------------------------------------------
 ##define the projection name
-biointer.str <- sub(".grd", "", sub("^.*_bio_inter_filt", "", path.to.biointer.stk))
-
+biointer.str <- sub(".grd", "", sub("^.*_bio_inter_", "", path.to.biointer.stk))
 if(grepl("Current", path.to.clim.var)){
   bm.proj.name <- paste0("pure_climat_current", biointer.str)
 } else{
