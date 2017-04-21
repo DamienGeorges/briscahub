@@ -161,12 +161,13 @@ bm.mod.proj <- BIOMOD_Projection(modeling.output = bm.mod,
 quit('no')
 
 ## end of script ---------------------------------------------------------------
-# 
+
+
 # ## create the parameter files for the grid -------------------------------------
 # 
 # ## on idiv_cluster
 # library(dplyr)
-# type <- "no_tree"
+# type <- "incl_tree"
 # out.dir <- "/work/georges/BRISCA/grid_params/"
 # dir.create(out.dir, showWarnings = FALSE, recursive = TRUE)
 # sp.list <- read.table("~/BRISCA/briscahub/data/sp.list_03.03.2017.txt", header = TRUE, sep = "\t", stringsAsFactors = FALSE)
@@ -213,4 +214,5 @@ quit('no')
 # write.table(params, file = file.path(out.dir, paste0("params_scabp_", type,".txt")), sep = "\t",
 #             quote = FALSE, append = FALSE, row.names = TRUE, col.names = FALSE)
 # 
-# 
+# # write.table(params, file = file.path(out.dir, paste0("params_scabp_all.txt")), sep = "\t",
+# #             quote = FALSE, append = FALSE, row.names = TRUE, col.names = FALSE)

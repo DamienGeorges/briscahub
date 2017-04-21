@@ -35,8 +35,17 @@ rm(list=ls())
 # modelling.dir <- "/work/georges/BRISCA/Biomod_pure_climate_usgs_no_flaws"
 # modelling.dir <- "/work/georges/BRISCA/Biomod_pure_climate_usgs_no_flaws"
 # modelling.dir <- "/work/georges/BRISCA/Biomod_pure_climate_strange_distrib"
+
 # modelling.dir <- "/work/georges/BRISCA/Biomod_pure_climate_2017_03_09"
+
 modelling.dir <- "/work/georges/BRISCA/Biomod_climate_and_biointer_incl_tree_2017-04-07"
+# param.file <- "/work/georges/BRISCA/grid_params/params_scabp_incl_tree.txt"
+param.file <- "/work/georges/BRISCA/grid_params/params_scabp_all.txt"
+
+# modelling.dir <- "/work/georges/BRISCA/Biomod_climate_and_biointer_no_tree_2017-04-07"
+# param.file <- "/work/georges/BRISCA/grid_params/params_scabp_no_tree.txt"
+
+param.file.out <- "/work/georges/BRISCA/grid_params/params_scabp_incl_tree_missing.txt"
 
 # ### for Pure Climate models ###
 # ## read the inout parameters
@@ -63,9 +72,12 @@ modelling.dir <- "/work/georges/BRISCA/Biomod_climate_and_biointer_incl_tree_201
 
 ### for Biotic interaction models ###
 ## read the inout parameters
-proj.tab <- read.table("/work/georges/BRISCA/grid_params/params_scabp_incl_tree.txt", header = FALSE, sep = "\t")
+proj.tab <- read.table(param.file , header = FALSE, sep = "\t")
 colnames(proj.tab) <- c("job.id", "sp.name", "path.to.clim", "path.to.biointer")
 head(proj.tab)
+
+# sp.list <- list.files(modelling.dir)
+# proj.tab <- subset(proj.tab, proj.tab$sp.name %in% sp.list)
 
 ## add columns with path to object we want to check exitance
 proj.objs <- sapply(1:nrow(proj.tab), function(i){
@@ -101,30 +113,38 @@ proj.tab$ensmod.proj.ok <- file.exists(proj.tab$ensmod.proj.obj)
 sum(proj.tab$mod.proj.ok)
 sum(proj.tab$ensmod.proj.ok)
 
+plot(1:nrow(proj.tab), cumsum(proj.tab$mod.proj.ok), type = 'l')
+lines(1:nrow(proj.tab), 1:nrow(proj.tab), lty = 2)
+
 ## produce the new parameter file
-out.dir <- "/work/georges/BRISCA/grid_params/"
-## produce the new parameter file
-write.table(proj.tab[ !proj.tab$ensmod.proj.ok, 2:3], file = file.path(out.dir, "params_spcp.txt"), sep = " ",
-             quote = FALSE, append = FALSE, row.names = TRUE, col.names = FALSE)
-dim(proj.tab[ !proj.tab$ensmod.proj.ok, 2:3])
+# out.dir <- "/work/georges/BRISCA/grid_params/"
+# ## produce the new parameter file
+# write.table(proj.tab[ !proj.tab$ensmod.proj.ok, 2:3], file = file.path(out.dir, "params_spcp.txt"), sep = " ",
+#              quote = FALSE, append = FALSE, row.names = TRUE, col.names = FALSE)
+# dim(proj.tab[ !proj.tab$ensmod.proj.ok, 2:3])
 
-which(!proj.tab$mod.proj.ok)
-which(!proj.tab$ensmod.proj.ok)
+write.table(proj.tab[ !proj.tab$mod.proj.ok, 2:4], file = param.file.out,
+            sep = "\t", quote = FALSE, append = FALSE, row.names = TRUE, col.names = FALSE)
 
-## produce a priority subset of parmas to run (SHRUBS where Projection were successful)
-briscahub.dir <- "/home/georges/BRISCA/briscahub"
-## -- load th species list -----------------------------------------------------
-sp.tab <- read.table(file.path(briscahub.dir, "data/sp.list_08102015_red.txt"),
-                     sep = "\t", header = TRUE, stringsAsFactors = FALSE)
-shrub.list <- sp.tab$Biomod.name[is.element(sp.tab$Growth.form.height, c('SHRUB'))]
-## ep.params <- proj.tab[ proj.tab$mod.proj.ok & !proj.tab$ensmod.proj.ok & is.element(as.character(proj.tab$sp.name), shrub.list), 1:4]
+# which(!proj.tab$mod.proj.ok)
+# which(!proj.tab$ensmod.proj.ok)
 
-ep.params <- proj.tab[ proj.tab$mod.proj.ok & is.element(as.character(proj.tab$sp.name), shrub.list), 1:4]
 
-## ep.params <- proj.tab[ is.element(as.character(proj.tab$sp.name), shrub.list), 1:4]
-
-write.table(ep.params, file = file.path(out.dir, "params_scabeph.txt"), sep = "\t", 
-            quote = FALSE, append = FALSE, row.names = FALSE, col.names = FALSE)
+# 
+# ## produce a priority subset of parmas to run (SHRUBS where Projection were successful)
+# briscahub.dir <- "/home/georges/BRISCA/briscahub"
+# ## -- load th species list -----------------------------------------------------
+# sp.tab <- read.table(file.path(briscahub.dir, "data/sp.list_08102015_red.txt"),
+#                      sep = "\t", header = TRUE, stringsAsFactors = FALSE)
+# shrub.list <- sp.tab$Biomod.name[is.element(sp.tab$Growth.form.height, c('SHRUB'))]
+# ## ep.params <- proj.tab[ proj.tab$mod.proj.ok & !proj.tab$ensmod.proj.ok & is.element(as.character(proj.tab$sp.name), shrub.list), 1:4]
+# 
+# ep.params <- proj.tab[ proj.tab$mod.proj.ok & is.element(as.character(proj.tab$sp.name), shrub.list), 1:4]
+# 
+# ## ep.params <- proj.tab[ is.element(as.character(proj.tab$sp.name), shrub.list), 1:4]
+# 
+# write.table(ep.params, file = file.path(out.dir, "params_scabeph.txt"), sep = "\t", 
+#             quote = FALSE, append = FALSE, row.names = FALSE, col.names = FALSE)
 
 
 

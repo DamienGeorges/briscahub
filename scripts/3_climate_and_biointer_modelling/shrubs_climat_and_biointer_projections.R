@@ -75,7 +75,8 @@ if(host == "pinea"){
   # path to the directory where models have been computed
   in.mod <- paste0("/work/georges/BRISCA/Biomod_climate_and_biointer_", type, "_2017-04-07")
   # path to parameter table
-  param.file <- paste0("/work/georges/BRISCA/grid_params/params_scabp_", type, ".txt") ## first run (10G ram)
+  # param.file <- paste0("/work/georges/BRISCA/grid_params/params_scabp_", type, ".txt") ## first run (10G ram)
+  param.file <- paste0("/work/georges/BRISCA/grid_params/params_scabp_", type, "_missing.txt") ## first run (10G ram)
   ras.ref.file <- "/data/idiv_sdiv/brisca/results/raster_ref_27_02_2017.grd"
 }
 
