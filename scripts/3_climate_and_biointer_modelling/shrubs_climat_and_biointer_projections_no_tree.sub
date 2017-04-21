@@ -6,11 +6,11 @@
 
 #$  -N  scabpnt
 #$  -S  /bin/bash
-#$  -l  h_vmem=5499M
+## #$  -l  h_vmem=5999M
 ## #$  -l  h_vmem=9999M
-## #$  -l  h_vmem=12G,highmem
+#$  -l  h_vmem=12G,highmem
 #$  -l  h_rt=24:00:00
-#$  -t  1-5394
+#$  -t  45-45
 #$  -binding linear:1 ## core binding
 
 # ---------------------------------------------------------------------- 

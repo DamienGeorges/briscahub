@@ -7,10 +7,10 @@
 #$  -N  scabp
 #$  -S  /bin/bash
 ## #$  -l  h_vmem=5999M
-#$  -l  h_vmem=9999M
-## #$  -l  h_vmem=12G,highmem
+## #$  -l  h_vmem=9999M
+#$  -l  h_vmem=12G,highmem
 #$  -l  h_rt=24:00:00
-#$  -t  1-16269
+## #$  -t  1-3847
 #$  -binding linear:1 ## core binding
 
 # ---------------------------------------------------------------------- 
