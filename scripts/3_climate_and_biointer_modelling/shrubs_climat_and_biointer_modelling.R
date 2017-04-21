@@ -54,7 +54,7 @@ sp.id <- as.numeric(args[1])
 
 ## definig the machine where the script will run ----------------------------------------
 host = "idiv_cluster"
-type = "no_tree" ##"incl_tree"
+type = "incl_tree" ## "no_tree"  or "incl_tree"
 
 ## input/output directories depending on the host ------------------------------
 if(host == "pinea"){
