@@ -48,7 +48,6 @@
 "Betula neoalaskana"	"Betula.neoalaskana"	1	97	NA	0	NA	0	NA	0	97	1	1	2	1	NA	1	"TREE"	NA	"TREE"	25	450	NA	NA	1	0.219966667
 "Betula platyphylla"	"Betula.platyphylla"	1	124	1	56635	NA	0	NA	0	56759	1	1	2	1	NA	1	"TREE"	NA	"TREE"	30	450	NA	NA	1	0.219966667
 "Betula pumila"	"Betula.pumila"	1	328	NA	0	NA	0	NA	0	328	1	1	2	1	1	NA	"SHRUB"	NA	"TREE"	4	450	NA	NA	1	0.162686255
-"Caragana jubata"	"Caragana.jubata"	1	66	NA	0	NA	0	NA	0	66	1	1	4	1	1	NA	"SHRUB"	NA	"SHRUB"	2	NA	NA	NA	1	NA
 "Cassiope lycopodioides"	"Cassiope.lycopodioides"	1	127	1	11725	NA	0	NA	0	11852	1	1	2	1	1	NA	"SHRUB"	NA	"SHRUB"	0.103653333	NA	NA	1	NA	NA
 "Cassiope tetragona"	"Cassiope.tetragona"	1	1418	1	7995	1	387	NA	0	9800	1	1	1	1	1	NA	"SHRUB"	"shrub"	"SHRUB"	0.103653333	NA	NA	1	NA	NA
 "Chamaedaphne calyculata"	"Chamaedaphne.calyculata"	1	3510	1	154196	NA	0	NA	0	157706	1	1	4	1	1	NA	"SHRUB"	NA	"SHRUB"	1.5	2	"Normand.etal.2013.REST "	1	NA	NA
