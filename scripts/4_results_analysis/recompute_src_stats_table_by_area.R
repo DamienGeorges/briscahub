@@ -16,7 +16,7 @@ library(tidyr)
 ## set some parameters
 same.baseline <- TRUE ## do we consider the same baseline (climate filtered no dispersal) as a baseline or 
 ## each scenario current prediction as baseline
-machine <- "signe_cluster" # "sdiv" ## the name of the machine the script will run on
+machine <- "sdiv" # "sdiv" ## the name of the machine the script will run on
 n.cores <- 1 ## number of resuired cores
 
 ## define the main paths to data
@@ -27,6 +27,13 @@ if(machine == "leca97"){
   out.dir.path <- paste0("~/Work/BRISCA/outputs/2016-08-18/", ifelse(same.baseline, "SRC_baseline", "SRC"), "_statistic_table") ## on leca97
 } else if (machine == "pinea"){
 } else if (machine == "sdiv"){
+  .libPaths("/home/georges/R/x86_64-pc-linux-gnu-library/3.2/")
+  
+  briscahub.dir <- "~/BRISCA/briscahub/" ## on leca97
+  src.maps.path <-  paste0("work/georges/BRISCA/workdir/_SRC/", ifelse(same.baseline, "SRC_baseline_maps", "SRC_maps")) ## on leca97
+  param.tab.path <- "/work/georges/BRISCA/grid_params/params_src_2017-04-25.txt"
+  out.dir.path <- paste0("work/georges/BRISCA/outputs/2016-08-18/", ifelse(same.baseline, "SRC_baseline", "SRC"), "_statistic_table") ## on leca97  
+  sp.tab <- read.table("~/BRISCA/briscahub/data/sp.list_03.03.2017.txt", header = TRUE, sep = "\t", stringsAsFactors = FALSE)
 } else if (machine == "signe_cluster"){
   .libPaths( "J:/People/Damien/RLIBS")
   briscahub.dir <- "J://People/Damien/BRISCA/briscahub/"
@@ -193,3 +200,47 @@ if(n.cores <= 1){
 save(gg.calc, file = file.path(out.dir.path, "gg.calc.RData"))
 
 write.table(gg.calc, file = file.path(out.dir.path, "src_stat_table_by_area.txt"), row.names = FALSE, col.names = TRUE, sep = "\t")
+
+q('no')
+
+## create parameters table
+
+library(dplyr)
+out.dir <- "/work/georges/BRISCA/grid_params/"
+sp.tab <- read.table("~/BRISCA/briscahub/data/sp.list_03.03.2017.txt", header = TRUE, 
+                     sep = "\t", stringsAsFactors = FALSE)
+# sp.tab <- read.table("~/Work/BRISCA/briscahub/data/sp.list_03.03.2017.txt", header = TRUE, 
+#                      sep = "\t", stringsAsFactors = FALSE)
+
+sp.tab <- sp.tab %>% filter(Growth.form.height == 'SHRUB')
+
+sp_ <- sp.tab$Biomod.name
+models_ <- "_EMcaByTSS_mergedAlgo_mergedRun_mergedData_TSSbin.grd"
+rcp_ <- c("RCP_2.6", "RCP_4.5", "RCP_6.0", "RCP_8.5")
+gcm_ <- c("cesm1_cam5", "csiro_mk360", "gfdl_esm2m", "miroc_miroc5", "mri_cgcm3", "mri_cgcm3", "nimr_hadgem2ao")
+filt_ <- c("unlimited_dipersal","no_dipersal", "max_dipersal")
+biointer_type_ <- c("no", "no_tree", "incl_tree")
+
+params <- expand.grid(sp = sp_, model = models_, rcp = rcp_, gcm = gcm_, filt = filt_, biointer = biointer_type_)
+
+write.table(params, file = file.path(out.dir, "params_src_2017-04-25.txt"), sep = "\t", col.names = T)
+
+
+# sp_ <- sp.tab$Biomod.name[1] 
+# 
+# ## the modelling directories
+# pure.clim.dir <- "/work/georges/BRISCA/Biomod_pure_climate_2017_03_09"
+# climate.and.biointer.incltree.dir <- "/work/georges/BRISCA/Biomod_climate_and_biointer_incl_tree_2017-04-07"
+# climate.and.biointer.notree.dir <- "/work/georges/BRISCA/Biomod_climate_and_biointer_no_tree_2017-04-07"
+# 
+# ## the projections files
+# ref.file <- list.files(file.path(pure.clim.dir, sp_, "proj_pure_climat_current", "individual_projections"), "_EMcaByTSS_mergedAlgo_mergedRun_mergedData_TSSbin.grd$", full.names = TRUE)
+# pure.clim.files <- list.files(file.path(list.files(file.path(pure.clim.dir, sp_), "proj_pure_climat_RCP", full.names = T), "individual_projections"), "_EMcaByTSS_mergedAlgo_mergedRun_mergedData_TSSbin.grd$", full.names = TRUE)
+# climate.and.biointer.incltree.files <- list.files(file.path(list.files(file.path(climate.and.biointer.incltree.dir, sp_), "proj_pure_climat_RCP", full.names = T), "individual_projections"), "_EMcaByTSS_mergedAlgo_mergedRun_mergedData_TSSbin.grd$", full.names = TRUE)
+# climate.and.biointer.notree.files <- list.files(file.path(list.files(file.path(climate.and.biointer.notree.dir, sp_), "proj_pure_climat_RCP", full.names = T), "individual_projections"), "_EMcaByTSS_mergedAlgo_mergedRun_mergedData_TSSbin.grd$", full.names = TRUE)
+# 
+# ## the dispersal filters
+# pres.day.mask.dir <- "/work/georges/BRISCA/Present_day_masks_2017_03_17"
+# pres.day.mask.file <- file.path(pres.day.mask.dir, paste0(sp_, "_present_day_mask.grd"))
+# fut.day.mask.dir <- "/work/georges/BRISCA/Future_day_masks_2017_03_17"
+# fut.day.mask.file <- file.path(pres.day.mask.dir, "max_dispersal", paste0(sp_, "_future_day_max_disp_mask.grd"))
