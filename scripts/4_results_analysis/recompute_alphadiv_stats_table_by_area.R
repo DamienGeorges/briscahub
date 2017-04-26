@@ -22,6 +22,11 @@ n.cores <- 1 ## number of resuired cores
 if(machine == "leca97"){
 } else if (machine == "pinea"){
 } else if (machine == "sdiv"){
+  .libPaths("/home/georges/R/x86_64-pc-linux-gnu-library/3.2/")
+  path.to.buffers <- "/home/georges/BRISCA/briscahub/data/mask_raster_arctic_area_2017-04-26"
+  param.file <- "/work/georges/BRISCA/grid_params/params_src_2017-04-25.txt"
+  briscahub.dir <- "/home/georges/BRISCA/briscahub"
+  
 } else if (machine == "signe_cluster"){
   .libPaths( "J:/People/Damien/RLIBS")
   briscahub.dir <- "J://People/Damien/BRISCA/briscahub/"
@@ -33,25 +38,52 @@ if(machine == "leca97"){
 
 setwd(file.path(briscahub.dir, "workdir"))
 ## load needed libraries
+.libPaths("/home/georges/R/x86_64-pc-linux-gnu-library/3.2/")
 library(raster)
+# require(pROC)
+require(biomod2, lib.loc = "/home/georges/R/biomod2_pkg/biomod2_3.1-73-04")
+require(rgdal)
 library(dplyr)
-library(multidplyr)
-library(parallel)
 library(ggplot2)
 library(tidyr)
+
+rasterOptions(tmpdir = "/work/georges/R_raster_georges", ## where to store raster tmp files (prevent to fill up /tmp dir)
+              tmptime = 24, ## time after which raster tmp files will be deleted
+              overwrite = TRUE)
 
 dir.create(out.dir.path, showWarnings = FALSE, recursive =TRUE)
 
 
 ## load couple of masks to compute stats locally
-r.full.area <- raster("I://C_Write/Damien/BRISCA/data/mask_raster_arctic_area_2016-08-22/mask_full_area_no_ice.grd")
-r.from.sa <- raster("I://C_Write/Damien/BRISCA/data/mask_raster_arctic_area_2016-08-22/mask_from_subarctic_area_no_ice.grd")
-r.sa <- raster("I://C_Write/Damien/BRISCA/data/mask_raster_arctic_area_2016-08-22/mask_subarctic_area_no_ice.grd")
-r.from.la <- raster("I://C_Write/Damien/BRISCA/data/mask_raster_arctic_area_2016-08-22/mask_from_lowarctic_area_no_ice.grd")
-r.la <- raster("I://C_Write/Damien/BRISCA/data/mask_raster_arctic_area_2016-08-22/mask_lowarctic_area_no_ice.grd")
-r.ha <- raster("I://C_Write/Damien/BRISCA/data/mask_raster_arctic_area_2016-08-22/mask_higharctic_area_no_ice.grd")
+r.full.area <- raster(file.path(path.to.buffers, "mask_full_area_no_ice.grd"))
+r.from.sa <- raster(file.path(path.to.buffers, "mask_from_subarctic_area_no_ice.grd"))
+r.sa <- raster(file.path(path.to.buffers, "mask_subarctic_area_no_ice.grd"))
+r.from.la <- raster(file.path(path.to.buffers, "mask_from_lowarctic_area_no_ice.grd"))
+r.la <- raster(file.path(path.to.buffers, "mask_lowarctic_area_no_ice.grd"))
+r.ha <- raster(file.path(path.to.buffers, "mask_higharctic_area_no_ice.grd"))
 
 mask.ids <- c('r.full.area', 'r.from.sa', 'r.sa', 'r.from.la', 'r.la', 'r.ha')
+
+##' load parameters ------------------------------------------------------------
+param.tab <- read.table(param.file, sep = "\t", header = TRUE, stringsAsFactors=FALSE)
+
+sp <- param.tab$sp[file.id]
+model <- param.tab$model[file.id]
+rcp <- param.tab$rcp[file.id]
+gcm <- param.tab$gcm[file.id]
+filt <- param.tab$filt[file.id]
+biointer <- param.tab$biointer[file.id]
+
+
+cat("\n--job parameters --------")
+cat("\n> file.id:", file.id, "\n")
+cat("\n> sp:", sp, "\n")
+cat("\n> model:", model, "\n")
+cat("\n> rcp:", rcp, "\n")
+cat("\n> gcm:", gcm, "\n")
+cat("\n> filt:", filt, "\n")
+cat("\n> biointer:", biointer, "\n")
+cat("\n--------------------------")
 
 ## load the formal alphadiv ref tab
 load(param.tab.path)
@@ -225,3 +257,6 @@ gg.bp.gf.stat <- gg.mean.alphadiv %>% ungroup %>% group_by(scenario.biomod, biot
 
 gg.bp.gf.stat %>% data.frame %>% head
 save(gg.bp.gf.stat, file = file.path(mean.alpha.div.dir, "gg.bp.gf.stat.RData"))
+
+q('no')
+

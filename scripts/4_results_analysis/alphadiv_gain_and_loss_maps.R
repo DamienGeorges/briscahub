@@ -21,10 +21,8 @@ library(ggplot2)
 library(tidyr)
 
 ## set some parameters
-same.baseline <- TRUE ## do we consider the same baseline (climate filtered no dispersal) as a baseline or 
-                      ## each scenario current prediction as baseline
-machine <- "leca97" # "sdiv" ## the name of the machine the script will run on
-n.cores <- 15 ## number of resuired cores
+machine <- "sdiv" # "sdiv" ## the name of the machine the script will run on
+n.cores <- 1 ## number of resuired cores
 
 ## define the main paths to data
 if(machine == "leca97"){
@@ -39,9 +37,12 @@ if(machine == "leca97"){
   out.dir.path <-"~/Work/BRISCA/outputs/2016-07-01" ## on pinea
 } else if (machine == "sdiv"){
   briscahub.dir <- "~/BRISCA/briscahub/" ## on pinea
-  src.maps.path <- paste0("/work/georges/BRISCA/", ifelse(same.baseline, "SRC_baseline_maps", "SRC_maps")) ## on pinea
-  param.tab.path <- "/work/georges/BRISCA/grid_params/params_src.txt" ## on pinea
-  out.dir.path <-"/work/georges/BRISCA/outputs/2016-06-13" ## on pinea
+  src.maps.path <- "/work/georges/BRISCA/SRC_baseline_maps_2017-04-26"
+  src.out.tab.file <- "/work/georges/BRISCA/SRC_baseline_tabs_2017-04-26.txt"
+  param.tab.path <- "/work/georges/BRISCA/grid_params/params_alphadiv_2017-04-25.txt" ## on pinea
+  out.dir.path <-"/work/georges/BRISCA/alphadiv_2017-04-25"
+  path.to.buffers <- "/home/georges/BRISCA/briscahub/data/mask_raster_arctic_area_2017-04-26"
+  
   rasterOptions(tmpdir = "/work/georges/R_raster_georges", ## where to store raster tmp files (prevent to fill up /tmp dir)
                 tmptime = 24, ## time after which raster tmp files will be deleted
                 overwrite = TRUE)
@@ -49,86 +50,41 @@ if(machine == "leca97"){
 
 dir.create(out.dir.path, showWarnings = FALSE, recursive =TRUE)
 
-
+job.id <- 1
 ## load species ref table
-sp.tab <- read.table(file.path(briscahub.dir, "data/sp.list_08102015_red.txt"),
-                     sep = "\t", header = TRUE, stringsAsFactors = FALSE)
-sp.tab <- sp.tab[ sp.tab$Growth.form.height == 'SHRUB', ]
-
 ## load grid campain parameters table
-param.tab <- read.table(param.tab.path, sep = "\t", header = FALSE, stringsAsFactors = FALSE)
-colnames(param.tab) <- c("mod.dir", "proj.dir", "file.pattern", "rcp", "gcm", "species")
-## add the file id column
-param.tab$file.id <- 1:nrow(param.tab)
-
+src.out.tab <- read.table(src.out.tab.file, 
+                     sep = "\t", stringsAsFactors = FALSE, header = TRUE)
+src.out.tab <- src.out.tab %>% dplyr::select(sp, filt, biointer, gf, src_ras_file, rcp, gcm) %>% distinct
+  
+param.tab <- read.table(param.tab.path, sep = "\t", header = TRUE, stringsAsFactors = FALSE)
+param.tab <- param.tab[job.id,,drop = FALSE]
+param.tab <- param.tab %>% left_join(src.out.tab)
 
 ## 1. get the filenames of the SRC maps for each scenario that interest us
-src.maps.files <- list.files(src.maps.path, ".grd$", full.names = TRUE)
+src.maps.files <- param.tab$src_ras_file
 
-## check if some maps are missing
-computed.jobs <- as.numeric(sub("_.*$", "", sub("src_baseline_", "", basename(src.maps.files))))
-missing.jobs <- setdiff(param.tab$file.id, computed.jobs)
-param.tab[missing.jobs, ]
+## load couple of masks to compute stats locally
+r.full.area <- raster(file.path(path.to.buffers, "mask_full_area_no_ice.grd"))
+r.from.sa <- raster(file.path(path.to.buffers, "mask_from_subarctic_area_no_ice.grd"))
+r.sa <- raster(file.path(path.to.buffers, "mask_subarctic_area_no_ice.grd"))
+r.from.la <- raster(file.path(path.to.buffers, "mask_from_lowarctic_area_no_ice.grd"))
+r.la <- raster(file.path(path.to.buffers, "mask_lowarctic_area_no_ice.grd"))
+r.ha <- raster(file.path(path.to.buffers, "mask_higharctic_area_no_ice.grd"))
 
-## what we see here is that most of missing files are the one where we tried to
-## filter the projections using convexhull. => because we decided not
-## to consider this scenario anymore this is not a big deal!
-
-param.tab[is.element(param.tab$file.id, missing.jobs) & !grepl("_filt_ch.grd$", param.tab$file.pattern), ]
-## at the end only 4 jobs have failed! Let's lunch them again! => DONE
-
-param.tab <- param.tab %>% group_by(file.id) %>%
-  mutate(fut.file = paste0(mod.dir, "/", species, "/", proj.dir, "/individual_projections/", species, file.pattern), 
-         model =  sub("_.*$", "", sub(paste0(species, "_"), "", basename(fut.file))), 
-         scenario.full = sub(paste0(".*", species, "/"), "", dirname(dirname((fut.file)))),
-         scenario.clim = sub(".*RCP_", "RCP_", scenario.full),
-         scenario.biomod = basename(sub(paste0("/", species, ".*"), "", fut.file))
-  ) %>% ungroup
-
-
-## keep only the jobs that are interesting for us
-gg.dat <- param.tab %>%  
-  mutate(rcp = sub("_2080.*$", "", scenario.clim),
-         gcm = sub("_(no|max)_disp.*$", "", sub(".*_2080_", "", scenario.clim)),
-         biotic.inter = sub(paste0("^.*(", paste(unique(gcm), collapse="|"), ")"), "", scenario.clim),
-         dispersal.filter = sub("^.*TSSbin", "", tools::file_path_sans_ext(file.pattern)),
-         scenario.biomod = sub("_final", "", sub("Biomod_", "", scenario.biomod)))
-## change dispersal filter labels
-gg.dat$dispersal.filter[gg.dat$dispersal.filter == ""] <- "unlimited"
-gg.dat$dispersal.filter[gg.dat$dispersal.filter == "_filt_ch"] <- "convex_hull"
-gg.dat$dispersal.filter[gg.dat$dispersal.filter == "_filt_no_disp_invdist"] <- "no"
-gg.dat$dispersal.filter[gg.dat$dispersal.filter == "_filt_min_disp_invdist"] <- "minimal"
-gg.dat$dispersal.filter[gg.dat$dispersal.filter == "_filt_max_disp_invdist"] <- "maximal"
-gg.dat <- gg.dat %>% filter(is.element(dispersal.filter, c("minimal", "maximal", "unlimited")))
-## change biointeraction labels
-gg.dat$biotic.inter[gg.dat$biotic.inter == ""] <- "no"
-gg.dat$biotic.inter[gg.dat$biotic.inter == "_no_disp_invdist"] <- "low"
-gg.dat$biotic.inter[gg.dat$biotic.inter == "_max_disp_invdist"] <- "high"
-## change levels order
-gg.dat$biotic.inter <- factor(gg.dat$biotic.inter, levels =  c("no", "low", "high"))
-gg.dat$scenario.biomod <- factor(gg.dat$scenario.biomod, levels = c("pure_climate", "climate_and_biointer", "pure_climate_filtered", "climate_and_biointer_filtered"))
-gg.dat$dispersal.filter <- factor(gg.dat$dispersal.filter, levels =  c("minimal", "maximal", "unlimited"))
-## remove some combination of params we are not interested in
-gg.dat <- gg.dat %>% filter(!(scenario.biomod == "climate_and_biointer_filtered" &  dispersal.filter == "no"),
-                            !(scenario.biomod == "climate_and_biointer_filtered" & biotic.inter == "low" & dispersal.filter == "maximal"),
-                            !(scenario.biomod == "climate_and_biointer_filtered" & biotic.inter == "high" & dispersal.filter == "minimal"))
-
+mask.ids <- c('r.full.area', 'r.from.sa', 'r.sa', 'r.from.la', 'r.la', 'r.ha')
 
 ## 2. compute for each scenario the nb of species lost/gain and the species richness by pixel
-
-## check that no data is missing
-gg.dat %>% group_by(scenario.biomod, biotic.inter, dispersal.filter, gcm, rcp) %>%
-  summarize(nb.species = n()) %>% select(nb.species)
-
+tab_ <- param.tab
 ## define a function that calculates the alpha, SG, SL and turnover maps
 calculate_alpha_gain_loss_turnover <- function(tab_){
   cat("\n ***")
   library(raster)
   library(dplyr)
   cat("\n> libraries loaded")
-  src.maps.files_ <- src.maps.files[is.element(as.numeric(sub("_.*$", "", sub("src_baseline_", "", basename(src.maps.files)))), tab_$file.id)] 
-  cat("\n> src.maps.file gotten (", length(src.maps.files_), ")")
-  src.maps_ <- lapply(src.maps.files_, function(f_ ) raster(f_, RAT = FALSE))
+  div.fact_ <- tab_ %>% dplyr::select(-sp, -src_ras_file) %>%  distinct %>% nrow ## the nb of gcm x rcp to come back in nb species scale
+  nb.sp_ <- tab_ %>% dplyr::select(sp) %>% distinct %>% nrow
+  src.maps_ <- lapply(src.maps.files, function(f_ ) raster(f_, RAT = FALSE))
   cat("\n> src.maps loaded")
   ## src.maps are codded like:
   #   -2 if the given pixel is predicted to be lost by the species. 
@@ -136,18 +92,31 @@ calculate_alpha_gain_loss_turnover <- function(tab_){
   #   0 is the given pixel was not occupied, and will not be in the future.
   #   1 if the given pixel was not occupied, and is predicted to be into the future.
   
-  occ.maps_ <- lapply(src.maps_, function(r_) reclassify(r_, c(-2.5, -1.5, 0,
+  occ.maps.pres_ <- lapply(src.maps_, function(r_) reclassify(r_, c(-2.5, -1.5, 1,
                                                                -1.5, -0.5, 1,
                                                                -0.5, 0.5,  0,
-                                                               0.5, 1.5, 1)))
-  cat("\n> occ.maps porduced")
-  alphadiv.map_ <- sum(raster::stack(occ.maps_))
-  cat("\n> alphadiv.map porduced")
+                                                               0.5, 1.5, 0)))
+  occ.maps.pres_ <- occ.maps.pres_ / div.fact_
+  cat("\n> pres occ.maps porduced")
+  
+  occ.maps.fut_ <- lapply(src.maps_, function(r_) reclassify(r_, c(-2.5, -1.5, 0,
+                                                                    -1.5, -0.5, 1,
+                                                                    -0.5, 0.5,  0,
+                                                                    0.5, 1.5, 1)))
+  occ.maps.fut_ <- occ.maps.fut_ / div.fact_
+  cat("\n> fut occ.maps porduced")
+  
+  alphadiv.map.pres_ <- sum(raster::stack(occ.maps.pres_))
+  cat("\n> pres alphadiv.map porduced")
+  
+  alphadiv.map.fut_ <- sum(raster::stack(occ.maps.fut_))
+  cat("\n> fut alphadiv.map porduced")
   
   gain.maps_ <- lapply(src.maps_, function(r_) reclassify(r_, c(-2.5, -1.5, 0,
                                                                -1.5, -0.5, 0,
                                                                -0.5, 0.5,  0,
                                                                0.5, 1.5, 1)))
+  gain.maps_ <- gain.maps_ / div_fact
   gain.map_ <- sum(raster::stack(gain.maps_))
   cat("\n> gain.map produced")
   
@@ -156,26 +125,26 @@ calculate_alpha_gain_loss_turnover <- function(tab_){
                                                                 -0.5, 0.5,  0,
                                                                 0.5, 1.5, 0)))
   lost.map_ <- sum(raster::stack(lost.maps_))
+  lost.map_ <- lost.map_ / div_fact
   cat("\n> lost.map produced")
   
-  turnover.map_ <- (lost.map_ + gain.map_) / (gain.map_ + alphadiv.map_)
+  turnover.map_ <- (lost.map_ + gain.map_) / (gain.map_ + alphadiv.map.pres_)
   cat("\n> turnover.map produced")
   
   out.stack_ <- raster::brick(alphadiv.map_, 
                               gain.map_, 
                               lost.map_, 
-                              turnover.map_)
+                              turnover.map_) * r.full.area
   names(out.stack_) <- c("alphadiv", "gain", "lost", "turnover")
   
   ## save the output stack on hard drive
-  stack.file.name_ <- file.path(out.dir.path, paste0("summaryStack__", 
-                                                    paste0(unique(tab_$scenario.biomod, collapse = "-")), "__",
-                                                    paste0(unique(tab_$biotic.inter, collapse = "-")), "__",
-                                                    paste0(unique(tab_$dispersal.filter, collapse = "-")), "__",
-                                                    paste0(unique(tab_$gcm, collapse = "-")), "__",
-                                                    paste0(unique(tab_$rcp, collapse = "-")), ".grd"))
+  stack.file.name_ <- file.path(out.dir.path, paste0("alpha_gain_lost_turnover_", job_id, ".grd"))
   cat("\n> out.stack saved as", stack.file.name_)
   writeRaster(out.stack_, filename = stack.file.name_, overwrite = TRUE)
+  
+  ## compute the summary stats area by area
+  
+  ############### HERE ########################
   
   cat("\n ***")
   return(stack.file.name_)
@@ -227,6 +196,16 @@ save(gg.calc.gf, file = file.path(out.dir.path, "gg.calc.gf.RData"))
 ##' ------------------------------------------------------------------------------------
 
 
+###########################################################################
+## create parameter file
+
+## the param file is based on the output of speces_range_change_baseline.R
+out.dir <- "/work/georges/BRISCA/grid_params/"
+params <- read.table("/work/georges/BRISCA/SRC_baseline_tabs_2017-04-26.txt", 
+                     sep = "\t", stringsAsFactors = FALSE, header = TRUE)
+
+params <- params %>% dplyr::select(filt, biointer, gf) %>% distinct
+write.table(params, file = file.path(out.dir, "params_alphadiv_2017-04-25.txt"), sep = "\t", col.names = T)
 
 
 
