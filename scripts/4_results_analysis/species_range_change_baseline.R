@@ -140,6 +140,9 @@ sp.rc.ha <- biomod2::BIOMOD_RangeSize(CurrentPred = r.baseline * r.ha, FuturePro
 sp.rc.ha.tab <- as.data.frame(sp.rc.ha$Compt.By.Models)
 sp.rc.ha.tab$area <- "high_arctic"
 
+## define the raster output directory
+src_ras_file <- file.path(output.tab.dir, paste0("src_baseline_", sprintf("%05d", file.id), ".txt"))
+
 sp.rc.tab <- rbind(sp.rc.full.tab, sp.rc.fsa.tab, sp.rc.sa.tab, sp.rc.fla.tab, sp.rc.la.tab, sp.rc.ha.tab)
 sp.rc.tab$file.id <- file.id
 sp.rc.tab$sp <- sp
@@ -148,10 +151,10 @@ sp.rc.tab$rcp <- rcp
 sp.rc.tab$gcm <- gcm
 sp.rc.tab$filt <- filt
 sp.rc.tab$biointer <- biointer
-
+sp.rc.tab$src_ras_file <- src_ras_file
 
 write.table(sp.rc.tab, 
-            file=file.path(output.tab.dir, paste0("src_baseline_", sprintf("%05d", file.id), ".txt")),
+            file = src_ras_file,
             sep = "\t", row.names = TRUE, col.names = FALSE)
 
 writeRaster(sp.rc.full$Diff.By.Pixel, filename = file.path(output.map.dir, paste0("src_baseline_", sprintf("%05d", file.id), ".grd")),
@@ -174,6 +177,7 @@ sp.tab <- read.table("~/BRISCA/briscahub/data/sp.list_03.03.2017.txt", header = 
 sp.tab <- sp.tab %>% filter(Growth.form.height == 'SHRUB')
 
 sp_ <- sp.tab$Biomod.name
+gf_ <- sp.tab$Growth.form.Isla
 models_ <- "_EMcaByTSS_mergedAlgo_mergedRun_mergedData_TSSbin.grd"
 rcp_ <- c("RCP_2.6", "RCP_4.5", "RCP_6.0", "RCP_8.5")
 gcm_ <- c("cesm1_cam5", "csiro_mk360", "gfdl_esm2m", "miroc_miroc5", "mri_cgcm3", "mri_cgcm3", "nimr_hadgem2ao")
@@ -181,5 +185,8 @@ filt_ <- c("unlimited_dipersal","no_dipersal", "max_dipersal")
 biointer_type_ <- c("no", "no_tree", "incl_tree")
 
 params <- expand.grid(sp = sp_, model = models_, rcp = rcp_, gcm = gcm_, filt = filt_, biointer = biointer_type_)
+params <- params %>% left_join(sp.tab %>% select(Biomod.name, Growth.form.Isla) %>% rename(sp = Biomod.name, gf = Growth.form.Isla)) 
+## remove the unrealistic combination
+params  <- params %>% filter(!(gf %in% c("Tree", "Tall shrub") & biointer == "no_tree"))
 
 write.table(params, file = file.path(out.dir, "params_src_2017-04-25.txt"), sep = "\t", col.names = T)
