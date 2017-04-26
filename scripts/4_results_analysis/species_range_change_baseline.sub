@@ -7,12 +7,10 @@
 #$  -N  src_baseline
 #$  -S  /bin/bash
 #$  -l h_vmem=4999M
-#$  -l  h_rt=48:00:00
-## #$  -t  1-48412
-#$  -t 24228-24228 ## 23805,23911,23912,24228
+#$  -l  h_rt=01:00:00
+#$  -t  1-33264
 #$  -binding linear:1 ## core binding
 ## #$  -pe smp 1
-## #$  -pe smp 1 ## this script seems not to work properly in parallel
 
 # ---------------------------------------------------------------------- 
 # output files
@@ -45,11 +43,7 @@ echo
 
 source /etc/profile.d/000-modules.sh
 
-module load R geos
-#module load geos/3.4.2-1
-#module load proj/4.8.0-2_gcc_4.8.1
-#module load gdal/1.9.2-1_gcc_4.8.1
-#module load R/3.1.0-1_gcc_4.8.1
+module load proj gdal R
 
 Rscript --no-restore --vanilla ~/BRISCA/briscahub/scripts/4_results_analysis/species_range_change_baseline.R ${params}
 
