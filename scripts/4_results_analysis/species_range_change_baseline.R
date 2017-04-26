@@ -48,6 +48,16 @@ ref.ras.buffer <- raster(file.path(path.to.buffers, "Buffer.grd"))
 ref.ras.from.sa <- raster(file.path(path.to.buffers, "Sub_Arctic.grd"))
 ref.ras.from.la <- raster(file.path(path.to.buffers, "Low_Arctic.grd"))
 ref.ras.from.ha <- raster(file.path(path.to.buffers, "High_Arctic.grd"))
+# ## load couple of masks to compute stats locally
+# r.full.area <- raster("../data/mask_raster_arctic_area_2016-08-22/mask_full_area_no_ice.grd")
+# r.from.sa <- raster("../data/mask_raster_arctic_area_2016-08-22/mask_from_subarctic_area_no_ice.grd")
+# r.sa <- raster("../data/mask_raster_arctic_area_2016-08-22/mask_subarctic_area_no_ice.grd")
+# r.from.la <- raster("../data/mask_raster_arctic_area_2016-08-22/mask_from_lowarctic_area_no_ice.grd")
+# r.la <- raster("../data/mask_raster_arctic_area_2016-08-22/mask_lowarctic_area_no_ice.grd")
+# r.ha <- raster("../data/mask_raster_arctic_area_2016-08-22/mask_higharctic_area_no_ice.grd")
+# 
+# mask.ids <- c('r.full.area', 'r.from.sa', 'r.sa', 'r.from.la', 'r.la', 'r.ha')
+
 
 # ref.poly@data$WATER <- factor(ref.poly@data$WATER, levels = c(0,1,2), labels = c("water", "arctic", "sub-arctic") )
 
