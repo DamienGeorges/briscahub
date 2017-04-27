@@ -20,6 +20,8 @@ library(parallel)
 library(ggplot2)
 library(tidyr)
 
+cat("\n memory.limit() = ", memory.limit())
+
 ## set some parameters
 machine <- "sdiv" # "sdiv" ## the name of the machine the script will run on
 n.cores <- 1 ## number of resuired cores

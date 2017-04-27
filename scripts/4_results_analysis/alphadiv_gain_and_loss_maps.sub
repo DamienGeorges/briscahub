@@ -6,7 +6,7 @@
 
 #$  -N  alphadiv
 #$  -S  /bin/bash
-#$  -l h_vmem=9999M
+#$  -l  h_vmem=16G,highmem
 #$  -l  h_rt=06:00:00
 #$  -t 1:24
 #$  -binding linear:1 ## core binding
