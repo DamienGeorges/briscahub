@@ -51,7 +51,7 @@ if(machine == "leca97"){
 dir.create(out.dir.path, showWarnings = FALSE, recursive =TRUE)
 
 args <- commandArgs(trailingOnly = TRUE)
-job.id <- as.character(args[1]) ## job.id <-  2 
+job.id <- as.character(args[1]) ## job.id <-  1 
 
 
 ## load species ref table
@@ -99,36 +99,34 @@ tab_ <- param.tab.job
                                                                -1.5, -0.5, 1,
                                                                -0.5, 0.5,  0,
                                                                0.5, 1.5, 0)))
-  occ.maps.cur_ <- occ.maps.cur_ / div.fact_
+  occ.maps.cur_ <- occ.maps.cur_
   cat("\n> pres occ.maps porduced")
   
   occ.maps.fut_ <- lapply(src.maps_, function(r_) reclassify(r_, c(-2.5, -1.5, 0,
                                                                     -1.5, -0.5, 1,
                                                                     -0.5, 0.5,  0,
                                                                     0.5, 1.5, 1)))
-  occ.maps.fut_ <- occ.maps.fut_ / div.fact_
+  occ.maps.fut_ <- occ.maps.fut_ 
   cat("\n> fut occ.maps porduced")
   
-  alphadiv.map.cur_ <- sum(raster::stack(occ.maps.cur_))
+  alphadiv.map.cur_ <- sum(raster::stack(occ.maps.cur_)) / div.fact_
   cat("\n> pres alphadiv.map porduced")
   
-  alphadiv.map.fut_ <- sum(raster::stack(occ.maps.fut_))
+  alphadiv.map.fut_ <- sum(raster::stack(occ.maps.fut_)) / div.fact_
   cat("\n> fut alphadiv.map porduced")
   
   gain.maps_ <- lapply(src.maps_, function(r_) reclassify(r_, c(-2.5, -1.5, 0,
                                                                -1.5, -0.5, 0,
                                                                -0.5, 0.5,  0,
                                                                0.5, 1.5, 1)))
-  gain.maps_ <- gain.maps_ / div_fact
-  gain.map_ <- sum(raster::stack(gain.maps_))
+  gain.map_ <- sum(raster::stack(gain.maps_)) / div.fact_
   cat("\n> gain.map produced")
   
   lost.maps_ <- lapply(src.maps_, function(r_) reclassify(r_, c(-2.5, -1.5, 1,
                                                                 -1.5, -0.5, 0,
                                                                 -0.5, 0.5,  0,
                                                                 0.5, 1.5, 0)))
-  lost.map_ <- sum(raster::stack(lost.maps_))
-  lost.map_ <- lost.map_ / div_fact
+  lost.map_ <- sum(raster::stack(lost.maps_)) / div.fact_
   cat("\n> lost.map produced")
   
   turnover.map_ <- (lost.map_ + gain.map_) / (gain.map_ + alphadiv.map.cur_)
@@ -145,7 +143,7 @@ tab_ <- param.tab.job
   names(out.stack_) <- c("alphadiv.cur", "alphadiv.fut", "alphadiv.change", "gain", "lost", "pct.gain", "pct.lost", "turnover")
   
   ## save the output stack on hard drive
-  stack.file.name_ <- file.path(out.dir.path, paste0("alpha_gain_lost_turnover_", job_id, ".grd"))
+  stack.file.name_ <- file.path(out.dir.path, paste0("alpha_gain_lost_turnover_", job.id, ".grd"))
   cat("\n> out.stack saved as", stack.file.name_)
   writeRaster(out.stack_, filename = stack.file.name_, overwrite = TRUE)
   
@@ -176,11 +174,13 @@ tab_ <- param.tab.job
   
   out.tab_ <- bind_rows(out.list)
   
-  out.tab_ <- out.tab_ %>% bind_col(param.tab.job) %>% 
-    mutate(alpha_gain_lost_turnover_ras_file = stack.file.name_)
+  out.tab_ <- out.tab_ %>% 
+    mutate(filt = param.tab$filt, biointer = param.tab$biointer, gf = param.tab$gf,
+           alpha_gain_lost_turnover_ras_file = stack.file.name_, div_fact = div.fact_, n_sp = nb.sp_)
 
   write.table(out.tab_, file = sub(".grd$", ".txt", stack.file.name_), sep = "\t", col.names = FALSE, row.names = TRUE)
   
+  q("no")
   ########################################################
   
 #   cat("\n ***")
