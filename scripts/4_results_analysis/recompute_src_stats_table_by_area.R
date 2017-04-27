@@ -225,22 +225,4 @@ params <- expand.grid(sp = sp_, model = models_, rcp = rcp_, gcm = gcm_, filt = 
 
 write.table(params, file = file.path(out.dir, "params_src_2017-04-25.txt"), sep = "\t", col.names = T)
 
-
-# sp_ <- sp.tab$Biomod.name[1] 
-# 
-# ## the modelling directories
-# pure.clim.dir <- "/work/georges/BRISCA/Biomod_pure_climate_2017_03_09"
-# climate.and.biointer.incltree.dir <- "/work/georges/BRISCA/Biomod_climate_and_biointer_incl_tree_2017-04-07"
-# climate.and.biointer.notree.dir <- "/work/georges/BRISCA/Biomod_climate_and_biointer_no_tree_2017-04-07"
-# 
-# ## the projections files
-# ref.file <- list.files(file.path(pure.clim.dir, sp_, "proj_pure_climat_current", "individual_projections"), "_EMcaByTSS_mergedAlgo_mergedRun_mergedData_TSSbin.grd$", full.names = TRUE)
-# pure.clim.files <- list.files(file.path(list.files(file.path(pure.clim.dir, sp_), "proj_pure_climat_RCP", full.names = T), "individual_projections"), "_EMcaByTSS_mergedAlgo_mergedRun_mergedData_TSSbin.grd$", full.names = TRUE)
-# climate.and.biointer.incltree.files <- list.files(file.path(list.files(file.path(climate.and.biointer.incltree.dir, sp_), "proj_pure_climat_RCP", full.names = T), "individual_projections"), "_EMcaByTSS_mergedAlgo_mergedRun_mergedData_TSSbin.grd$", full.names = TRUE)
-# climate.and.biointer.notree.files <- list.files(file.path(list.files(file.path(climate.and.biointer.notree.dir, sp_), "proj_pure_climat_RCP", full.names = T), "individual_projections"), "_EMcaByTSS_mergedAlgo_mergedRun_mergedData_TSSbin.grd$", full.names = TRUE)
-# 
-# ## the dispersal filters
-# pres.day.mask.dir <- "/work/georges/BRISCA/Present_day_masks_2017_03_17"
-# pres.day.mask.file <- file.path(pres.day.mask.dir, paste0(sp_, "_present_day_mask.grd"))
-# fut.day.mask.dir <- "/work/georges/BRISCA/Future_day_masks_2017_03_17"
-# fut.day.mask.file <- file.path(pres.day.mask.dir, "max_dispersal", paste0(sp_, "_future_day_max_disp_mask.grd"))
+##

@@ -4,7 +4,7 @@
 setwd("~/Work/BRISCA/workdir")
 rm(list = ls())
 
-output.dir <- "~/Work/BRISCA/figures/2016-08-18/alphadiv_change_and_turnover_stats"
+output.dir <- "~/Work/georges/BRISCA/figures/2016-08-18/alphadiv_change_and_turnover_stats"
 dir.create(output.dir, showWarnings = FALSE, recursive = TRUE)
 
 ## define an article fig friendly theme
