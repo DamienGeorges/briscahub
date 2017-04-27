@@ -65,7 +65,7 @@ param.tab <- param.tab[job.id,,drop = FALSE]
 param.tab.job <- param.tab %>% left_join(src.out.tab)
 
 ## 1. get the filenames of the SRC maps for each scenario that interest us
-src.maps.files <- param.tab$src_ras_file
+src.maps.files <- param.tab.job$src_ras_file
 
 ## load couple of masks to compute stats locally
 r.full.area <- raster(file.path(path.to.buffers, "mask_full_area_no_ice.grd"))
@@ -160,7 +160,13 @@ tab_ <- param.tab.job
     bp_stat_ <- boxplot(stk.tmp_, na.rm = TRUE)
     out_tab_ <- data.frame(t(bp_stat_$stats))
     colnames(out_tab_) <- c("ymin", "lower", "middle", "upper", "ymax")
-    out_tab_$area <- m_
+    out_tab_$area <- switch(m_,
+                            r.full.area = "full_area", 
+                            r.from.sa = "from_sub_arctic", 
+                            r.sa = "sub_arctic", 
+                            r.from.la = "from_low_arctic", 
+                            r.la = "low_arctic", 
+                            r.ha = "high_arctic")
     out_tab_$n <- bp_stat_$n
     out_tab_$metric <- bp_stat_$names
     ## remove the turnover that has no sens here

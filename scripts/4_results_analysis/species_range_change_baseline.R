@@ -141,7 +141,9 @@ sp.rc.ha.tab <- as.data.frame(sp.rc.ha$Compt.By.Models)
 sp.rc.ha.tab$area <- "high_arctic"
 
 ## define the raster output directory
-src_ras_file <- file.path(output.tab.dir, paste0("src_baseline_", sprintf("%05d", file.id), ".txt"))
+src_tab_file <- file.path(output.tab.dir, paste0("src_baseline_", sprintf("%05d", file.id), ".txt"))
+src_ras_file <- file.path(output.map.dir, paste0("src_baseline_", sprintf("%05d", file.id), ".grd"))
+
 
 sp.rc.tab <- rbind(sp.rc.full.tab, sp.rc.fsa.tab, sp.rc.sa.tab, sp.rc.fla.tab, sp.rc.la.tab, sp.rc.ha.tab)
 sp.rc.tab$file.id <- file.id
@@ -154,10 +156,11 @@ sp.rc.tab$biointer <- biointer
 sp.rc.tab$src_ras_file <- src_ras_file
 
 write.table(sp.rc.tab, 
-            file = src_ras_file,
+            file = src_tab_file,
             sep = "\t", row.names = TRUE, col.names = FALSE)
 
-writeRaster(sp.rc.full$Diff.By.Pixel, filename = file.path(output.map.dir, paste0("src_baseline_", sprintf("%05d", file.id), ".grd")),
+writeRaster(sp.rc.full$Diff.By.Pixel, 
+            filename = src_ras_file,
             datatype = "INT1S",
 	          NAflag = -127,
             overwrite = TRUE)
