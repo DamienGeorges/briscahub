@@ -50,7 +50,10 @@ if(machine == "leca97"){
 
 dir.create(out.dir.path, showWarnings = FALSE, recursive =TRUE)
 
-job.id <- 1
+args <- commandArgs(trailingOnly = TRUE)
+job.id <- as.character(args[1]) ## job.id <-  2 
+
+
 ## load species ref table
 ## load grid campain parameters table
 src.out.tab <- read.table(src.out.tab.file, 
@@ -59,7 +62,7 @@ src.out.tab <- src.out.tab %>% dplyr::select(sp, filt, biointer, gf, src_ras_fil
   
 param.tab <- read.table(param.tab.path, sep = "\t", header = TRUE, stringsAsFactors = FALSE)
 param.tab <- param.tab[job.id,,drop = FALSE]
-param.tab <- param.tab %>% left_join(src.out.tab)
+param.tab.job <- param.tab %>% left_join(src.out.tab)
 
 ## 1. get the filenames of the SRC maps for each scenario that interest us
 src.maps.files <- param.tab$src_ras_file
@@ -75,9 +78,9 @@ r.ha <- raster(file.path(path.to.buffers, "mask_higharctic_area_no_ice.grd"))
 mask.ids <- c('r.full.area', 'r.from.sa', 'r.sa', 'r.from.la', 'r.la', 'r.ha')
 
 ## 2. compute for each scenario the nb of species lost/gain and the species richness by pixel
-tab_ <- param.tab
+tab_ <- param.tab.job
 ## define a function that calculates the alpha, SG, SL and turnover maps
-calculate_alpha_gain_loss_turnover <- function(tab_){
+# calculate_alpha_gain_loss_turnover <- function(tab_){
   cat("\n ***")
   library(raster)
   library(dplyr)
@@ -92,11 +95,11 @@ calculate_alpha_gain_loss_turnover <- function(tab_){
   #   0 is the given pixel was not occupied, and will not be in the future.
   #   1 if the given pixel was not occupied, and is predicted to be into the future.
   
-  occ.maps.pres_ <- lapply(src.maps_, function(r_) reclassify(r_, c(-2.5, -1.5, 1,
+  occ.maps.cur_ <- lapply(src.maps_, function(r_) reclassify(r_, c(-2.5, -1.5, 1,
                                                                -1.5, -0.5, 1,
                                                                -0.5, 0.5,  0,
                                                                0.5, 1.5, 0)))
-  occ.maps.pres_ <- occ.maps.pres_ / div.fact_
+  occ.maps.cur_ <- occ.maps.cur_ / div.fact_
   cat("\n> pres occ.maps porduced")
   
   occ.maps.fut_ <- lapply(src.maps_, function(r_) reclassify(r_, c(-2.5, -1.5, 0,
@@ -106,7 +109,7 @@ calculate_alpha_gain_loss_turnover <- function(tab_){
   occ.maps.fut_ <- occ.maps.fut_ / div.fact_
   cat("\n> fut occ.maps porduced")
   
-  alphadiv.map.pres_ <- sum(raster::stack(occ.maps.pres_))
+  alphadiv.map.cur_ <- sum(raster::stack(occ.maps.cur_))
   cat("\n> pres alphadiv.map porduced")
   
   alphadiv.map.fut_ <- sum(raster::stack(occ.maps.fut_))
@@ -128,14 +131,18 @@ calculate_alpha_gain_loss_turnover <- function(tab_){
   lost.map_ <- lost.map_ / div_fact
   cat("\n> lost.map produced")
   
-  turnover.map_ <- (lost.map_ + gain.map_) / (gain.map_ + alphadiv.map.pres_)
+  turnover.map_ <- (lost.map_ + gain.map_) / (gain.map_ + alphadiv.map.cur_)
   cat("\n> turnover.map produced")
   
-  out.stack_ <- raster::brick(alphadiv.map_, 
+  out.stack_ <- raster::brick(alphadiv.map.cur_,
+                              alphadiv.map.fut_,
+                              alphadiv.map.fut_ - alphadiv.map.cur_,
                               gain.map_, 
                               lost.map_, 
+                              gain.map_ / alphadiv.map.cur_ * 100,
+                              lost.map_ / alphadiv.map.cur_ * 100,
                               turnover.map_) * r.full.area
-  names(out.stack_) <- c("alphadiv", "gain", "lost", "turnover")
+  names(out.stack_) <- c("alphadiv.cur", "alphadiv.fut", "alphadiv.change", "gain", "lost", "pct.gain", "pct.lost", "turnover")
   
   ## save the output stack on hard drive
   stack.file.name_ <- file.path(out.dir.path, paste0("alpha_gain_lost_turnover_", job_id, ".grd"))
@@ -145,10 +152,34 @@ calculate_alpha_gain_loss_turnover <- function(tab_){
   ## compute the summary stats area by area
   
   ############### HERE ########################
+  ## compute the boxplot stats by area
+  out.list <- vector(length = length(mask.ids), mode = 'list')
+  names(out.list) <- mask.ids
+  for(m_ in names(out.list)){ ## test m_ <- "r.sa"
+    stk.tmp_ <- mask(out.stack_, get(m_))
+    bp_stat_ <- boxplot(stk.tmp_, na.rm = TRUE)
+    out_tab_ <- data.frame(t(bp_stat_$stats))
+    colnames(out_tab_) <- c("ymin", "lower", "middle", "upper", "ymax")
+    out_tab_$area <- m_
+    out_tab_$n <- bp_stat_$n
+    out_tab_$metric <- bp_stat_$names
+    ## remove the turnover that has no sens here
+    # out_tab_ <- out_tab_ %>% filter(metric != "turnover")
+    out.list[[m_]] <- out_tab_
+  }
   
-  cat("\n ***")
-  return(stack.file.name_)
-}
+  out.tab_ <- bind_rows(out.list)
+  
+  out.tab_ <- out.tab_ %>% bind_col(param.tab.job) %>% 
+    mutate(alpha_gain_lost_turnover_ras_file = stack.file.name_)
+
+  write.table(out.tab_, file = sub(".grd$", ".txt", stack.file.name_), sep = "\t", col.names = FALSE, row.names = TRUE)
+  
+  ########################################################
+  
+#   cat("\n ***")
+#   return(stack.file.name_)
+# }
 
 # ### test
 # tab_ <- gg.dat %>% 
@@ -174,18 +205,18 @@ calculate_alpha_gain_loss_turnover <- function(tab_){
 # }
 
 
-## do the same table grouped by growth form
-
-if(n.cores <= 1){
-  ## sequential version
-  gg.calc.gf <- gg.dat %>% group_by(scenario.biomod, biotic.inter, dispersal.filter, gcm, rcp, growth.form) %>%
-    do(stack.file.name = calculate_alpha_gain_loss_turnover(.))
-} else {
-
-}
-
-
-save(gg.calc.gf, file = file.path(out.dir.path, "gg.calc.gf.RData"))
+# ## do the same table grouped by growth form
+# 
+# if(n.cores <= 1){
+#   ## sequential version
+#   gg.calc.gf <- gg.dat %>% group_by(scenario.biomod, biotic.inter, dispersal.filter, gcm, rcp, growth.form) %>%
+#     do(stack.file.name = calculate_alpha_gain_loss_turnover(.))
+# } else {
+# 
+# }
+# 
+# 
+# save(gg.calc.gf, file = file.path(out.dir.path, "gg.calc.gf.RData"))
 
 
 ##' @note
