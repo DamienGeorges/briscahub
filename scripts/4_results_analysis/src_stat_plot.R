@@ -148,7 +148,7 @@ gg.dat.no.ol <- gg.dat %>%
 # #   xlab("") + ylab("") +
 # #   gg.theme + theme(axis.text.x = element_blank(), axis.ticks.x = element_blank())
 # # gg.plot
-gg.plot <- ggplot(gg.dat.no.ol %>% data.frame, aes(1, fill = dispersal.filter, linetype = biotic.inter)) +  
+gg.plot <- ggplot(gg.dat.no.ol, aes(1, fill = dispersal.filter, linetype = biotic.inter)) +  
   geom_boxplot(aes(lower = X2, middle = X3, upper = X4, ymin = X1, ymax = X5), 
                stat = "identity", outlier.colour = NA, position = position_dodge(1.5)) + 
   facet_grid(metric.name ~ area, scale = 'free_y') + 
@@ -159,9 +159,11 @@ gg.plot <- ggplot(gg.dat.no.ol %>% data.frame, aes(1, fill = dispersal.filter, l
 
 # gg.plot
 # x11()
-
-
 ggsave(file.path(out.dir.path, "fig1a.png"), gg.plot, width = 297, height = 210, units = 'mm')
+## filter out the with trees dispersal scenario
+ggsave(file.path(out.dir.path, "fig1a_nt.png"), gg.plot %+% (gg.dat.no.ol %>% filter(biotic.inter != "with trees")), width = 297, height = 210, units = 'mm')
+## filter out the no trees dispersal scenario
+ggsave(file.path(out.dir.path, "fig1a_wt.png"), gg.plot %+% (gg.dat.no.ol %>% filter(biotic.inter != "without trees")), width = 297, height = 210, units = 'mm')
 
 ### make a try with a semilog scale
 ## to deal with the boxplot outliers
@@ -182,6 +184,9 @@ gg.plot <- ggplot(gg.dat.log.no.ol, aes(1, fill = dispersal.filter, linetype = b
 # gg.plot
 
 ggsave(file.path(out.dir.path, "fig1a_pseudo_log.png"), gg.plot, width = 297, height = 210, units = 'mm')
+ggsave(file.path(out.dir.path, "fig1a_nt_pseudo_log.png"), gg.plot %+% (gg.dat.log.no.ol %>% filter(biotic.inter != "with trees")), width = 297, height = 210, units = 'mm')
+ggsave(file.path(out.dir.path, "fig1a_wt_pseudo_log.png"), gg.plot %+% (gg.dat.log.no.ol %>% filter(biotic.inter != "without trees")), width = 297, height = 210, units = 'mm')
+
 
 ### produce the same 2 graph but grouping by growth form -----------------------
 
@@ -208,6 +213,10 @@ gg.plot <- ggplot(gg.dat.gf.no.ol, aes(growth.form, fill = dispersal.filter, lin
 
 
 ggsave(file.path(out.dir.path, "figXa.png"), gg.plot, width = 320, height = 210, units = 'mm')
+ggsave(file.path(out.dir.path, "figXa_nt.png"), gg.plot %+% (gg.dat.gf.no.ol %>% filter(biotic.inter != "with trees")), width = 320, height = 210, units = 'mm')
+ggsave(file.path(out.dir.path, "figXa_wt.png"), gg.plot %+% (gg.dat.gf.no.ol %>% filter(biotic.inter != "without trees")), width = 320, height = 210, units = 'mm')
+
+
 
 ### make a try with a semilog scale
 gg.plot <- ggplot(gg.dat.gf.log.no.ol, aes(growth.form, fill = dispersal.filter, linetype = biotic.inter)) +
@@ -221,6 +230,8 @@ gg.plot <- ggplot(gg.dat.gf.log.no.ol, aes(growth.form, fill = dispersal.filter,
 # gg.plot
 
 ggsave(file.path(out.dir.path, "figXa_pseudo_log.png"), gg.plot, width = 320, height = 210, units = 'mm')
+ggsave(file.path(out.dir.path, "figXa_nt_pseudo_log.png"), gg.plot %+% (gg.dat.gf.log.no.ol %>% filter(biotic.inter != "with trees")), width = 320, height = 210, units = 'mm')
+ggsave(file.path(out.dir.path, "figXa_wt_pseudo_log.png"), gg.plot %+% (gg.dat.gf.log.no.ol %>% filter(biotic.inter != "without trees")), width = 320, height = 210, units = 'mm')
 
 
 ### extra tests to check that 
