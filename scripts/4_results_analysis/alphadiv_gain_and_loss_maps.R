@@ -66,6 +66,7 @@ param.tab <- read.table(param.tab.path, sep = "\t", header = TRUE, stringsAsFact
 param.tab <- param.tab[job.id,,drop = FALSE]
 
 ##  deal with all growth form case
+
 if(param.tab$gf != "All shrub"){
   param.tab.job <- param.tab %>% left_join(src.out.tab)
 } else{
