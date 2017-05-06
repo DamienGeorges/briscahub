@@ -61,10 +61,17 @@ job.id <- as.character(args[1]) ## job.id <-  1
 src.out.tab <- read.table(src.out.tab.file, 
                      sep = "\t", stringsAsFactors = FALSE, header = TRUE)
 src.out.tab <- src.out.tab %>% dplyr::select(sp, filt, biointer, gf, src_ras_file, rcp, gcm) %>% distinct
-  
+
 param.tab <- read.table(param.tab.path, sep = "\t", header = TRUE, stringsAsFactors = FALSE)
 param.tab <- param.tab[job.id,,drop = FALSE]
-param.tab.job <- param.tab %>% left_join(src.out.tab)
+
+##  deal with all growth form case
+if(param.tab$gf != ""All shrub""){
+  param.tab.job <- param.tab %>% left_join(src.out.tab)
+} else{
+  param.tab.job <- param.tab %>% select(- gf) %>% left_join(src.out.tab)  
+}
+
 
 ## 1. get the filenames of the SRC maps for each scenario that interest us
 src.maps.files <- param.tab.job$src_ras_file
@@ -180,7 +187,7 @@ tab_ <- param.tab.job
     mutate(filt = param.tab$filt, biointer = param.tab$biointer, gf = param.tab$gf,
            alpha_gain_lost_turnover_ras_file = stack.file.name_, div_fact = div.fact_, n_sp = nb.sp_)
 
-  write.table(out.tab_, file = sub(".grd$", ".txt", stack.file.name_), sep = "\t", col.names = FALSE, row.names = TRUE)
+  write.table(out.tab_, file = sub(".grd$", ".txt", stack.file.name_), sep = "\t", col.names = TRUE, row.names = FALSE)
   
   q("no")
   ########################################################
@@ -244,6 +251,9 @@ params <- read.table("/work/georges/BRISCA/SRC_baseline_tabs_2017-04-26.txt",
                      sep = "\t", stringsAsFactors = FALSE, header = TRUE)
 
 params <- params %>% dplyr::select(filt, biointer, gf) %>% distinct
+params.all.gf <- params %>% dplyr::mutate(gf = "All shrub") %>% distinct
+params <- params %>% bind_rows(params.all.gf)
+
 write.table(params, file = file.path(out.dir, "params_alphadiv_2017-04-25.txt"), sep = "\t", col.names = T)
 
 
