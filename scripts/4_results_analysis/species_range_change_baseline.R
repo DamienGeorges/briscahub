@@ -76,7 +76,7 @@ cat("\n> rcp:", rcp, "\n")
 cat("\n> gcm:", gcm, "\n")
 cat("\n> filt:", filt, "\n")
 cat("\n> biointer:", biointer, "\n")
-cat("\n> biointter.intensity", biointter.intensity, "\n")
+cat("\n> biointer.intenisty", biointer.intenisty, "\n")
 cat("\n--------------------------")
 
 ##' the path to the models/projection files -------------------------------------
