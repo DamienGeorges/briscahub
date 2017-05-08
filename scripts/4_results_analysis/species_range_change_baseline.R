@@ -105,7 +105,7 @@ r.filt.mask <- switch(filt,
                  no_dipersal = r.pres.day.mask,
                  max_dipersal = fut.day.mask)
   
-r.fut <- raster(file.path(mod.dir, sp, paste0("proj_pure_climat_", rcp, "_2080_", gcm, ifelse(biointer != "no", biointer.intensity, "")), 
+r.fut <- raster(file.path(mod.dir, sp, paste0("proj_pure_climat_", rcp, "_2080_", gcm, ifelse(biointer != "no", biointer.intenisty, "")), 
                    "individual_projections", paste0(sp, model)) )
 
 r.fut <- r.fut * r.filt.mask
@@ -154,7 +154,7 @@ sp.rc.tab$rcp <- rcp
 sp.rc.tab$gcm <- gcm
 sp.rc.tab$filt <- filt
 sp.rc.tab$biointer <- biointer
-sp.rc.tab$biointer.intensity <- biointer.intensity
+sp.rc.tab$biointer.intenisty <- biointer.intenisty
 sp.rc.tab$src_ras_file <- src_ras_file
 
 write.table(sp.rc.tab, 
