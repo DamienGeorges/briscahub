@@ -8,7 +8,7 @@
 #$  -S  /bin/bash
 #$  -l h_vmem=4999M
 #$  -l  h_rt=01:00:00
-#$  -t  1-33264
+#$  -t  1-50760
 #$  -binding linear:1 ## core binding
 ## #$  -pe smp 1
 
