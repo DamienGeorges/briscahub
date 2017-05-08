@@ -185,7 +185,7 @@ tab_ <- param.tab.job
   out.tab_ <- bind_rows(out.list)
   
   out.tab_ <- out.tab_ %>% 
-    mutate(filt = param.tab$filt, biointer = param.tab$biointer, gf = param.tab$gf,
+    mutate(filt = param.tab$filt, biointer = param.tab$biointer, biointer_intensity = param.tab$biointer_intensity, gf = param.tab$gf,
            alpha_gain_lost_turnover_ras_file = stack.file.name_, div_fact = div.fact_, n_sp = nb.sp_)
 
   write.table(out.tab_, file = sub(".grd$", ".txt", stack.file.name_), sep = "\t", col.names = TRUE, row.names = FALSE)
@@ -248,10 +248,11 @@ tab_ <- param.tab.job
 
 ## the param file is based on the output of speces_range_change_baseline.R
 out.dir <- "/work/georges/BRISCA/grid_params/"
-params <- read.table("/work/georges/BRISCA/SRC_baseline_tabs_2017-04-26.txt", 
+params <- read.table("/work/georges/BRISCA/SRC_baseline_tabs_2017-05-08.txt", 
                      sep = "\t", stringsAsFactors = FALSE, header = TRUE)
-
-params <- params %>% dplyr::select(filt, biointer, gf) %>% distinct
+## check the number of combinations
+params %>% group_by(filt, biointer, biointer_intensity, gf) %>% summarize(n = n())
+params <- params %>% dplyr::select(filt, biointer, biointer_intensity, gf) %>% distinct
 params.all.gf <- params %>% dplyr::mutate(gf = "All shrub") %>% distinct
 params <- params %>% bind_rows(params.all.gf)
 

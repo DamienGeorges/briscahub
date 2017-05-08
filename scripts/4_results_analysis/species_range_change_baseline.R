@@ -215,4 +215,7 @@ colnames(tab.out) <- c("layer_id", "Loss", "Stable0", "Stable1", "Gain", "PercLo
                        "biointer", "biointer_intensity","src_ras_file")
 tab.out <- tab.out %>% left_join(sp.tab %>% dplyr::select(Biomod.name, Growth.form.Isla) %>% rename(sp = Biomod.name, gf = Growth.form.Isla)) 
 ## duplicate the with_tree biointer results for the no_tree ones  
+tab.out.temp <- tab.out %>% filter(biointer == "incl_tree" & gf %in% c("Tall shrub")) %>% mutate(biointer = "no_tree")
+tab.out <- tab.out %>% bind_rows(tab.out.temp) %>% distinct
+
 write.table(tab.out, file = paste0(output.tab.dir, ".txt"), sep = "\t", col.names = T)
