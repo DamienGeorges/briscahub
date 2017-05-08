@@ -28,10 +28,10 @@ args <- commandArgs(trailingOnly = TRUE)
 file.id <- as.numeric(args[1])
 ## file.id <- 7646
 
-output.tab.dir <- "/work/georges/BRISCA/SRC_baseline_tabs_2017-04-26"
-output.map.dir <- "/work/georges/BRISCA/SRC_baseline_maps_2017-04-26"
+output.tab.dir <- "/work/georges/BRISCA/SRC_baseline_tabs_2017-05-08"
+output.map.dir <- "/work/georges/BRISCA/SRC_baseline_maps_2017-05-08"
 path.to.buffers <- "/home/georges/BRISCA/briscahub/data/mask_raster_arctic_area_2017-04-26"
-param.file <- "/work/georges/BRISCA/grid_params/params_src_2017-04-25.txt"
+param.file <- "/work/georges/BRISCA/grid_params/params_src_2017-05-08.txt"
 briscahub.dir <- "/home/georges/BRISCA/briscahub"
 
 dir.create(output.tab.dir, recursive=TRUE, showWarnings=FALSE)
@@ -66,7 +66,7 @@ rcp <- param.tab$rcp[file.id]
 gcm <- param.tab$gcm[file.id]
 filt <- param.tab$filt[file.id]
 biointer <- param.tab$biointer[file.id]
-
+biointer.intenisty <- param.tab$biointer.intenisty[file.id]
 
 cat("\n--job parameters --------")
 cat("\n> file.id:", file.id, "\n")
@@ -76,6 +76,7 @@ cat("\n> rcp:", rcp, "\n")
 cat("\n> gcm:", gcm, "\n")
 cat("\n> filt:", filt, "\n")
 cat("\n> biointer:", biointer, "\n")
+cat("\n> biointter.intensity", biointter.intensity, "\n")
 cat("\n--------------------------")
 
 ##' the path to the models/projection files -------------------------------------
@@ -104,7 +105,7 @@ r.filt.mask <- switch(filt,
                  no_dipersal = r.pres.day.mask,
                  max_dipersal = fut.day.mask)
   
-r.fut <- raster(file.path(mod.dir, sp, paste0("proj_pure_climat_", rcp, "_2080_", gcm, ifelse(biointer != "no", filt, "")), 
+r.fut <- raster(file.path(mod.dir, sp, paste0("proj_pure_climat_", rcp, "_2080_", gcm, ifelse(biointer != "no", biointer.intensity, "")), 
                    "individual_projections", paste0(sp, model)) )
 
 r.fut <- r.fut * r.filt.mask
@@ -153,6 +154,7 @@ sp.rc.tab$rcp <- rcp
 sp.rc.tab$gcm <- gcm
 sp.rc.tab$filt <- filt
 sp.rc.tab$biointer <- biointer
+sp.rc.tab$biointer.intensity <- biointer.intensity
 sp.rc.tab$src_ras_file <- src_ras_file
 
 write.table(sp.rc.tab, 
@@ -185,17 +187,22 @@ rcp_ <- c("RCP_2.6", "RCP_4.5", "RCP_6.0", "RCP_8.5")
 gcm_ <- c("cesm1_cam5", "csiro_mk360", "gfdl_esm2m", "miroc_miroc5", "mri_cgcm3", "nimr_hadgem2ao")
 filt_ <- c("unlimited_dipersal","no_dipersal", "max_dipersal")
 biointer_type_ <- c("no", "no_tree", "incl_tree")
+biointer_intensity_ <- c("no", "unlimited_dipersal","no_dipersal", "max_dipersal")
 
-params <- expand.grid(sp = sp_, model = models_, rcp = rcp_, gcm = gcm_, filt = filt_, biointer = biointer_type_)
+
+params <- expand.grid(sp = sp_, model = models_, rcp = rcp_, gcm = gcm_, filt = filt_, biointer = biointer_type_, biointer.intenisty = biointer_intensity_)
 params <- params %>% left_join(sp.tab %>% dplyr::select(Biomod.name, Growth.form.Isla) %>% rename(sp = Biomod.name, gf = Growth.form.Isla)) 
 ## remove the unrealistic combination
-params  <- params %>% filter(!(gf %in% c("Tree", "Tall shrub") & biointer == "no_tree"))
+params  <- params %>% 
+  filter(!(gf %in% c("Tree", "Tall shrub") & biointer == "no_tree"),
+         !(biointer == "no" & biointer.intenisty %in% c("unlimited_dipersal","no_dipersal", "max_dipersal")),
+         !(biointer %in% c("no_tree", "incl_tree") & biointer.intenisty == "no"))
 
-write.table(params, file = file.path(out.dir, "params_src_2017-04-25.txt"), sep = "\t", col.names = T)
+write.table(params, file = file.path(out.dir, "params_src_2017-05-08.txt"), sep = "\t", col.names = T)
 
 ############################################################################
 ## merge results
-output.tab.dir <- "/work/georges/BRISCA/SRC_baseline_tabs_2017-04-26"
+output.tab.dir <- "/work/georges/BRISCA/SRC_baseline_tabs_2017-05-08"
 sp.tab <- read.table("~/BRISCA/briscahub/data/sp.list_03.03.2017.txt", header = TRUE, 
                      sep = "\t", stringsAsFactors = FALSE)
 l.files <- list.files(output.tab.dir, full.names = TRUE)
@@ -205,6 +212,7 @@ colnames(tab.out) <- c("layer_id", "Loss", "Stable0", "Stable1", "Gain", "PercLo
                        "PercGain", "SpeciesRangeChange", "CurrentRangeSize", 
                        "FutureRangeSize.NoDisp", "FutureRangeSize.FullDisp",
                        "area", "file.id", "sp", "model", "rcp", "gcm", "filt", 
-                       "biointer","src_ras_file")
+                       "biointer", "biointer_intensity","src_ras_file")
 tab.out <- tab.out %>% left_join(sp.tab %>% dplyr::select(Biomod.name, Growth.form.Isla) %>% rename(sp = Biomod.name, gf = Growth.form.Isla)) 
+## duplicate the with_tree biointer results for the no_tree ones  
 write.table(tab.out, file = paste0(output.tab.dir, ".txt"), sep = "\t", col.names = T)
