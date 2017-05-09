@@ -19,10 +19,10 @@ library(ggplot2)
 
 ## define the main paths to data
 briscahub.dir <- "~/BRISCA/briscahub/" ## on pinea
-src.maps.path <- "/work/georges/BRISCA/SRC_baseline_maps_2017-04-26"
-src.out.tab.file <- "/work/georges/BRISCA/SRC_baseline_tabs_2017-04-26.txt"
-param.tab.path <- "/work/georges/BRISCA/grid_params/params_alphadiv_2017-04-25.txt" ## on pinea
-out.dir.path <-"I:/C_Write/Damien/BRISCA/figures/2017-04-27"
+src.maps.path <- "/work/georges/BRISCA/SRC_baseline_maps_2017-05-08"
+src.out.tab.file <- "/work/georges/BRISCA/SRC_baseline_tabs_2017-05-08.txt"
+# param.tab.path <- "/work/georges/BRISCA/grid_params/params_alphadiv_2017-08-05.txt" ## on pinea
+out.dir.path <-"/work/georges/BRISCA/figures/2017-04-27"
 path.to.buffers <- "/home/georges/BRISCA/briscahub/data/mask_raster_arctic_area_2017-04-26"
 
 dir.create(out.dir.path, recursive = TRUE, showWarnings = FALSE)
@@ -60,11 +60,13 @@ gg.dat <- gg.dat %>%
          future.range.size.full.disp = FutureRangeSize.FullDisp,
          dispersal.filter = filt,
          biotic.inter = biointer,
+         biotic.inter.intensity = biointer_intensity,
          species = sp,
          growth.form = gf) 
 
 gg.dat$dispersal.filter <- factor(gg.dat$dispersal.filter, levels = c("no_dipersal", "max_dipersal", "unlimited_dipersal"), labels =  c("no", "maximal", "unlimited"))
 gg.dat$biotic.inter <- factor(gg.dat$biotic.inter, levels =  c("no", "no_tree", "incl_tree"), labels = c("no", "without trees", "with trees"))
+gg.dat$biotic.inter.intensity <- factor(gg.dat$biotic.inter.intensity, levels = c("no_dipersal", "max_dipersal", "unlimited_dipersal"), labels =  c("no", "maximal", "unlimited"))
 
 ## remove some combination of params we are not interested in
 # gg.dat <- gg.dat %>% filter(!(scenario.biomod == "climate_and_biointer_filtered" &  dispersal.filter == ""),
@@ -110,9 +112,16 @@ gg.dat <- gg.dat %>% filter(metric.name %in% c('src', 'percent.loss', 'percent.g
 
 ## to deal with the boxplot outliers
 gg.dat.no.ol <- gg.dat %>% 
+  filter(dispersal.filter == biotic.inter.intensity) %>% ## keep only dipersal filter and bioitic interaction that match inispersal distance hyp
   filter(is.finite(metric.val)) %>%
   group_by(dispersal.filter, biotic.inter, metric.name, area) %>%
   do(data.frame(t(boxplot.stats(.$metric.val)$stats)))
+
+gg.dat.no.ol.bii <- gg.dat %>% 
+  filter(is.finite(metric.val)) %>%
+  group_by(dispersal.filter, biotic.inter.intensity, metric.name, area) %>%
+  do(data.frame(t(boxplot.stats(.$metric.val)$stats)))
+
 
 #### TO BE REACTIVATED  ####
 
@@ -164,6 +173,11 @@ ggsave(file.path(out.dir.path, "fig1a.png"), gg.plot, width = 297, height = 210,
 ggsave(file.path(out.dir.path, "fig1a_nt.png"), gg.plot %+% (gg.dat.no.ol %>% filter(biotic.inter != "with trees")), width = 297, height = 210, units = 'mm')
 ## filter out the no trees dispersal scenario
 ggsave(file.path(out.dir.path, "fig1a_wt.png"), gg.plot %+% (gg.dat.no.ol %>% filter(biotic.inter != "without trees")), width = 297, height = 210, units = 'mm')
+
+## filter out the with trees dispersal scenario and add biotic interacion intesity
+ggsave(file.path(out.dir.path, "fig1a_nt_bii.png"), (gg.plot + aes(linetype = biotic.inter.intensity) + scale_linetype_discrete(guide = guide_legend(title = "Biotic interactions intensity"))) %+% (gg.dat.no.ol.bii %>% filter(biotic.inter != "with trees")), width = 297, height = 210, units = 'mm')
+## filter out the no trees dispersal scenario
+ggsave(file.path(out.dir.path, "fig1a_wt_bii.png"), (gg.plot + aes(linetype = biotic.inter.intensity) + scale_linetype_discrete(guide = guide_legend(title = "Biotic interactions intensity"))) %+% (gg.dat.no.ol.bii %>% filter(biotic.inter != "without trees")), width = 297, height = 210, units = 'mm')
 
 ### make a try with a semilog scale
 ## to deal with the boxplot outliers
@@ -234,11 +248,11 @@ ggsave(file.path(out.dir.path, "figXa_nt_pseudo_log.png"), gg.plot %+% (gg.dat.g
 ggsave(file.path(out.dir.path, "figXa_wt_pseudo_log.png"), gg.plot %+% (gg.dat.gf.log.no.ol %>% filter(biotic.inter != "without trees")), width = 320, height = 210, units = 'mm')
 
 
-### extra tests to check that 
-load(src.tab.path)
-## add the no disp pattern
-src.tab <- src.tab %>% mutate(dispersal.filter = replace(dispersal.filter, grepl("_filt_no_disp_invdist.grd", file.pattern), "no"))
-
+# ### extra tests to check that 
+# load(src.tab.path)
+# ## add the no disp pattern
+# src.tab <- src.tab %>% mutate(dispersal.filter = replace(dispersal.filter, grepl("_filt_no_disp_invdist.grd", file.pattern), "no"))
+# 
 # ## check the trends due to dispersal filter and biotic interactions
 # src.tab %>% group_by(species, rcp, gcm, area, biotic.inter, dispersal.filter) %>%
 #   select(src, as.numeric(file.id)) %>% mutate(n = n()) %>% data.frame %>% head
