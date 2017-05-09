@@ -20,7 +20,6 @@ library(parallel)
 library(ggplot2)
 library(tidyr)
 
-cat("\n memory.limit() = ", memory.limit())
 
 ## set some parameters
 machine <- "sdiv" # "sdiv" ## the name of the machine the script will run on
@@ -39,10 +38,10 @@ if(machine == "leca97"){
   out.dir.path <-"~/Work/BRISCA/outputs/2016-07-01" ## on pinea
 } else if (machine == "sdiv"){
   briscahub.dir <- "~/BRISCA/briscahub/" ## on pinea
-  src.maps.path <- "/work/georges/BRISCA/SRC_baseline_maps_2017-04-26"
-  src.out.tab.file <- "/work/georges/BRISCA/SRC_baseline_tabs_2017-04-26.txt"
+  src.maps.path <- "/work/georges/BRISCA/SRC_baseline_maps_2017-05-08"
+  src.out.tab.file <- "/work/georges/BRISCA/SRC_baseline_tabs_2017-05-08.txt"
   param.tab.path <- "/work/georges/BRISCA/grid_params/params_alphadiv_2017-04-25.txt" ## on pinea
-  out.dir.path <-"/work/georges/BRISCA/alphadiv_2017-04-25"
+  out.dir.path <-"/work/georges/BRISCA/alphadiv_2017-05-08"
   path.to.buffers <- "/home/georges/BRISCA/briscahub/data/mask_raster_arctic_area_2017-04-26"
   
   rasterOptions(tmpdir = "/work/georges/R_raster_georges", ## where to store raster tmp files (prevent to fill up /tmp dir)
@@ -53,7 +52,7 @@ if(machine == "leca97"){
 dir.create(out.dir.path, showWarnings = FALSE, recursive =TRUE)
 
 args <- commandArgs(trailingOnly = TRUE)
-job.id <- as.character(args[1]) ## job.id <-  1 
+job.id <- as.character(args[1]) ## job.id <-  55
 
 
 ## load species ref table
