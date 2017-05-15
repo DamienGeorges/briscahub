@@ -22,7 +22,7 @@ briscahub.dir <- "~/BRISCA/briscahub/" ## on pinea
 src.maps.path <- "/work/georges/BRISCA/SRC_baseline_maps_2017-05-08"
 src.out.tab.file <- "/work/georges/BRISCA/SRC_baseline_tabs_2017-05-08.txt"
 # param.tab.path <- "/work/georges/BRISCA/grid_params/params_alphadiv_2017-08-05.txt" ## on pinea
-out.dir.path <-"/work/georges/BRISCA/figures/2017-04-27"
+out.dir.path <-"/work/georges/BRISCA/figures/2017-05-15"
 path.to.buffers <- "/home/georges/BRISCA/briscahub/data/mask_raster_arctic_area_2017-04-26"
 
 dir.create(out.dir.path, recursive = TRUE, showWarnings = FALSE)
@@ -66,7 +66,7 @@ gg.dat <- gg.dat %>%
 
 gg.dat$dispersal.filter <- factor(gg.dat$dispersal.filter, levels = c("no_dipersal", "max_dipersal", "unlimited_dipersal"), labels =  c("no", "maximal", "unlimited"))
 gg.dat$biotic.inter <- factor(gg.dat$biotic.inter, levels =  c("no", "no_tree", "incl_tree"), labels = c("no", "without trees", "with trees"))
-gg.dat$biotic.inter.intensity <- factor(gg.dat$biotic.inter.intensity, levels = c("no_dipersal", "max_dipersal", "unlimited_dipersal"), labels =  c("no", "maximal", "unlimited"))
+gg.dat$biotic.inter.intensity <- factor(gg.dat$biotic.inter.intensity, levels = c("no", "no_dipersal", "max_dipersal", "unlimited_dipersal"), labels =  c("-", "no", "maximal", "unlimited"))
 
 ## remove some combination of params we are not interested in
 # gg.dat <- gg.dat %>% filter(!(scenario.biomod == "climate_and_biointer_filtered" &  dispersal.filter == ""),
@@ -81,7 +81,7 @@ gg.dat$area <- factor(gg.dat$area, levels =  c("from_sub_arctic", "sub_arctic", 
 
 
 ## check the number of combination computed
-gg.dat %>% ungroup %>% group_by(biotic.inter, dispersal.filter) %>% summarise(n = n())
+gg.dat %>% ungroup %>% group_by(biotic.inter, biotic.inter.intensity, dispersal.filter) %>% summarise(n = n())
 colnames(gg.dat)
 # [1] "layer_id"                 "Loss"                    
 # [3] "Stable0"                  "Stable1"                 
@@ -110,17 +110,18 @@ gg.dat <- gg.dat %>% filter(metric.name %in% c('src', 'percent.loss', 'percent.g
 ## that is kind of problematic for the boxplots.. lets try to remove non finite values
 # gg.dat <- gg.dat %>% filter(is.finite(metric.val))
 
-## to deal with the boxplot outliers
-gg.dat.no.ol <- gg.dat %>% 
-  filter(dispersal.filter == biotic.inter.intensity) %>% ## keep only dipersal filter and bioitic interaction that match inispersal distance hyp
-  filter(is.finite(metric.val)) %>%
-  group_by(dispersal.filter, biotic.inter, metric.name, area) %>%
-  do(data.frame(t(boxplot.stats(.$metric.val)$stats)))
+# ## to deal with the boxplot outliers
+# gg.dat.no.ol <- gg.dat %>% 
+#   filter(dispersal.filter == biotic.inter.intensity) %>% ## keep only dipersal filter and bioitic interaction that match inispersal distance hyp
+#   filter(is.finite(metric.val)) %>%
+#   group_by(dispersal.filter, biotic.inter, metric.name, area) %>%
+#   do(data.frame(t(boxplot.stats(.$metric.val)$stats)))
 
 gg.dat.no.ol.bii <- gg.dat %>% 
   filter(is.finite(metric.val)) %>%
-  group_by(dispersal.filter, biotic.inter.intensity, metric.name, area) %>%
-  do(data.frame(t(boxplot.stats(.$metric.val)$stats)))
+  group_by(dispersal.filter, biotic.inter, biotic.inter.intensity, metric.name, area) %>%
+  do(data.frame(t(boxplot.stats(.$metric.val)$stats))) %>%
+  filter(!is.na(biotic.inter.intensity))
 
 
 #### TO BE REACTIVATED  ####
@@ -157,95 +158,140 @@ gg.dat.no.ol.bii <- gg.dat %>%
 # #   xlab("") + ylab("") +
 # #   gg.theme + theme(axis.text.x = element_blank(), axis.ticks.x = element_blank())
 # # gg.plot
-gg.plot <- ggplot(gg.dat.no.ol, aes(1, fill = dispersal.filter, linetype = biotic.inter)) +  
+
+# gg.plot <- ggplot(gg.dat.no.ol, aes(1, fill = dispersal.filter, linetype = biotic.inter)) +  
+#   geom_boxplot(aes(lower = X2, middle = X3, upper = X4, ymin = X1, ymax = X5), 
+#                stat = "identity", outlier.colour = NA, position = position_dodge(1.5)) + 
+#   facet_grid(metric.name ~ area, scale = 'free_y') + 
+#   scale_fill_brewer(palette = "Blues", guide = guide_legend(title = "Dispersal distance")) + 
+#   scale_linetype_discrete(guide = guide_legend(title = "Biotic interactions")) +
+#   xlab("") + ylab("") +
+#   gg.theme + theme(axis.text.x = element_blank(), axis.ticks.x = element_blank())
+# 
+# # gg.plot
+# # x11()
+# ggsave(file.path(out.dir.path, "fig1a.png"), gg.plot, width = 297, height = 210, units = 'mm')
+# ## filter out the with trees dispersal scenario
+# ggsave(file.path(out.dir.path, "fig1a_nt.png"), gg.plot %+% (gg.dat.no.ol %>% filter(biotic.inter != "with trees")), width = 297, height = 210, units = 'mm')
+# ## filter out the no trees dispersal scenario
+# ggsave(file.path(out.dir.path, "fig1a_wt.png"), gg.plot %+% (gg.dat.no.ol %>% filter(biotic.inter != "without trees")), width = 297, height = 210, units = 'mm')
+
+gg.plot <- ggplot(gg.dat.no.ol.bii %>% filter(biotic.inter != "with trees"), 
+                  aes(1, fill = dispersal.filter, linetype = biotic.inter.intensity)) +  
   geom_boxplot(aes(lower = X2, middle = X3, upper = X4, ymin = X1, ymax = X5), 
                stat = "identity", outlier.colour = NA, position = position_dodge(1.5)) + 
   facet_grid(metric.name ~ area, scale = 'free_y') + 
   scale_fill_brewer(palette = "Blues", guide = guide_legend(title = "Dispersal distance")) + 
-  scale_linetype_discrete(guide = guide_legend(title = "Biotic interactions")) +
+  scale_linetype_discrete(guide = guide_legend(title = "Biotic interactions intensity")) +
   xlab("") + ylab("") +
   gg.theme + theme(axis.text.x = element_blank(), axis.ticks.x = element_blank())
 
-# gg.plot
-# x11()
-ggsave(file.path(out.dir.path, "fig1a.png"), gg.plot, width = 297, height = 210, units = 'mm')
-## filter out the with trees dispersal scenario
-ggsave(file.path(out.dir.path, "fig1a_nt.png"), gg.plot %+% (gg.dat.no.ol %>% filter(biotic.inter != "with trees")), width = 297, height = 210, units = 'mm')
-## filter out the no trees dispersal scenario
-ggsave(file.path(out.dir.path, "fig1a_wt.png"), gg.plot %+% (gg.dat.no.ol %>% filter(biotic.inter != "without trees")), width = 297, height = 210, units = 'mm')
-
 ## filter out the with trees dispersal scenario and add biotic interacion intesity
-ggsave(file.path(out.dir.path, "fig1a_nt_bii.png"), (gg.plot + aes(linetype = biotic.inter.intensity) + scale_linetype_discrete(guide = guide_legend(title = "Biotic interactions intensity"))) %+% (gg.dat.no.ol.bii %>% filter(biotic.inter != "with trees")), width = 297, height = 210, units = 'mm')
+ggsave(file.path(out.dir.path, "fig1a_nt_bii.png"), gg.plot, width = 297, height = 210, units = 'mm')
 ## filter out the no trees dispersal scenario
-ggsave(file.path(out.dir.path, "fig1a_wt_bii.png"), (gg.plot + aes(linetype = biotic.inter.intensity) + scale_linetype_discrete(guide = guide_legend(title = "Biotic interactions intensity"))) %+% (gg.dat.no.ol.bii %>% filter(biotic.inter != "without trees")), width = 297, height = 210, units = 'mm')
+ggsave(file.path(out.dir.path, "fig1a_wt_bii.png"), gg.plot %+% (gg.dat.no.ol.bii %>% filter(biotic.inter != "without trees")), width = 297, height = 210, units = 'mm')
 
 ### make a try with a semilog scale
 ## to deal with the boxplot outliers
 
-gg.dat.log.no.ol <- gg.dat %>% 
-  filter(is.finite(metric.val)) %>% 
-  group_by(dispersal.filter, biotic.inter, metric.name, area) %>%
-  do(data.frame(t(boxplot.stats(log((.$metric.val + 100) / 100))$stats)))
+# gg.dat.log.no.ol <- gg.dat %>% 
+#   filter(is.finite(metric.val)) %>% 
+#   group_by(dispersal.filter, biotic.inter, metric.name, area) %>%
+#   do(data.frame(t(boxplot.stats(log((.$metric.val + 100) / 100))$stats)))
+# 
+# gg.plot <- ggplot(gg.dat.log.no.ol, aes(1, fill = dispersal.filter, linetype = biotic.inter)) +
+#   geom_boxplot(aes(lower = X2, middle = X3, upper = X4, ymin = X1, ymax = X5), 
+#                stat = "identity", outlier.colour = NA, position = position_dodge(1.5)) + 
+#   facet_grid(metric.name ~ area, scale = 'free_y') + 
+#   scale_fill_brewer(palette = "Blues", guide = guide_legend(title = "Dispersal distance")) + 
+#   scale_linetype_discrete(guide = guide_legend(title = "Biotic interactions")) +
+#   xlab("") + ylab("") +
+#   gg.theme + theme(axis.text.x = element_blank(), axis.ticks.x = element_blank())
+# # gg.plot
+# 
+# ggsave(file.path(out.dir.path, "fig1a_pseudo_log.png"), gg.plot, width = 297, height = 210, units = 'mm')
+# ggsave(file.path(out.dir.path, "fig1a_nt_pseudo_log.png"), gg.plot %+% (gg.dat.log.no.ol %>% filter(biotic.inter != "with trees")), width = 297, height = 210, units = 'mm')
+# ggsave(file.path(out.dir.path, "fig1a_wt_pseudo_log.png"), gg.plot %+% (gg.dat.log.no.ol %>% filter(biotic.inter != "without trees")), width = 297, height = 210, units = 'mm')
 
-gg.plot <- ggplot(gg.dat.log.no.ol, aes(1, fill = dispersal.filter, linetype = biotic.inter)) +
+gg.dat.log.no.ol.bii <- gg.dat %>% 
+  filter(is.finite(metric.val)) %>% 
+  group_by(dispersal.filter, biotic.inter, biotic.inter.intensity, metric.name, area) %>%
+  do(data.frame(t(boxplot.stats(log((.$metric.val + 100) / 100))$stats))) %>%
+  filter(!is.na(biotic.inter.intensity))
+
+
+gg.plot <- ggplot(gg.dat.log.no.ol.bii  %>% filter(biotic.inter != "with trees"), 
+                  aes(1, fill = dispersal.filter, linetype = biotic.inter.intensity)) +
   geom_boxplot(aes(lower = X2, middle = X3, upper = X4, ymin = X1, ymax = X5), 
                stat = "identity", outlier.colour = NA, position = position_dodge(1.5)) + 
   facet_grid(metric.name ~ area, scale = 'free_y') + 
   scale_fill_brewer(palette = "Blues", guide = guide_legend(title = "Dispersal distance")) + 
-  scale_linetype_discrete(guide = guide_legend(title = "Biotic interactions")) +
+  scale_linetype_discrete(guide = guide_legend(title = "Biotic interactions intensity")) +
   xlab("") + ylab("") +
   gg.theme + theme(axis.text.x = element_blank(), axis.ticks.x = element_blank())
 # gg.plot
 
-ggsave(file.path(out.dir.path, "fig1a_pseudo_log.png"), gg.plot, width = 297, height = 210, units = 'mm')
-ggsave(file.path(out.dir.path, "fig1a_nt_pseudo_log.png"), gg.plot %+% (gg.dat.log.no.ol %>% filter(biotic.inter != "with trees")), width = 297, height = 210, units = 'mm')
-ggsave(file.path(out.dir.path, "fig1a_wt_pseudo_log.png"), gg.plot %+% (gg.dat.log.no.ol %>% filter(biotic.inter != "without trees")), width = 297, height = 210, units = 'mm')
+## filter out the with trees dispersal scenario and add biotic interacion intesity
+ggsave(file.path(out.dir.path, "fig1a_nt_bii_pseudo_log.png"), gg.plot, width = 297, height = 210, units = 'mm')
+## filter out the no trees dispersal scenario
+ggsave(file.path(out.dir.path, "fig1a_wt_bii_pseudo_log.png"), gg.plot %+% (gg.dat.log.no.ol.bii %>% filter(biotic.inter != "without trees")), width = 297, height = 210, units = 'mm')
 
 
 ### produce the same 2 graph but grouping by growth form -----------------------
 
 ## to deal with the boxplot outliers
-gg.dat.gf.no.ol <- gg.dat %>% 
+gg.dat.gf.no.ol.bii <- gg.dat %>% 
   filter(is.finite(metric.val)) %>%
-  group_by(dispersal.filter, biotic.inter, metric.name, area, growth.form) %>%
-  do(data.frame(t(boxplot.stats(.$metric.val)$stats)))
+  group_by(dispersal.filter, biotic.inter, biotic.inter.intensity, metric.name, area, growth.form) %>%
+  do(data.frame(t(boxplot.stats(.$metric.val)$stats))) %>%
+  filter(!is.na(biotic.inter.intensity))
 
-gg.dat.gf.log.no.ol <- gg.dat %>% 
+
+gg.dat.gf.log.no.ol.bii <- gg.dat %>% 
   filter(is.finite(metric.val)) %>% 
-  group_by(dispersal.filter, biotic.inter, metric.name, area, growth.form) %>%
-  do(data.frame(t(boxplot.stats(log((.$metric.val + 100) / 100))$stats)))
+  group_by(dispersal.filter, biotic.inter, biotic.inter.intensity, metric.name, area, growth.form) %>%
+  do(data.frame(t(boxplot.stats(log((.$metric.val + 100) / 100))$stats))) %>%
+  filter(!is.na(biotic.inter.intensity))
 
-gg.plot <- ggplot(gg.dat.gf.no.ol, aes(growth.form, fill = dispersal.filter, linetype = biotic.inter)) +
+gg.plot <- ggplot(gg.dat.gf.no.ol.bii  %>% filter(biotic.inter != "with trees"), aes(growth.form, fill = dispersal.filter, linetype = biotic.inter.intensity)) +
   geom_boxplot(aes(lower = X2, middle = X3, upper = X4, ymin = X1, ymax = X5), 
                stat = "identity", outlier.colour = NA, position = position_dodge(.9), varwidth=0.5) + 
   facet_grid(metric.name ~ area, scale = 'free_y') + 
   scale_fill_brewer(palette = "Blues", guide = guide_legend(title = "Dispersal distance")) + 
-  scale_linetype_discrete(guide = guide_legend(title = "Biotic interactions")) +
+  scale_linetype_discrete(guide = guide_legend(title = "Biotic interactions intensity")) +
   xlab("") + ylab("") +
   gg.theme + theme(axis.text.x = element_text(angle = 0, hjust = .5, vjust = .5))
 # gg.plot
 
 
-ggsave(file.path(out.dir.path, "figXa.png"), gg.plot, width = 320, height = 210, units = 'mm')
-ggsave(file.path(out.dir.path, "figXa_nt.png"), gg.plot %+% (gg.dat.gf.no.ol %>% filter(biotic.inter != "with trees")), width = 320, height = 210, units = 'mm')
-ggsave(file.path(out.dir.path, "figXa_wt.png"), gg.plot %+% (gg.dat.gf.no.ol %>% filter(biotic.inter != "without trees")), width = 320, height = 210, units = 'mm')
+### natural scale
+
+## filter out the with trees dispersal scenario and add biotic interacion intesity
+ggsave(file.path(out.dir.path, "fig2_nt_bii.png"), gg.plot, width = 297, height = 210, units = 'mm')
+## filter out the no trees dispersal scenario
+ggsave(file.path(out.dir.path, "fig2_wt_bii.png"), gg.plot %+% (gg.dat.gf.no.ol.bii %>% filter(biotic.inter != "without trees")), width = 297, height = 210, units = 'mm')
+
+### log scale
+## filter out the with trees dispersal scenario and add biotic interacion intesity
+ggsave(file.path(out.dir.path, "fig2_nt_bii_pseudo_log.png"), gg.plot %+% (gg.dat.gf.log.no.ol.bii %>% filter(biotic.inter != "with trees")), width = 297, height = 210, units = 'mm')
+## filter out the no trees dispersal scenario
+ggsave(file.path(out.dir.path, "fig2_wt_bii_pseudo_log.png"), gg.plot %+% (gg.dat.gf.log.no.ol.bii %>% filter(biotic.inter != "without trees")), width = 297, height = 210, units = 'mm')
 
 
+# ### make a try with a semilog scale
+# gg.plot <- ggplot(gg.dat.gf.log.no.ol, aes(growth.form, fill = dispersal.filter, linetype = biotic.inter)) +
+#   geom_boxplot(aes(lower = X2, middle = X3, upper = X4, ymin = X1, ymax = X5), 
+#                stat = "identity", outlier.colour = NA, position = position_dodge(0.9)) + 
+#   facet_grid(metric.name ~ area, scale = 'free_y') + 
+#   scale_fill_brewer(palette = "Blues", guide = guide_legend(title = "Dispersal distance")) + 
+#   scale_linetype_discrete(guide = guide_legend(title = "Biotic interactions")) +
+#   xlab("") + ylab("") +
+#   gg.theme + theme(axis.text.x = element_text(angle = 0, hjust = .5, vjust = .5))
+# # gg.plot
 
-### make a try with a semilog scale
-gg.plot <- ggplot(gg.dat.gf.log.no.ol, aes(growth.form, fill = dispersal.filter, linetype = biotic.inter)) +
-  geom_boxplot(aes(lower = X2, middle = X3, upper = X4, ymin = X1, ymax = X5), 
-               stat = "identity", outlier.colour = NA, position = position_dodge(0.9)) + 
-  facet_grid(metric.name ~ area, scale = 'free_y') + 
-  scale_fill_brewer(palette = "Blues", guide = guide_legend(title = "Dispersal distance")) + 
-  scale_linetype_discrete(guide = guide_legend(title = "Biotic interactions")) +
-  xlab("") + ylab("") +
-  gg.theme + theme(axis.text.x = element_text(angle = 0, hjust = .5, vjust = .5))
-# gg.plot
-
-ggsave(file.path(out.dir.path, "figXa_pseudo_log.png"), gg.plot, width = 320, height = 210, units = 'mm')
-ggsave(file.path(out.dir.path, "figXa_nt_pseudo_log.png"), gg.plot %+% (gg.dat.gf.log.no.ol %>% filter(biotic.inter != "with trees")), width = 320, height = 210, units = 'mm')
-ggsave(file.path(out.dir.path, "figXa_wt_pseudo_log.png"), gg.plot %+% (gg.dat.gf.log.no.ol %>% filter(biotic.inter != "without trees")), width = 320, height = 210, units = 'mm')
+# ggsave(file.path(out.dir.path, "figXa_pseudo_log.png"), gg.plot, width = 320, height = 210, units = 'mm')
+# ggsave(file.path(out.dir.path, "figXa_nt_pseudo_log.png"), gg.plot %+% (gg.dat.gf.log.no.ol %>% filter(biotic.inter != "with trees")), width = 320, height = 210, units = 'mm')
+# ggsave(file.path(out.dir.path, "figXa_wt_pseudo_log.png"), gg.plot %+% (gg.dat.gf.log.no.ol %>% filter(biotic.inter != "without trees")), width = 320, height = 210, units = 'mm')
 
 
 # ### extra tests to check that 
