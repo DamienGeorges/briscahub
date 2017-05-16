@@ -26,17 +26,7 @@ machine <- "sdiv" # "sdiv" ## the name of the machine the script will run on
 n.cores <- 1 ## number of resuired cores
 
 ## define the main paths to data
-if(machine == "leca97"){
-  briscahub.dir <- "~/Work/BRISCA/briscahub/" ## on leca97
-  src.maps.path <-  paste0("~/Work/BRISCA/workdir/_SRC/", ifelse(same.baseline, "SRC_baseline_maps", "SRC_maps")) ## on leca97
-  param.tab.path <- "~/Work/BRISCA/workdir/_SRC/params_src.txt"
-  out.dir.path <- paste0("~/Work/BRISCA/outputs/2016-08-18/", ifelse(same.baseline, "SRC_baseline", "SRC"), "_alpha_and_turnover_stack") ## on leca97
-} else if (machine == "pinea"){
-  briscahub.dir <- "~/Work/BRISCA/briscahub/" ## on pinea
-  src.maps.path <- paste0("~/Work/BRISCA/workdir/_SRC/", ifelse(same.baseline, "SRC_baseline_maps", "SRC_maps")) ## on pinea
-  param.tab.path <- "~/Work/BRISCA/workdir/_SRC/params_src.txt" ## on pinea
-  out.dir.path <-"~/Work/BRISCA/outputs/2016-07-01" ## on pinea
-} else if (machine == "sdiv"){
+if (machine == "sdiv"){
   briscahub.dir <- "~/BRISCA/briscahub/" ## on pinea
   src.maps.path <- "/work/georges/BRISCA/SRC_baseline_maps_2017-05-08"
   src.out.tab.file <- "/work/georges/BRISCA/SRC_baseline_tabs_2017-05-08.txt"
@@ -59,7 +49,7 @@ job.id <- as.character(args[1]) ## job.id <-  55
 ## load grid campain parameters table
 src.out.tab <- read.table(src.out.tab.file, 
                      sep = "\t", stringsAsFactors = FALSE, header = TRUE)
-src.out.tab <- src.out.tab %>% dplyr::select(sp, filt, biointer, gf, src_ras_file, rcp, gcm) %>% distinct
+src.out.tab <- src.out.tab %>% dplyr::select(sp, filt, biointer, biointer_intensity, gf, src_ras_file, rcp, gcm) %>% distinct
 
 param.tab <- read.table(param.tab.path, sep = "\t", header = TRUE, stringsAsFactors = FALSE)
 param.tab <- param.tab[job.id,,drop = FALSE]
