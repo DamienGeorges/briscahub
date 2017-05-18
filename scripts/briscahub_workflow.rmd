@@ -30,3 +30,7 @@ everithing have to be done from scratch!
 7. create biotic interaction masks
 
 5. copy the pure climate models outputs in /data/idiv_sdiv/ (27/02/2017)
+
+## March 2017
+
+Re-run everithing again!

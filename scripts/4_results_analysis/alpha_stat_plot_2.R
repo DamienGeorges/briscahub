@@ -59,7 +59,7 @@ gg.dat <- gg.dat %>%
 ## remove the index we are not interested in
 ## and keep only All Shrub scenario
 gg.dat <- gg.dat %>%
-  filter(growth.form == "All shrub") %>%
+  # filter(growth.form == "All shrub") %>%
   filter(metric %in% c("alphadiv.change", "pct.lost", "pct.gain"))
 
 gg.dat$dispersal.filter <- factor(gg.dat$dispersal.filter, levels = c("no_dipersal", "max_dipersal", "unlimited_dipersal"), labels =  c("no", "maximal", "unlimited"))
@@ -81,24 +81,41 @@ gg.dat$area <- factor(gg.dat$area, levels =  c("from_sub_arctic", "sub_arctic", 
 
 
 ## check the number of combination computed
-gg.dat %>% ungroup %>% group_by(biotic.inter, biotic.inter.intensity, dispersal.filter) %>% summarise(n = n())
+gg.dat %>% filter(growth.form == "All shrub") %>% ungroup %>% group_by(biotic.inter, biotic.inter.intensity, dispersal.filter) %>% summarise(n = n())
 head(gg.dat)
 
 
 ## first version
 
 
-gg.plot <- ggplot(gg.dat %>% filter(biotic.inter != "with trees"), 
-                  aes(1, fill = dispersal.filter, linetype = biotic.inter.intensity)) +  
+gg.plot <- ggplot(gg.dat %>% filter(growth.form == "All shrub", biotic.inter != "with trees"), 
+                  aes(growth.form, fill = dispersal.filter, linetype = biotic.inter.intensity)) +  
   geom_boxplot(aes(lower = X2, middle = X3, upper = X4, ymin = X1, ymax = X5), 
                stat = "identity", outlier.colour = NA, position = position_dodge(1.5)) + 
   facet_grid(metric ~ area, scale = 'free_y') + 
   scale_fill_brewer(palette = "Blues", guide = guide_legend(title = "Dispersal distance")) + 
   scale_linetype_discrete(guide = guide_legend(title = "Biotic interactions intensity")) +
   xlab("") + ylab("") +
-  gg.theme + theme(axis.text.x = element_blank(), axis.ticks.x = element_blank())
+  gg.theme 
 
 ## filter out the with trees dispersal scenario and add biotic interacion intesity
-ggsave(file.path(out.dir.path, "fig1b_nt_bii.png"), gg.plot, width = 297, height = 210, units = 'mm')
+ggsave(file.path(out.dir.path, "fig1b_nt_bii.png"), gg.plot + theme(axis.text.x = element_blank(), axis.ticks.x = element_blank()), width = 297, height = 210, units = 'mm')
 ## filter out the no trees dispersal scenario
-ggsave(file.path(out.dir.path, "fig1b_wt_bii.png"), gg.plot %+% (gg.dat %>% filter(biotic.inter != "without trees")), width = 297, height = 210, units = 'mm')
+ggsave(file.path(out.dir.path, "fig1b_wt_bii.png"), gg.plot %+% (gg.dat %>% filter(growth.form == "All shrub", biotic.inter != "without trees")) + theme(axis.text.x = element_blank(), axis.ticks.x = element_blank()), width = 297, height = 210, units = 'mm')
+
+## Do the same graph by growth form (ask by Anne on 2017-05-18)
+gg.plot <- ggplot(gg.dat %>% filter(growth.form == "All shrub", biotic.inter != "with trees"), 
+                  aes(growth.form, fill = dispersal.filter, linetype = biotic.inter.intensity)) +  
+  geom_boxplot(aes(lower = X2, middle = X3, upper = X4, ymin = X1, ymax = X5), 
+               stat = "identity", outlier.colour = NA, position = position_dodge(1)) + 
+  facet_grid(metric ~ area, scale = 'free_y') + 
+  scale_fill_brewer(palette = "Blues", guide = guide_legend(title = "Dispersal distance")) + 
+  scale_linetype_discrete(guide = guide_legend(title = "Biotic interactions intensity")) +
+  xlab("") + ylab("") +
+  gg.theme 
+## filter out the with trees dispersal scenario and add biotic interacion intesity
+ggsave(file.path(out.dir.path, "fig1bb_nt_bii.png"), gg.plot %+% (gg.dat %>% filter(growth.form != "All shrub", biotic.inter != "with trees")) + theme(legend.position="bottom"), width = 445, height = 210, units = 'mm') 
+## filter out the no trees dispersal scenario
+ggsave(file.path(out.dir.path, "fig1bb_wt_bii.png"), gg.plot %+% (gg.dat %>% filter(growth.form != "All shrub", biotic.inter != "without trees")) + theme(legend.position="bottom"), width = 445, height = 210, units = 'mm')
+
+

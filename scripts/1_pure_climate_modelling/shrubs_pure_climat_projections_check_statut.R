@@ -45,7 +45,8 @@ param.file <- "/work/georges/BRISCA/grid_params/params_scabp_all.txt"
 # modelling.dir <- "/work/georges/BRISCA/Biomod_climate_and_biointer_no_tree_2017-04-07"
 # param.file <- "/work/georges/BRISCA/grid_params/params_scabp_no_tree.txt"
 
-param.file.out <- "/work/georges/BRISCA/grid_params/params_scabp_incl_tree_missing.txt"
+param.file.out <- param.file
+# param.file.out <- "/work/georges/BRISCA/grid_params/params_scabp_incl_tree_missing.txt"
 
 # ### for Pure Climate models ###
 # ## read the inout parameters
@@ -123,8 +124,8 @@ lines(1:nrow(proj.tab), 1:nrow(proj.tab), lty = 2)
 #              quote = FALSE, append = FALSE, row.names = TRUE, col.names = FALSE)
 # dim(proj.tab[ !proj.tab$ensmod.proj.ok, 2:3])
 
-write.table(proj.tab[ !proj.tab$mod.proj.ok, 2:4], file = param.file.out,
-            sep = "\t", quote = FALSE, append = FALSE, row.names = TRUE, col.names = FALSE)
+# write.table(proj.tab[ !proj.tab$ensmod.proj.ok, 2:4], file = param.file.out,
+#             sep = "\t", quote = FALSE, append = FALSE, row.names = TRUE, col.names = FALSE)
 
 # which(!proj.tab$mod.proj.ok)
 # which(!proj.tab$ensmod.proj.ok)

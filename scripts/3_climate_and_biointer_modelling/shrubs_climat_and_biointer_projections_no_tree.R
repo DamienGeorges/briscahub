@@ -162,7 +162,7 @@ quit('no')
 
 ## end of script ---------------------------------------------------------------
 
-
+# 
 # ## create the parameter files for the grid -------------------------------------
 # 
 # ## on idiv_cluster
@@ -211,8 +211,8 @@ quit('no')
 # params <- params %>% arrange(sp.list, path.to.clim.var, path.to.biointer.stk)
 # rownames(params) <- NULL
 # 
-# write.table(params, file = file.path(out.dir, paste0("params_scabp_", type,".txt")), sep = "\t",
-#             quote = FALSE, append = FALSE, row.names = TRUE, col.names = FALSE)
-# 
-# # write.table(params, file = file.path(out.dir, paste0("params_scabp_all.txt")), sep = "\t",
+# # write.table(params, file = file.path(out.dir, paste0("params_scabp_", type,".txt")), sep = "\t",
 # #             quote = FALSE, append = FALSE, row.names = TRUE, col.names = FALSE)
+# 
+# write.table(params, file = file.path(out.dir, paste0("params_scabp_all.txt")), sep = "\t",
+#             quote = FALSE, append = FALSE, row.names = TRUE, col.names = FALSE)
