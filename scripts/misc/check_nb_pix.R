@@ -10,7 +10,7 @@ dir.create(out_dir, showWarnings = FALSE, recursive = TRUE)
 
 ## load the parameter table 
 in_dir <- '/work/georges/BRISCA/workdir/check_nb_pix_params'
-d_files <- read.csv(file.path(in_dir, paste0("d_sub_", job_id_, '.csv')))
+d_files <- read.csv(file.path(in_dir, paste0("d_sub_", job_id_, '.csv')), stringsAsFactors = FALSE)
 
 ## the main function
 nb.pix <- function(x) sum(!is.na(raster(x)[]))
