@@ -1,0 +1,47 @@
+#!/bin/bash
+
+# ----------------------------------------------------------------------
+# qsub arguments
+# ----------------------------------------------------------------------
+
+#$  -N  check_nb_pixs
+#$  -S  /bin/bash
+#$  -l  h_vmem=5999M
+#$  -l  h_rt=03:00:00
+#$  -t  1-3010
+#$  -binding linear:1 ## core binding
+
+# ---------------------------------------------------------------------- 
+# output files
+#
+# Explanation:
+#
+#   USER          well, that is your user name
+#   JOB_NAME      reference to the name of the job
+#   JOB_ID        the unique ID of the job
+#   TASK_ID       the task ID of the current task
+# ----------------------------------------------------------------------
+
+#$ -o /work/$USER/logfiles/$JOB_NAME-$JOB_ID-$TASK_ID.log
+#$ -j y
+
+# ----------------------------------------------------------------------
+# actual processing
+# ----------------------------------------------------------------------
+
+paramsFile="none"
+params=${SGE_TASK_ID}
+
+echo
+echo "task id: " ${SGE_TASK_ID}
+echo "params file:" ${paramsFile}
+echo "params: " ${params} 
+echo
+echo
+
+
+source /etc/profile.d/000-modules.sh
+
+module load gdal geos R
+
+Rscript --no-restore --vanilla ~/BRISCA/briscahub/scripts/misc/check_nb_pix.R  ${params}
